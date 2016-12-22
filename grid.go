@@ -11,12 +11,7 @@ type Grid struct {
 }
 
 func (g *Grid) AddContainer(id string) {
-	cid := ui.NewPar(id)
-	cid.Border = false
-	cid.Height = 2
-	cid.Width = 10
-	cid.TextFgColor = ui.ColorWhite
-	g.containers[id] = &Container{cid, mkGauge(), mkGauge()}
+	g.containers[id] = NewContainer(id)
 }
 
 // Return sorted list of active container IDs
@@ -33,9 +28,9 @@ func (g *Grid) Rows() (rows []*ui.Row) {
 	for _, cid := range g.CIDs() {
 		c := g.containers[cid]
 		rows = append(rows, ui.NewRow(
-			ui.NewCol(1, 0, c.cid),
-			ui.NewCol(2, 0, c.cpu),
-			ui.NewCol(2, 0, c.memory),
+			ui.NewCol(1, 0, c.widgets.cid),
+			ui.NewCol(2, 0, c.widgets.cpu),
+			ui.NewCol(2, 0, c.widgets.memory),
 		))
 	}
 	return rows
@@ -87,25 +82,14 @@ func header() *ui.Row {
 	)
 }
 
-func NewGrid() {
+func Display(g *Grid) {
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
 	defer ui.Close()
 
-	g := &Grid{make(map[string]*Container)}
-	for _, id := range []string{" 12345", " 56789", " 00001"} {
-		g.AddContainer(id)
-	}
-
-	par := ui.NewPar("<> This row has 3 columns\n<- Widgets can be stacked up like left side\n<- Stacked widgets are treated as a single widget")
-	par.Height = 5
-	par.BorderLabel = "Demonstration"
-
 	// build layout
-	ui.Body.AddRows(
-		header(),
-	)
+	ui.Body.AddRows(header())
 
 	for _, row := range g.Rows() {
 		ui.Body.AddRows(row)
@@ -120,17 +104,12 @@ func NewGrid() {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		t := e.Data.(ui.EvtTimer)
-		i := t.Count
-		if i > 103 {
-			ui.StopLoop()
-			return
-		}
-
-		for _, c := range g.containers {
-			c.UpdateCPU((c.cpu.Percent + 5) % 100)
-			c.UpdateMem((c.memory.Percent + 12) % 100)
-		}
+		//		t := e.Data.(ui.EvtTimer)
+		//		i := t.Count
+		//		if i > 103 {
+		//			ui.StopLoop()
+		//			return
+		//		}
 
 		ui.Render(ui.Body)
 	})
@@ -143,8 +122,4 @@ func NewGrid() {
 	})
 
 	ui.Loop()
-}
-
-func main() {
-	NewGrid()
 }
