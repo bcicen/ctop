@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/fsouza/go-dockerclient"
 	ui "github.com/gizak/termui"
@@ -61,13 +62,34 @@ func (c *Container) Collect(client *docker.Client) {
 
 }
 
-func (c *Container) UpdateCPU(n int) {
+func (c *Container) UpdateCPU(total uint64, system uint64) {
 	c.widgets.cpu.BarColor = colorScale(n)
 	c.widgets.cpu.Percent = n
 }
 
 func (c *Container) UpdateMem(cur uint64, limit uint64) {
-	c.widgets.memory.Percent = round((float64(cur) / float64(limit)) * 100)
+	percent := round((float64(cur) / float64(limit)) * 100)
+	if percent < 5 {
+		percent = 5
+	}
+	c.widgets.memory.Percent = percent
+	c.widgets.memory.Label = fmt.Sprintf("%s / %s", byteFormat(cur), byteFormat(limit))
+}
+
+func byteFormat(n uint64) string {
+	if n < 1024 {
+		return fmt.Sprintf("%sB", strconv.FormatUint(n, 10))
+	}
+	if n < 1048576 {
+		n = n / 1024
+		return fmt.Sprintf("%sK", strconv.FormatUint(n, 10))
+	}
+	if n < 1073741824 {
+		n = n / 1048576
+		return fmt.Sprintf("%sM", strconv.FormatUint(n, 10))
+	}
+	n = n / 1024000000
+	return fmt.Sprintf("%sG", strconv.FormatUint(n, 10))
 }
 
 func round(num float64) int {

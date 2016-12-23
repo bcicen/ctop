@@ -40,9 +40,10 @@ func mkGauge() *ui.Gauge {
 	g := ui.NewGauge()
 	g.Height = 1
 	g.Border = false
-	g.Percent = 5
+	g.Percent = 0
 	g.PaddingBottom = 0
 	g.BarColor = ui.ColorGreen
+	g.Label = "-"
 	return g
 }
 
