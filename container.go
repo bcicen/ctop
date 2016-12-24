@@ -18,7 +18,7 @@ type Widgets struct {
 func NewWidgets(id string) *Widgets {
 	cid := ui.NewPar(id)
 	cid.Border = false
-	cid.Height = 2
+	cid.Height = 1
 	cid.Width = 10
 	cid.TextFgColor = ui.ColorWhite
 	return &Widgets{cid, mkGauge(), mkGauge()}

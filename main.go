@@ -19,7 +19,9 @@ func main() {
 	}
 
 	g := &Grid{make(map[string]*Container)}
-	g.AddContainer(os.Args[1])
+	for _, c := range os.Args[1:] {
+		g.AddContainer(c)
+	}
 
 	for _, c := range g.containers {
 		c.Collect(client)
