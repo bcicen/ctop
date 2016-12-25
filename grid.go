@@ -41,7 +41,7 @@ func header() *ui.Row {
 	c1 := ui.NewPar(" CID")
 	c1.Border = false
 	c1.Height = 2
-	c1.Width = 10
+	c1.Width = 20
 	c1.TextFgColor = ui.ColorWhite
 
 	//cpu

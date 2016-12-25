@@ -1,17 +1,29 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/fsouza/go-dockerclient"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("no container provided")
-		os.Exit(1)
+func runningCIDs(client *docker.Client) (running []string) {
+	filters := make(map[string][]string)
+	filters["status"] = []string{"running"}
+	opts := docker.ListContainersOptions{
+		Filters: filters,
 	}
+	containers, err := client.ListContainers(opts)
+	if err != nil {
+		panic(err)
+	}
+	for _, c := range containers {
+		running = append(running, c.ID[:12])
+	}
+	return running
+}
+
+func main() {
+	var containers []string
 
 	dockerhost := os.Getenv("DOCKER_HOST")
 	if dockerhost == "" {
@@ -23,8 +35,15 @@ func main() {
 		panic(err)
 	}
 
+	// Default to all running containers
+	if len(os.Args) < 2 {
+		containers = runningCIDs(client)
+	} else {
+		containers = os.Args[1:]
+	}
+
 	g := &Grid{make(map[string]*Container)}
-	for _, c := range os.Args[1:] {
+	for _, c := range containers {
 		g.AddContainer(c)
 	}
 
