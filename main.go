@@ -13,7 +13,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := docker.NewClient("tcp://127.0.0.1:4243")
+	dockerhost := os.Getenv("DOCKER_HOST")
+	if dockerhost == "" {
+		dockerhost = "unix:///var/run/docker.sock"
+	}
+
+	client, err := docker.NewClient(dockerhost)
 	if err != nil {
 		panic(err)
 	}
