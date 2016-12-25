@@ -1,25 +1,33 @@
 package main
 
 import (
+	"fmt"
 	"math"
+	"strconv"
 
 	ui "github.com/gizak/termui"
 )
 
-func byteFormat(n uint64) string {
-	if n < 1024 {
-		return fmt.Sprintf("%sB", strconv.FormatUint(n, 10))
+const (
+	kb = 1024
+	mb = kb * 1024
+	gb = mb * 1024
+)
+
+func byteFormat(n int64) string {
+	if n < kb {
+		return fmt.Sprintf("%sB", strconv.FormatInt(n, 10))
 	}
-	if n < 1048576 {
-		n = n / 1024
-		return fmt.Sprintf("%sK", strconv.FormatUint(n, 10))
+	if n < mb {
+		n = n / kb
+		return fmt.Sprintf("%sK", strconv.FormatInt(n, 10))
 	}
-	if n < 1073741824 {
-		n = n / 1048576
-		return fmt.Sprintf("%sM", strconv.FormatUint(n, 10))
+	if n < gb {
+		n = n / mb
+		return fmt.Sprintf("%sM", strconv.FormatInt(n, 10))
 	}
-	n = n / 1024000000
-	return fmt.Sprintf("%sG", strconv.FormatUint(n, 10))
+	n = n / gb
+	return fmt.Sprintf("%sG", strconv.FormatInt(n, 10))
 }
 
 func round(num float64) int {

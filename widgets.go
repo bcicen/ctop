@@ -2,32 +2,32 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 
-	"github.com/fsouza/go-dockerclient"
 	ui "github.com/gizak/termui"
 )
 
-type CpuCalc struct {
-	lastCpu    uint64
-	lastSysCpu uint64
-}
-
-func (c *CpuCalc) Utilization(cpu uint64, syscpu uint64, ncpus int) int {
-	cpudiff := float64(cpu) - float64(c.lastCpu)
-	syscpudiff := float64(syscpu) - float64(c.lastSysCpu)
-	util := round((cpudiff / syscpudiff * 100) * float64(ncpus))
-	c.lastCpu = cpu
-	c.lastSysCpu = syscpu
-	return util
-}
-
 type Widgets struct {
-	cid     *ui.Par
-	cpu     *ui.Gauge
-	memory  *ui.Gauge
-	cpucalc *CpuCalc
+	cid    *ui.Par
+	cpu    *ui.Gauge
+	memory *ui.Gauge
+}
+
+func (w *Widgets) SetCPU(val int) {
+	w.cpu.BarColor = colorScale(val)
+	w.cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
+	if val < 5 && val > 0 {
+		val = 5
+	}
+	w.cpu.Percent = val
+}
+
+func (w *Widgets) SetMem(val int64, limit int64) {
+	if val < 5 {
+		val = 5
+	}
+	w.memory.Percent = round((float64(val) / float64(limit)) * 100)
+	w.memory.Label = fmt.Sprintf("%s / %s", byteFormat(val), byteFormat(limit))
 }
 
 func NewWidgets(id string) *Widgets {
