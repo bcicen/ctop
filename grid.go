@@ -36,17 +36,6 @@ func (g *Grid) Rows() (rows []*ui.Row) {
 	return rows
 }
 
-func mkGauge() *ui.Gauge {
-	g := ui.NewGauge()
-	g.Height = 1
-	g.Border = false
-	g.Percent = 0
-	g.PaddingBottom = 0
-	g.BarColor = ui.ColorGreen
-	g.Label = "-"
-	return g
-}
-
 func header() *ui.Row {
 	//cid
 	c1 := ui.NewPar(" CID")
