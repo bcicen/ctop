@@ -7,11 +7,17 @@ import (
 )
 
 type Grid struct {
+	cursorPos  uint
 	containers map[string]*Container
 }
 
 func (g *Grid) AddContainer(id string) {
 	g.containers[id] = NewContainer(id)
+}
+
+// Return number of containers/rows
+func (g *Grid) Len() uint {
+	return uint(len(g.containers))
 }
 
 // Return sorted list of active container IDs
@@ -22,6 +28,21 @@ func (g *Grid) CIDs() []string {
 	}
 	sort.Strings(ids)
 	return ids
+}
+
+// Redraw the cursor with the currently selected row
+func (g *Grid) Cursor() {
+	for n, id := range g.CIDs() {
+		c := g.containers[id]
+		if uint(n) == g.cursorPos {
+			c.widgets.cid.TextFgColor = ui.ColorDefault
+			c.widgets.cid.TextBgColor = ui.ColorWhite
+		} else {
+			c.widgets.cid.TextFgColor = ui.ColorWhite
+			c.widgets.cid.TextBgColor = ui.ColorDefault
+		}
+	}
+	ui.Render(ui.Body)
 }
 
 func (g *Grid) Rows() (rows []*ui.Row) {
@@ -88,20 +109,25 @@ func Display(g *Grid) {
 
 	// calculate layout
 	ui.Body.Align()
-
+	g.Cursor()
 	ui.Render(ui.Body)
 
+	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
+		if g.cursorPos > 0 {
+			g.cursorPos -= 1
+			g.Cursor()
+		}
+	})
+	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
+		if g.cursorPos < (g.Len() - 1) {
+			g.cursorPos += 1
+			g.Cursor()
+		}
+	})
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		//		t := e.Data.(ui.EvtTimer)
-		//		i := t.Count
-		//		if i > 103 {
-		//			ui.StopLoop()
-		//			return
-		//		}
-
 		ui.Render(ui.Body)
 	})
 

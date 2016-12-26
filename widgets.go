@@ -9,6 +9,7 @@ import (
 
 type Widgets struct {
 	cid    *ui.Par
+	names  *ui.Par
 	cpu    *ui.Gauge
 	net    *ui.Gauge
 	memory *ui.Gauge

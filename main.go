@@ -42,7 +42,7 @@ func main() {
 		containers = os.Args[1:]
 	}
 
-	g := &Grid{make(map[string]*Container)}
+	g := &Grid{0, make(map[string]*Container)}
 	for _, c := range containers {
 		g.AddContainer(c)
 	}
