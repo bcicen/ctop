@@ -10,6 +10,7 @@ import (
 type Widgets struct {
 	cid    *ui.Par
 	cpu    *ui.Gauge
+	net    *ui.Gauge
 	memory *ui.Gauge
 }
 
@@ -20,6 +21,10 @@ func (w *Widgets) SetCPU(val int) {
 		val = 5
 	}
 	w.cpu.Percent = val
+}
+
+func (w *Widgets) SetNet(rx int64, tx int64) {
+	w.net.Label = fmt.Sprintf("%s / %s", byteFormat(rx), byteFormat(tx))
 }
 
 func (w *Widgets) SetMem(val int64, limit int64) {
@@ -36,7 +41,7 @@ func NewWidgets(id string) *Widgets {
 	cid.Height = 1
 	cid.Width = 20
 	cid.TextFgColor = ui.ColorWhite
-	return &Widgets{cid, mkGauge(), mkGauge()}
+	return &Widgets{cid, mkGauge(), mkGauge(), mkGauge()}
 }
 
 func mkGauge() *ui.Gauge {

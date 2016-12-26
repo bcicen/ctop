@@ -31,35 +31,36 @@ func (g *Grid) Rows() (rows []*ui.Row) {
 			ui.NewCol(1, 0, c.widgets.cid),
 			ui.NewCol(2, 0, c.widgets.cpu),
 			ui.NewCol(2, 0, c.widgets.memory),
+			ui.NewCol(2, 0, c.widgets.net),
 		))
 	}
 	return rows
 }
 
 func header() *ui.Row {
-	//cid
+	// cid
 	c1 := ui.NewPar(" CID")
 	c1.Border = false
 	c1.Height = 2
 	c1.Width = 20
 	c1.TextFgColor = ui.ColorWhite
 
-	//cpu
+	// cpu
 	c2 := ui.NewPar(" CPU")
 	c2.Border = false
 	c2.Height = 2
 	c2.Width = 10
 	c2.TextFgColor = ui.ColorWhite
 
-	//mem
+	// mem
 	c3 := ui.NewPar(" MEM")
 	c3.Border = false
 	c3.Height = 2
 	c3.Width = 10
 	c3.TextFgColor = ui.ColorWhite
 
-	//misc
-	c4 := ui.NewPar(" MISC")
+	// net
+	c4 := ui.NewPar(" NET RX/TX")
 	c4.Border = false
 	c4.Height = 2
 	c4.Width = 10

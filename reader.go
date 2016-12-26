@@ -6,6 +6,8 @@ import (
 
 type StatReader struct {
 	CPUUtil  int
+	NetTx    int64
+	NetRx    int64
 	MemUsage int64
 	MemLimit int64
 	//MemPercent int64
@@ -16,6 +18,7 @@ type StatReader struct {
 func (s *StatReader) Read(stats *docker.Stats) {
 	s.ReadCPU(stats)
 	s.ReadMem(stats)
+	s.ReadNet(stats)
 }
 
 func (s *StatReader) ReadCPU(stats *docker.Stats) {
@@ -34,4 +37,12 @@ func (s *StatReader) ReadMem(stats *docker.Stats) {
 	s.MemUsage = int64(stats.MemoryStats.Usage)
 	s.MemLimit = int64(stats.MemoryStats.Limit)
 	//s.MemPercent = round((float64(cur) / float64(limit)) * 100)
+}
+
+func (s *StatReader) ReadNet(stats *docker.Stats) {
+	s.NetTx, s.NetRx = 0, 0
+	for _, network := range stats.Networks {
+		s.NetTx += int64(network.TxBytes)
+		s.NetRx += int64(network.RxBytes)
+	}
 }

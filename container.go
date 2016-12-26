@@ -43,6 +43,7 @@ func (c *Container) Collect(client *docker.Client) {
 			c.reader.Read(s)
 			c.widgets.SetCPU(c.reader.CPUUtil)
 			c.widgets.SetMem(c.reader.MemUsage, c.reader.MemLimit)
+			c.widgets.SetNet(c.reader.NetRx, c.reader.NetTx)
 		}
 	}()
 
