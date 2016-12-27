@@ -15,6 +15,16 @@ type Widgets struct {
 	memory *ui.Gauge
 }
 
+func (w *Widgets) MakeRow() *ui.Row {
+	return ui.NewRow(
+		ui.NewCol(1, 0, w.cid),
+		ui.NewCol(2, 0, w.cpu),
+		ui.NewCol(2, 0, w.memory),
+		ui.NewCol(2, 0, w.net),
+		ui.NewCol(2, 0, w.names),
+	)
+}
+
 func (w *Widgets) SetCPU(val int) {
 	w.cpu.BarColor = colorScale(val)
 	w.cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
@@ -36,13 +46,18 @@ func (w *Widgets) SetMem(val int64, limit int64) {
 	w.memory.Label = fmt.Sprintf("%s / %s", byteFormat(val), byteFormat(limit))
 }
 
-func NewWidgets(id string) *Widgets {
+func NewWidgets(id string, names string) *Widgets {
 	cid := ui.NewPar(id)
 	cid.Border = false
 	cid.Height = 1
 	cid.Width = 20
 	cid.TextFgColor = ui.ColorWhite
-	return &Widgets{cid, mkGauge(), mkGauge(), mkGauge()}
+	name := ui.NewPar(names)
+	name.Border = false
+	name.Height = 1
+	name.Width = 20
+	name.TextFgColor = ui.ColorWhite
+	return &Widgets{cid, name, mkGauge(), mkGauge(), mkGauge()}
 }
 
 func mkGauge() *ui.Gauge {

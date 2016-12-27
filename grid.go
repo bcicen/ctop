@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 
 	ui "github.com/gizak/termui"
@@ -11,8 +12,8 @@ type Grid struct {
 	containers map[string]*Container
 }
 
-func (g *Grid) AddContainer(id string) {
-	g.containers[id] = NewContainer(id)
+func (g *Grid) AddContainer(id string, names []string) {
+	g.containers[id] = NewContainer(id, names)
 }
 
 // Return number of containers/rows
@@ -48,50 +49,28 @@ func (g *Grid) Cursor() {
 func (g *Grid) Rows() (rows []*ui.Row) {
 	for _, cid := range g.CIDs() {
 		c := g.containers[cid]
-		rows = append(rows, ui.NewRow(
-			ui.NewCol(1, 0, c.widgets.cid),
-			ui.NewCol(2, 0, c.widgets.cpu),
-			ui.NewCol(2, 0, c.widgets.memory),
-			ui.NewCol(2, 0, c.widgets.net),
-		))
+		rows = append(rows, c.widgets.MakeRow())
 	}
 	return rows
 }
 
 func header() *ui.Row {
-	// cid
-	c1 := ui.NewPar(" CID")
-	c1.Border = false
-	c1.Height = 2
-	c1.Width = 20
-	c1.TextFgColor = ui.ColorWhite
-
-	// cpu
-	c2 := ui.NewPar(" CPU")
-	c2.Border = false
-	c2.Height = 2
-	c2.Width = 10
-	c2.TextFgColor = ui.ColorWhite
-
-	// mem
-	c3 := ui.NewPar(" MEM")
-	c3.Border = false
-	c3.Height = 2
-	c3.Width = 10
-	c3.TextFgColor = ui.ColorWhite
-
-	// net
-	c4 := ui.NewPar(" NET RX/TX")
-	c4.Border = false
-	c4.Height = 2
-	c4.Width = 10
-	c4.TextFgColor = ui.ColorWhite
 	return ui.NewRow(
-		ui.NewCol(1, 0, c1),
-		ui.NewCol(2, 0, c2),
-		ui.NewCol(2, 0, c3),
-		ui.NewCol(2, 0, c4),
+		ui.NewCol(1, 0, headerPar("CID")),
+		ui.NewCol(2, 0, headerPar("CPU")),
+		ui.NewCol(2, 0, headerPar("MEM")),
+		ui.NewCol(2, 0, headerPar("NET RX/TX")),
+		ui.NewCol(2, 0, headerPar("NAMES")),
 	)
+}
+
+func headerPar(s string) *ui.Par {
+	p := ui.NewPar(fmt.Sprintf(" %s", s))
+	p.Border = false
+	p.Height = 2
+	p.Width = 20
+	p.TextFgColor = ui.ColorWhite
+	return p
 }
 
 func Display(g *Grid) {

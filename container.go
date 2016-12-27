@@ -2,24 +2,28 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fsouza/go-dockerclient"
 )
 
 type Container struct {
 	id      string
+	name    string
 	done    chan bool
 	stats   chan *docker.Stats
 	widgets *Widgets
 	reader  *StatReader
 }
 
-func NewContainer(cid string) *Container {
+func NewContainer(cid string, names []string) *Container {
+	name := strings.Join(names, ",")
 	return &Container{
 		id:      cid,
+		name:    name,
 		done:    make(chan bool),
 		stats:   make(chan *docker.Stats),
-		widgets: NewWidgets(cid),
+		widgets: NewWidgets(cid, name),
 		reader:  &StatReader{},
 	}
 }
