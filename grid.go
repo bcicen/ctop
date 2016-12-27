@@ -12,7 +12,7 @@ type Grid struct {
 	containers map[string]*Container
 }
 
-func (g *Grid) AddContainer(id string, names []string) {
+func (g *Grid) AddContainer(id, names string) {
 	g.containers[id] = NewContainer(id, names)
 }
 
@@ -60,7 +60,7 @@ func header() *ui.Row {
 		ui.NewCol(2, 0, headerPar("CPU")),
 		ui.NewCol(2, 0, headerPar("MEM")),
 		ui.NewCol(2, 0, headerPar("NET RX/TX")),
-		ui.NewCol(2, 0, headerPar("NAMES")),
+		ui.NewCol(2, 0, headerPar("NAME")),
 	)
 }
 
