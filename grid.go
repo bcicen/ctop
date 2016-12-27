@@ -36,11 +36,11 @@ func (g *Grid) Cursor() {
 	for n, id := range g.CIDs() {
 		c := g.containers[id]
 		if uint(n) == g.cursorPos {
-			c.widgets.cid.TextFgColor = ui.ColorDefault
-			c.widgets.cid.TextBgColor = ui.ColorWhite
+			c.widgets.name.TextFgColor = ui.ColorDefault
+			c.widgets.name.TextBgColor = ui.ColorWhite
 		} else {
-			c.widgets.cid.TextFgColor = ui.ColorWhite
-			c.widgets.cid.TextBgColor = ui.ColorDefault
+			c.widgets.name.TextFgColor = ui.ColorWhite
+			c.widgets.name.TextBgColor = ui.ColorDefault
 		}
 	}
 	ui.Render(ui.Body)
@@ -56,11 +56,11 @@ func (g *Grid) Rows() (rows []*ui.Row) {
 
 func header() *ui.Row {
 	return ui.NewRow(
+		ui.NewCol(1, 0, headerPar("NAME")),
 		ui.NewCol(1, 0, headerPar("CID")),
 		ui.NewCol(2, 0, headerPar("CPU")),
 		ui.NewCol(2, 0, headerPar("MEM")),
 		ui.NewCol(2, 0, headerPar("NET RX/TX")),
-		ui.NewCol(2, 0, headerPar("NAME")),
 	)
 }
 
