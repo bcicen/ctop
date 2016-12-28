@@ -21,7 +21,7 @@ func (g *Grid) Len() uint {
 	return uint(len(g.containers))
 }
 
-// Return sorted list of active container IDs
+// Return sorted list of container IDs
 func (g *Grid) CIDs() []string {
 	var ids []string
 	for id, _ := range g.containers {
@@ -56,7 +56,7 @@ func (g *Grid) Rows() (rows []*ui.Row) {
 
 func header() *ui.Row {
 	return ui.NewRow(
-		ui.NewCol(1, 0, headerPar("NAME")),
+		ui.NewCol(2, 0, headerPar("NAME")),
 		ui.NewCol(1, 0, headerPar("CID")),
 		ui.NewCol(2, 0, headerPar("CPU")),
 		ui.NewCol(2, 0, headerPar("MEM")),

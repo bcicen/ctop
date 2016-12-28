@@ -17,7 +17,7 @@ type Widgets struct {
 
 func (w *Widgets) MakeRow() *ui.Row {
 	return ui.NewRow(
-		ui.NewCol(1, 0, w.name),
+		ui.NewCol(2, 0, w.name),
 		ui.NewCol(1, 0, w.cid),
 		ui.NewCol(2, 0, w.cpu),
 		ui.NewCol(2, 0, w.memory),
