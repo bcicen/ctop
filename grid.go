@@ -8,32 +8,20 @@ import (
 
 type Grid struct {
 	cursorPos  uint
-	sortField  string
-	containers map[string]*Container
+	containers *ContainerMap
 }
 
-func (g *Grid) AddContainer(id, names string) {
-	g.containers[id] = NewContainer(id, names)
-}
-
-// Return number of containers/rows
-func (g *Grid) Len() uint {
-	return uint(len(g.containers))
+func NewGrid() *Grid {
+	return &Grid{
+		cursorPos:  0,
+		containers: NewContainerMap(),
+	}
 }
 
 // Return sorted list of container IDs
 func (g *Grid) CIDs() []string {
 	var ids []string
-	var containers []*Container
-
-	for _, c := range g.containers {
-		containers = append(containers, c)
-	}
-
-	sorter := Sorters[g.sortField]
-	sorter(containers).Sort()
-
-	for _, c := range containers {
+	for _, c := range g.containers.Sorted() {
 		ids = append(ids, c.id)
 	}
 	return ids
@@ -41,8 +29,7 @@ func (g *Grid) CIDs() []string {
 
 // Redraw the cursor with the currently selected row
 func (g *Grid) Cursor() {
-	for n, id := range g.CIDs() {
-		c := g.containers[id]
+	for n, c := range g.containers.Sorted() {
 		if uint(n) == g.cursorPos {
 			c.widgets.name.TextFgColor = ui.ColorDefault
 			c.widgets.name.TextBgColor = ui.ColorWhite
@@ -55,8 +42,7 @@ func (g *Grid) Cursor() {
 }
 
 func (g *Grid) Rows() (rows []*ui.Row) {
-	for _, cid := range g.CIDs() {
-		c := g.containers[cid]
+	for _, c := range g.containers.Sorted() {
 		rows = append(rows, c.widgets.MakeRow())
 	}
 	return rows
@@ -106,7 +92,7 @@ func Display(g *Grid) {
 		}
 	})
 	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
-		if g.cursorPos < (g.Len() - 1) {
+		if g.cursorPos < (g.containers.Len() - 1) {
 			g.cursorPos += 1
 			g.Cursor()
 		}

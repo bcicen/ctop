@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strings"
 
 	"github.com/fsouza/go-dockerclient"
 )
@@ -20,11 +19,6 @@ func getContainers(client *docker.Client) []docker.APIContainers {
 	return containers
 }
 
-// Return primary container name
-func parseName(names []string) string {
-	return strings.Replace(names[0], "/", "", -1)
-}
-
 func main() {
 	dockerhost := os.Getenv("DOCKER_HOST")
 	if dockerhost == "" {
@@ -36,12 +30,12 @@ func main() {
 		panic(err)
 	}
 
-	g := &Grid{0, "id", make(map[string]*Container)}
+	g := NewGrid()
 	for _, c := range getContainers(client) {
-		g.AddContainer(c.ID[:12], parseName(c.Names))
+		g.containers.Add(c)
 	}
 
-	for _, c := range g.containers {
+	for _, c := range g.containers.All() {
 		c.Collect(client)
 	}
 
