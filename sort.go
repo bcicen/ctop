@@ -10,7 +10,7 @@ import (
 func NewContainerMap() *ContainerMap {
 	return &ContainerMap{
 		containers: make(map[string]*Container),
-		sortField:  "id",
+		sortField:  "cpu",
 	}
 }
 
@@ -54,9 +54,9 @@ func (cm *ContainerMap) Sorted() []*Container {
 	case "name":
 		sort.Sort(ByName(containers))
 	case "cpu":
-		sort.Sort(ByCPU(containers))
+		sort.Sort(sort.Reverse(ByCPU(containers)))
 	case "mem":
-		sort.Sort(ByMem(containers))
+		sort.Sort(sort.Reverse(ByMem(containers)))
 	default:
 		sort.Sort(ByID(containers))
 	}

@@ -41,11 +41,18 @@ func (g *Grid) Cursor() {
 	ui.Render(ui.Body)
 }
 
-func (g *Grid) Rows() (rows []*ui.Row) {
+func (g *Grid) Redraw() {
+	// reinit body rows
+	ui.Body.Rows = []*ui.Row{}
+	// build layout
+	ui.Body.AddRows(header())
+
 	for _, c := range g.containers.Sorted() {
-		rows = append(rows, c.widgets.MakeRow())
+		ui.Body.AddRows(c.widgets.MakeRow())
 	}
-	return rows
+
+	ui.Body.Align()
+	ui.Render(ui.Body)
 }
 
 func header() *ui.Row {
@@ -73,13 +80,6 @@ func Display(g *Grid) {
 	}
 	defer ui.Close()
 
-	// build layout
-	ui.Body.AddRows(header())
-
-	for _, row := range g.Rows() {
-		ui.Body.AddRows(row)
-	}
-
 	// calculate layout
 	ui.Body.Align()
 	g.Cursor()
@@ -101,7 +101,7 @@ func Display(g *Grid) {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		ui.Render(ui.Body)
+		g.Redraw()
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
