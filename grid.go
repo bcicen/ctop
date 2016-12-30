@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"sort"
 
 	ui "github.com/gizak/termui"
 )
 
 type Grid struct {
 	cursorPos  uint
+	sortField  string
 	containers map[string]*Container
 }
 
@@ -24,10 +24,18 @@ func (g *Grid) Len() uint {
 // Return sorted list of container IDs
 func (g *Grid) CIDs() []string {
 	var ids []string
-	for id, _ := range g.containers {
-		ids = append(ids, id)
+	var containers []*Container
+
+	for _, c := range g.containers {
+		containers = append(containers, c)
 	}
-	sort.Strings(ids)
+
+	sorter := Sorters[g.sortField]
+	sorter(containers).Sort()
+
+	for _, c := range containers {
+		ids = append(ids, c.id)
+	}
 	return ids
 }
 

@@ -36,7 +36,7 @@ func main() {
 		panic(err)
 	}
 
-	g := &Grid{0, make(map[string]*Container)}
+	g := &Grid{0, "id", make(map[string]*Container)}
 	for _, c := range getContainers(client) {
 		g.AddContainer(c.ID[:12], parseName(c.Names))
 	}
