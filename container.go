@@ -14,16 +14,6 @@ type Container struct {
 	reader  *StatReader
 }
 
-func NewContainer(cid, names string) *Container {
-	return &Container{
-		id:      cid,
-		done:    make(chan bool),
-		stats:   make(chan *docker.Stats),
-		widgets: NewWidgets(cid, names),
-		reader:  &StatReader{},
-	}
-}
-
 func (c *Container) Collect(client *docker.Client) {
 
 	go func() {
