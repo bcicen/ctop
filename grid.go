@@ -91,10 +91,6 @@ func OpenView(v View) {
 func Display(g *Grid) bool {
 	var newView View
 
-	if err := ui.Init(); err != nil {
-		panic(err)
-	}
-	defer ui.Close()
 	// calculate layout
 	ui.Body.Align()
 	g.Cursor()

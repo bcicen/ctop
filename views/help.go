@@ -19,7 +19,7 @@ func Help() {
 	p.BorderLabel = "Help"
 	p.BorderFg = ui.ColorCyan
 	ui.Render(p)
-	ui.Handle("/sys/kbd/q", func(ui.Event) {
+	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
 	})
 	ui.Loop()
