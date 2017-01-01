@@ -1,21 +1,55 @@
 package main
 
 import (
+	"os"
 	"strings"
 
 	"github.com/fsouza/go-dockerclient"
 )
 
+var filters = map[string][]string{
+	"status": []string{"running"},
+}
+
 func NewContainerMap() *ContainerMap {
-	return &ContainerMap{
-		containers: make(map[string]*Container),
-		sortField:  "cpu",
+	// init docker client
+	host := os.Getenv("DOCKER_HOST")
+	if host == "" {
+		host = "unix:///var/run/docker.sock"
 	}
+	client, err := docker.NewClient(host)
+	if err != nil {
+		panic(err)
+	}
+
+	cm := &ContainerMap{
+		client:     client,
+		containers: make(map[string]*Container),
+		sortField:  SortFields[0],
+	}
+	cm.Refresh()
+	return cm
 }
 
 type ContainerMap struct {
+	client     *docker.Client
 	containers map[string]*Container
 	sortField  string
+}
+
+func (cm *ContainerMap) Refresh() {
+	opts := docker.ListContainersOptions{
+		Filters: filters,
+	}
+	containers, err := cm.client.ListContainers(opts)
+	if err != nil {
+		panic(err)
+	}
+	for _, c := range containers {
+		if _, ok := cm.containers[c.ID[:12]]; ok == false {
+			cm.Add(c)
+		}
+	}
 }
 
 // Return number of containers/rows
@@ -28,11 +62,13 @@ func (cm *ContainerMap) Add(c docker.APIContainers) {
 	name := strings.Replace(c.Names[0], "/", "", 1) // use primary container name
 	cm.containers[id] = &Container{
 		id:      id,
+		name:    name,
 		done:    make(chan bool),
 		stats:   make(chan *docker.Stats),
-		widgets: NewWidgets(cid, name),
+		widgets: NewWidgets(id, name),
 		reader:  &StatReader{},
 	}
+	cm.containers[id].Collect(cm.client)
 }
 
 // Get a single container, by ID

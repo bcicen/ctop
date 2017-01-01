@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/bcicen/ctop/views"
 	ui "github.com/gizak/termui"
 )
 
@@ -58,7 +59,7 @@ func (g *Grid) Redraw() {
 func header() *ui.Row {
 	return ui.NewRow(
 		ui.NewCol(2, 0, headerPar("NAME")),
-		ui.NewCol(1, 0, headerPar("CID")),
+		ui.NewCol(2, 0, headerPar("CID")),
 		ui.NewCol(2, 0, headerPar("CPU")),
 		ui.NewCol(2, 0, headerPar("MEM")),
 		ui.NewCol(2, 0, headerPar("NET RX/TX")),
@@ -74,12 +75,26 @@ func headerPar(s string) *ui.Par {
 	return p
 }
 
-func Display(g *Grid) {
+type View func()
+
+func ResetView() {
+	ui.DefaultEvtStream.ResetHandlers()
+	ui.Clear()
+}
+
+func OpenView(v View) {
+	ResetView()
+	defer ResetView()
+	v()
+}
+
+func Display(g *Grid) bool {
+	var newView View
+
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
 	defer ui.Close()
-
 	// calculate layout
 	ui.Body.Align()
 	g.Cursor()
@@ -97,6 +112,10 @@ func Display(g *Grid) {
 			g.Cursor()
 		}
 	})
+	ui.Handle("/sys/kbd/h", func(ui.Event) {
+		newView = views.Help
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
 	})
@@ -112,4 +131,9 @@ func Display(g *Grid) {
 	})
 
 	ui.Loop()
+	if newView != nil {
+		OpenView(newView)
+		return false
+	}
+	return true
 }

@@ -8,6 +8,7 @@ import (
 
 type Container struct {
 	id      string
+	name    string
 	done    chan bool
 	stats   chan *docker.Stats
 	widgets *Widgets

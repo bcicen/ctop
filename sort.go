@@ -4,6 +4,8 @@ import (
 	"sort"
 )
 
+var SortFields = []string{"id", "name", "cpu", "mem"}
+
 type ByID []*Container
 
 func (a ByID) Len() int           { return len(a) }
@@ -14,7 +16,7 @@ type ByName []*Container
 
 func (a ByName) Len() int           { return len(a) }
 func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByName) Less(i, j int) bool { return a[i].id < a[j].id }
+func (a ByName) Less(i, j int) bool { return a[i].name < a[j].name }
 
 type ByCPU []*Container
 
