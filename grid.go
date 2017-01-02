@@ -24,7 +24,7 @@ func NewGrid() *Grid {
 }
 
 // Return current cursor index
-func (g *Grid) CursorIdx() int {
+func (g *Grid) cursorIdx() int {
 	for n, c := range g.containers {
 		if c.id == g.cursorID {
 			return n
@@ -33,26 +33,26 @@ func (g *Grid) CursorIdx() int {
 	return 0
 }
 
-func (g *Grid) CursorUp() {
-	idx := g.CursorIdx()
+func (g *Grid) cursorUp() {
+	idx := g.cursorIdx()
 	// decrement if possible
 	if idx > 0 {
 		g.cursorID = g.containers[idx-1].id
-		g.RedrawCursor()
+		g.redrawCursor()
 	}
 }
 
-func (g *Grid) CursorDown() {
-	idx := g.CursorIdx()
+func (g *Grid) cursorDown() {
+	idx := g.cursorIdx()
 	// increment if possible
 	if idx < (len(g.containers) - 1) {
 		g.cursorID = g.containers[idx+1].id
-		g.RedrawCursor()
+		g.redrawCursor()
 	}
 }
 
 // Redraw the cursor with the currently selected row
-func (g *Grid) RedrawCursor() {
+func (g *Grid) redrawCursor() {
 	for _, c := range g.containers {
 		if c.id == g.cursorID {
 			c.widgets.name.TextFgColor = ui.ColorDefault
@@ -65,12 +65,12 @@ func (g *Grid) RedrawCursor() {
 	}
 }
 
-func (g *Grid) Redraw() {
+func (g *Grid) redrawRows() {
 	// reinit body rows
 	ui.Body.Rows = []*ui.Row{}
+
 	// build layout
 	ui.Body.AddRows(header())
-
 	for _, c := range g.containers {
 		ui.Body.AddRows(c.widgets.MakeRow())
 	}
@@ -116,14 +116,14 @@ func Display(g *Grid) bool {
 
 	// calculate layout
 	ui.Body.Align()
-	g.RedrawCursor()
+	g.redrawCursor()
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
-		g.CursorUp()
+		g.cursorUp()
 	})
 	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
-		g.CursorDown()
+		g.cursorDown()
 	})
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
 		newView = views.Help
@@ -134,7 +134,7 @@ func Display(g *Grid) bool {
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
 		g.containers = g.containerMap.Sorted() // refresh containers for current sort order
-		g.Redraw()
+		g.redrawRows()
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
