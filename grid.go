@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/bcicen/ctop/views"
 	ui "github.com/gizak/termui"
 )
 
@@ -98,17 +97,17 @@ func headerPar(s string) *ui.Par {
 	return p
 }
 
-type View func()
+type View func(*Grid)
 
 func ResetView() {
 	ui.DefaultEvtStream.ResetHandlers()
 	ui.Clear()
 }
 
-func OpenView(v View) {
+func (g *Grid) OpenView(v View) {
 	ResetView()
 	defer ResetView()
-	v()
+	v(g)
 }
 
 func Display(g *Grid) bool {
@@ -126,7 +125,11 @@ func Display(g *Grid) bool {
 		g.cursorDown()
 	})
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
-		newView = views.Help
+		newView = HelpMenu
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/s", func(ui.Event) {
+		newView = SortMenu
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -146,7 +149,7 @@ func Display(g *Grid) bool {
 
 	ui.Loop()
 	if newView != nil {
-		OpenView(newView)
+		g.OpenView(newView)
 		return false
 	}
 	return true
