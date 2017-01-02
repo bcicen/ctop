@@ -8,38 +8,61 @@ import (
 )
 
 type Grid struct {
-	cursorPos  uint
-	containers *ContainerMap
+	cursorID     string // id of currently selected container
+	containers   []*Container
+	containerMap *ContainerMap
 }
 
 func NewGrid() *Grid {
+	containerMap := NewContainerMap()
+	containers := containerMap.Sorted()
 	return &Grid{
-		cursorPos:  0,
-		containers: NewContainerMap(),
+		cursorID:     containers[0].id,
+		containers:   containers,
+		containerMap: containerMap,
 	}
 }
 
-// Return sorted list of container IDs
-func (g *Grid) CIDs() []string {
-	var ids []string
-	for _, c := range g.containers.Sorted() {
-		ids = append(ids, c.id)
+// Return current cursor index
+func (g *Grid) CursorIdx() int {
+	for n, c := range g.containers {
+		if c.id == g.cursorID {
+			return n
+		}
 	}
-	return ids
+	return 0
+}
+
+func (g *Grid) CursorUp() {
+	idx := g.CursorIdx()
+	// decrement if possible
+	if idx > 0 {
+		g.cursorID = g.containers[idx-1].id
+		g.RedrawCursor()
+	}
+}
+
+func (g *Grid) CursorDown() {
+	idx := g.CursorIdx()
+	// increment if possible
+	if idx < (len(g.containers) - 1) {
+		g.cursorID = g.containers[idx+1].id
+		g.RedrawCursor()
+	}
 }
 
 // Redraw the cursor with the currently selected row
-func (g *Grid) Cursor() {
-	for n, c := range g.containers.Sorted() {
-		if uint(n) == g.cursorPos {
+func (g *Grid) RedrawCursor() {
+	for _, c := range g.containers {
+		if c.id == g.cursorID {
 			c.widgets.name.TextFgColor = ui.ColorDefault
 			c.widgets.name.TextBgColor = ui.ColorWhite
 		} else {
 			c.widgets.name.TextFgColor = ui.ColorWhite
 			c.widgets.name.TextBgColor = ui.ColorDefault
 		}
+		ui.Render(ui.Body)
 	}
-	ui.Render(ui.Body)
 }
 
 func (g *Grid) Redraw() {
@@ -48,7 +71,7 @@ func (g *Grid) Redraw() {
 	// build layout
 	ui.Body.AddRows(header())
 
-	for _, c := range g.containers.Sorted() {
+	for _, c := range g.containers {
 		ui.Body.AddRows(c.widgets.MakeRow())
 	}
 
@@ -93,20 +116,14 @@ func Display(g *Grid) bool {
 
 	// calculate layout
 	ui.Body.Align()
-	g.Cursor()
+	g.RedrawCursor()
 	ui.Render(ui.Body)
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
-		if g.cursorPos > 0 {
-			g.cursorPos -= 1
-			g.Cursor()
-		}
+		g.CursorUp()
 	})
 	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
-		if g.cursorPos < (g.containers.Len() - 1) {
-			g.cursorPos += 1
-			g.Cursor()
-		}
+		g.CursorDown()
 	})
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
 		newView = views.Help
@@ -116,6 +133,7 @@ func Display(g *Grid) bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
+		g.containers = g.containerMap.Sorted() // refresh containers for current sort order
 		g.Redraw()
 	})
 

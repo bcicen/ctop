@@ -36,9 +36,7 @@ func (w *Widgets) SetCPU(val int) {
 }
 
 func (w *Widgets) SetNet(rx int64, tx int64) {
-	//w.net.Label = fmt.Sprintf("%s / %s", byteFormat(rx), byteFormat(tx))
 	w.net.Text = fmt.Sprintf("%s / %s", byteFormat(rx), byteFormat(tx))
-	//w.net2.Lines[0].Data = []int{0, 2, 5, 10, 20, 20, 2, 2, 0, 0}
 }
 
 func (w *Widgets) SetMem(val int64, limit int64) {
