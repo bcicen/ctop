@@ -9,6 +9,7 @@ func main() {
 		panic(err)
 	}
 	defer ui.Close()
+
 	g := NewGrid()
 	for {
 		exit := Display(g)

@@ -6,6 +6,22 @@ import (
 
 var SortFields = []string{"id", "name", "cpu", "mem"}
 
+// Sort array of containers by field
+func SortContainers(field string, containers []*Container) {
+	switch field {
+	case "id":
+		sort.Sort(ByID(containers))
+	case "name":
+		sort.Sort(ByName(containers))
+	case "cpu":
+		sort.Sort(sort.Reverse(ByCPU(containers)))
+	case "mem":
+		sort.Sort(sort.Reverse(ByMem(containers)))
+	default:
+		sort.Sort(ByID(containers))
+	}
+}
+
 type ByID []*Container
 
 func (a ByID) Len() int           { return len(a) }
@@ -29,23 +45,3 @@ type ByMem []*Container
 func (a ByMem) Len() int           { return len(a) }
 func (a ByMem) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByMem) Less(i, j int) bool { return a[i].reader.MemUsage < a[j].reader.MemUsage }
-
-// Return array of containers, sorted by field
-func (cm *ContainerMap) Sorted() []*Container {
-	containers := cm.All()
-
-	switch cm.sortField {
-	case "id":
-		sort.Sort(ByID(containers))
-	case "name":
-		sort.Sort(ByName(containers))
-	case "cpu":
-		sort.Sort(sort.Reverse(ByCPU(containers)))
-	case "mem":
-		sort.Sort(sort.Reverse(ByMem(containers)))
-	default:
-		sort.Sort(ByID(containers))
-	}
-
-	return containers
-}

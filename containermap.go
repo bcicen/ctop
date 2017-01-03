@@ -23,18 +23,18 @@ func NewContainerMap() *ContainerMap {
 	}
 
 	cm := &ContainerMap{
+		config:     DefaultConfig,
 		client:     client,
 		containers: make(map[string]*Container),
-		sortField:  SortFields[0],
 	}
 	cm.Refresh()
 	return cm
 }
 
 type ContainerMap struct {
+	config     Config
 	client     *docker.Client
 	containers map[string]*Container
-	sortField  string
 }
 
 func (cm *ContainerMap) Refresh() {
@@ -76,11 +76,12 @@ func (cm *ContainerMap) Get(id string) *Container {
 	return cm.containers[id]
 }
 
-// Return array of all containers
+// Return array of all containers, sorted by field
 func (cm *ContainerMap) All() []*Container {
 	var containers []*Container
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
+	SortContainers(cm.config.sortField, containers)
 	return containers
 }

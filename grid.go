@@ -14,7 +14,7 @@ type Grid struct {
 
 func NewGrid() *Grid {
 	containerMap := NewContainerMap()
-	containers := containerMap.Sorted()
+	containers := containerMap.All()
 	return &Grid{
 		cursorID:     containers[0].id,
 		containers:   containers,
@@ -136,7 +136,7 @@ func Display(g *Grid) bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		g.containers = g.containerMap.Sorted() // refresh containers for current sort order
+		g.containers = g.containerMap.All() // refresh containers for current sort order
 		g.redrawRows()
 	})
 

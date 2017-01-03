@@ -30,16 +30,9 @@ func (m *Menu) Buffer() ui.Buffer {
 	buf := m.Block.Buffer()
 
 	for n, item := range m.Items {
-		//if n >= m.innerArea.Dy() {
-		//buf.Set(m.innerArea.Min.X+m.innerArea.Dx()-1,
-		//m.innerArea.Min.Y+m.innerArea.Dy()-1,
-		//ui.Cell{Ch: '…', Fg: m.TextFgColor, Bg: m.TextBgColor})
-		//break
-		//}
-
 		x := 2 // initial offset
-		// invert bg/fg colors on currently selected row
 		for _, ch := range item {
+			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.cursorPos {
 				cell = ui.Cell{Ch: ch, Fg: m.TextBgColor, Bg: m.TextFgColor}
 			} else {
@@ -100,7 +93,7 @@ func SortMenu(g *Grid) {
 		m.Down()
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		g.containerMap.sortField = m.Items[m.cursorPos]
+		g.containerMap.config.sortField = m.Items[m.cursorPos]
 		ui.StopLoop()
 	})
 	ui.Loop()
