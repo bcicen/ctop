@@ -4,6 +4,11 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+var (
+	padding  = 2
+	minWidth = 30
+)
+
 type Menu struct {
 	ui.Block
 	Items       []string
@@ -14,7 +19,7 @@ type Menu struct {
 }
 
 func NewMenu(items []string) *Menu {
-	return &Menu{
+	m := &Menu{
 		Block:       *ui.NewBlock(),
 		Items:       items,
 		TextFgColor: ui.ThemeAttr("par.text.fg"),
@@ -22,6 +27,22 @@ func NewMenu(items []string) *Menu {
 		Selectable:  false,
 		cursorPos:   0,
 	}
+	m.Width = calcWidth(items)
+	return m
+}
+
+// return dynamic width based on string len in items
+func calcWidth(items []string) int {
+	maxWidth := 0
+	for _, s := range items {
+		if len(s) > maxWidth {
+			maxWidth = len(s)
+		}
+	}
+	if maxWidth < minWidth {
+		maxWidth = minWidth
+	}
+	return maxWidth + (padding * 2)
 }
 
 func (m *Menu) Buffer() ui.Buffer {
@@ -66,7 +87,6 @@ func HelpMenu(g *Grid) {
 		"[q] - exit ctop",
 	})
 	m.Height = 10
-	m.Width = 50
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
 	m.BorderFg = ui.ColorCyan
@@ -80,7 +100,6 @@ func HelpMenu(g *Grid) {
 func SortMenu(g *Grid) {
 	m := NewMenu(SortFields)
 	m.Height = 10
-	m.Width = 50
 	m.Selectable = true
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"
