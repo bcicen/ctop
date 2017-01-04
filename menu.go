@@ -27,22 +27,23 @@ func NewMenu(items []string) *Menu {
 		Selectable:  false,
 		cursorPos:   0,
 	}
-	m.Width = calcWidth(items)
+	m.Width, m.Height = calcSize(items)
 	return m
 }
 
-// return dynamic width based on string len in items
-func calcWidth(items []string) int {
-	maxWidth := 0
+// return width and height based on menu items
+func calcSize(items []string) (w, h int) {
+	h = len(items) + (padding * 2)
+
+	w = minWidth
 	for _, s := range items {
-		if len(s) > maxWidth {
-			maxWidth = len(s)
+		if len(s) > w {
+			w = len(s)
 		}
 	}
-	if maxWidth < minWidth {
-		maxWidth = minWidth
-	}
-	return maxWidth + (padding * 2)
+	w += (padding * 2)
+
+	return w, h
 }
 
 func (m *Menu) Buffer() ui.Buffer {
@@ -51,7 +52,7 @@ func (m *Menu) Buffer() ui.Buffer {
 	buf := m.Block.Buffer()
 
 	for n, item := range m.Items {
-		x := 2 // initial offset
+		x := padding
 		for _, ch := range item {
 			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.cursorPos {
@@ -59,7 +60,7 @@ func (m *Menu) Buffer() ui.Buffer {
 			} else {
 				cell = ui.Cell{Ch: ch, Fg: m.TextFgColor, Bg: m.TextBgColor}
 			}
-			buf.Set(x, n+2, cell)
+			buf.Set(x, n+padding, cell)
 			x++
 		}
 	}
@@ -67,14 +68,14 @@ func (m *Menu) Buffer() ui.Buffer {
 	return buf
 }
 
-func (m *Menu) Up() {
+func (m *Menu) Up(ui.Event) {
 	if m.cursorPos > 0 {
 		m.cursorPos--
 		ui.Render(m)
 	}
 }
 
-func (m *Menu) Down() {
+func (m *Menu) Down(ui.Event) {
 	if m.cursorPos < (len(m.Items) - 1) {
 		m.cursorPos++
 		ui.Render(m)
@@ -86,7 +87,6 @@ func HelpMenu(g *Grid) {
 		"[h] - open this help dialog",
 		"[q] - exit ctop",
 	})
-	m.Height = 10
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
 	m.BorderFg = ui.ColorCyan
@@ -99,17 +99,15 @@ func HelpMenu(g *Grid) {
 
 func SortMenu(g *Grid) {
 	m := NewMenu(SortFields)
-	m.Height = 10
 	m.Selectable = true
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"
 	m.BorderFg = ui.ColorCyan
 	ui.Render(m)
-	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
-		m.Up()
-	})
-	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
-		m.Down()
+	ui.Handle("/sys/kbd/<up>", m.Up)
+	ui.Handle("/sys/kbd/<down>", m.Down)
+	ui.Handle("/sys/kbd/q", func(ui.Event) {
+		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		g.containerMap.config.sortField = m.Items[m.cursorPos]
