@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strings"
 
 	"github.com/fsouza/go-dockerclient"
@@ -12,18 +11,16 @@ var filters = map[string][]string{
 }
 
 func NewContainerMap() *ContainerMap {
+	config := DefaultConfig
+
 	// init docker client
-	host := os.Getenv("DOCKER_HOST")
-	if host == "" {
-		host = "unix:///var/run/docker.sock"
-	}
-	client, err := docker.NewClient(host)
+	client, err := docker.NewClient(config.dockerHost)
 	if err != nil {
 		panic(err)
 	}
 
 	cm := &ContainerMap{
-		config:     DefaultConfig,
+		config:     config,
 		client:     client,
 		containers: make(map[string]*Container),
 	}

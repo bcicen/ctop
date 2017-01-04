@@ -1,13 +1,23 @@
 package main
 
+import (
+	"os"
+)
+
 type Config struct {
-	sortField string
+	dockerHost string
+	sortField  string
 }
 
 var DefaultConfig = NewDefaultConfig()
 
 func NewDefaultConfig() Config {
+	docker := os.Getenv("DOCKER_HOST")
+	if docker == "" {
+		docker = "unix:///var/run/docker.sock"
+	}
 	return Config{
-		sortField: "id",
+		dockerHost: docker,
+		sortField:  "id",
 	}
 }
