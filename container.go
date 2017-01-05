@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -18,7 +16,6 @@ type Container struct {
 func (c *Container) Collect(client *docker.Client) {
 
 	go func() {
-		fmt.Sprintf("starting collector for container: %s\n", c.id)
 		opts := docker.StatsOptions{
 			ID:     c.id,
 			Stats:  c.stats,
@@ -26,7 +23,6 @@ func (c *Container) Collect(client *docker.Client) {
 			Done:   c.done,
 		}
 		client.Stats(opts)
-		fmt.Sprintf("stopping collector for container: %s\n", c.id)
 	}()
 
 	go func() {
