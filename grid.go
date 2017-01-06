@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 )
 
@@ -10,6 +11,7 @@ type Grid struct {
 	cursorID     string // id of currently selected container
 	containers   []*Container
 	containerMap *ContainerMap
+	header       *widgets.CTopHeader
 }
 
 func NewGrid() *Grid {
@@ -19,6 +21,7 @@ func NewGrid() *Grid {
 		cursorID:     containers[0].id,
 		containers:   containers,
 		containerMap: containerMap,
+		header:       widgets.NewCTopHeader(),
 	}
 }
 
@@ -67,7 +70,11 @@ func (g *Grid) redrawRows() {
 	ui.Body.Rows = []*ui.Row{}
 
 	// build layout
-	ui.Body.AddRows(header())
+	if GlobalConfig["enableHeader"] == "1" {
+		g.header.SetCount(len(g.containers))
+		ui.Body.AddRows(g.header.Row())
+	}
+	ui.Body.AddRows(fieldHeader())
 	for _, c := range g.containers {
 		ui.Body.AddRows(c.widgets.Row())
 	}
@@ -76,7 +83,7 @@ func (g *Grid) redrawRows() {
 	ui.Render(ui.Body)
 }
 
-func header() *ui.Row {
+func fieldHeader() *ui.Row {
 	return ui.NewRow(
 		ui.NewCol(2, 0, headerPar("NAME")),
 		ui.NewCol(2, 0, headerPar("CID")),

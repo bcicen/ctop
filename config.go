@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+var GlobalConfig = NewDefaultConfig()
 var configChan = make(chan ConfigMsg)
 
 type Config map[string]string
@@ -23,8 +24,9 @@ func NewDefaultConfig() Config {
 		docker = "unix:///var/run/docker.sock"
 	}
 	config := Config{
-		"dockerHost": docker,
-		"sortField":  "id",
+		"dockerHost":   docker,
+		"sortField":    "id",
+		"enableHeader": "0",
 	}
 	go func() {
 		for m := range configChan {
