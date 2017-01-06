@@ -7,6 +7,7 @@ import (
 
 var helpDialog = []string{
 	"[h] - open this help dialog",
+	"[s] - select container sort field",
 	"[q] - exit ctop",
 }
 
