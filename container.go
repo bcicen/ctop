@@ -29,8 +29,15 @@ func NewContainer(c docker.APIContainers) *Container {
 	}
 }
 
-func (c *Container) Collect(client *docker.Client) {
+func (c *Container) Expand() {
+	c.widgets = widgets.NewExpanded(c.id, c.name)
+}
 
+func (c *Container) Collapse() {
+	c.widgets = widgets.NewCompact(c.id, c.name)
+}
+
+func (c *Container) Collect(client *docker.Client) {
 	go func() {
 		opts := docker.StatsOptions{
 			ID:     c.id,
@@ -49,5 +56,4 @@ func (c *Container) Collect(client *docker.Client) {
 			c.widgets.SetNet(c.reader.NetRx, c.reader.NetTx)
 		}
 	}()
-
 }

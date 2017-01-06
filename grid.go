@@ -115,8 +115,18 @@ func (g *Grid) OpenView(v View) {
 	v(g)
 }
 
+func (g *Grid) ExpandView() {
+	ResetView()
+	defer ResetView()
+	container := g.containerMap.Get(g.cursorID)
+	container.Expand()
+	container.widgets.Render()
+	container.Collapse()
+}
+
 func Display(g *Grid) bool {
 	var newView View
+	var expand bool
 
 	// calculate layout
 	ui.Body.Align()
@@ -128,6 +138,10 @@ func Display(g *Grid) bool {
 	})
 	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
 		g.cursorDown()
+	})
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+		expand = true
+		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
 		newView = HelpMenu
@@ -155,6 +169,10 @@ func Display(g *Grid) bool {
 	ui.Loop()
 	if newView != nil {
 		g.OpenView(newView)
+		return false
+	}
+	if expand {
+		g.ExpandView()
 		return false
 	}
 	return true

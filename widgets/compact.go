@@ -9,6 +9,7 @@ import (
 
 type ContainerWidgets interface {
 	Row() *ui.Row
+	Render()
 	Highlight()
 	UnHighlight()
 	SetCPU(int)
@@ -32,6 +33,9 @@ func NewCompact(id string, name string) *Compact {
 		Cpu:    mkGauge(),
 		Memory: mkGauge(),
 	}
+}
+
+func (w *Compact) Render() {
 }
 
 func (w *Compact) Row() *ui.Row {
