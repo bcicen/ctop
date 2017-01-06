@@ -1,6 +1,9 @@
 package main
 
 import (
+	"strings"
+
+	"github.com/bcicen/ctop/widgets"
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -9,8 +12,21 @@ type Container struct {
 	name    string
 	done    chan bool
 	stats   chan *docker.Stats
-	widgets *Widgets
+	widgets *widgets.Compact
 	reader  *StatReader
+}
+
+func NewContainer(c docker.APIContainers) *Container {
+	id := c.ID[:12]
+	name := strings.Replace(c.Names[0], "/", "", 1) // use primary container name
+	return &Container{
+		id:      id,
+		name:    name,
+		done:    make(chan bool),
+		stats:   make(chan *docker.Stats),
+		widgets: widgets.NewCompact(id, name),
+		reader:  &StatReader{},
+	}
 }
 
 func (c *Container) Collect(client *docker.Client) {
@@ -28,7 +44,7 @@ func (c *Container) Collect(client *docker.Client) {
 	go func() {
 		for s := range c.stats {
 			c.reader.Read(s)
-			c.widgets.cpu.Set(c.reader.CPUUtil)
+			c.widgets.SetCPU(c.reader.CPUUtil)
 			c.widgets.SetMem(c.reader.MemUsage, c.reader.MemLimit)
 			c.widgets.SetNet(c.reader.NetRx, c.reader.NetTx)
 		}

@@ -5,7 +5,7 @@ import (
 )
 
 type StatReader struct {
-	CPUUtil  int
+	CPUUtil  float64
 	NetTx    int64
 	NetRx    int64
 	MemUsage int64
@@ -28,7 +28,7 @@ func (s *StatReader) ReadCPU(stats *docker.Stats) {
 
 	cpudiff := total - s.lastCpu
 	syscpudiff := system - s.lastSysCpu
-	s.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
+	s.CPUUtil = (cpudiff / syscpudiff * 100) * ncpus
 	s.lastCpu = total
 	s.lastSysCpu = system
 }

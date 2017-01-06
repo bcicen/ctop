@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -35,6 +33,7 @@ type ContainerMap struct {
 }
 
 func (cm *ContainerMap) Refresh() {
+	var id string
 	opts := docker.ListContainersOptions{
 		Filters: filters,
 	}
@@ -43,8 +42,10 @@ func (cm *ContainerMap) Refresh() {
 		panic(err)
 	}
 	for _, c := range containers {
-		if _, ok := cm.containers[c.ID[:12]]; ok == false {
-			cm.Add(c)
+		id = c.ID[:12]
+		if _, ok := cm.containers[id]; ok == false {
+			cm.containers[id] = NewContainer(c)
+			cm.containers[id].Collect(cm.client)
 		}
 	}
 }
@@ -52,20 +53,6 @@ func (cm *ContainerMap) Refresh() {
 // Return number of containers/rows
 func (cm *ContainerMap) Len() uint {
 	return uint(len(cm.containers))
-}
-
-func (cm *ContainerMap) Add(c docker.APIContainers) {
-	id := c.ID[:12]
-	name := strings.Replace(c.Names[0], "/", "", 1) // use primary container name
-	cm.containers[id] = &Container{
-		id:      id,
-		name:    name,
-		done:    make(chan bool),
-		stats:   make(chan *docker.Stats),
-		widgets: NewWidgets(id, name),
-		reader:  &StatReader{},
-	}
-	cm.containers[id].Collect(cm.client)
 }
 
 // Get a single container, by ID
