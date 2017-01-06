@@ -12,7 +12,7 @@ type Container struct {
 	name    string
 	done    chan bool
 	stats   chan *docker.Stats
-	widgets *widgets.Compact
+	widgets widgets.ContainerWidgets
 	reader  *StatReader
 }
 

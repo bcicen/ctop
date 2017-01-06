@@ -9,10 +9,10 @@ var filters = map[string][]string{
 }
 
 func NewContainerMap() *ContainerMap {
-	config := DefaultConfig
+	config := NewDefaultConfig()
 
 	// init docker client
-	client, err := docker.NewClient(config.dockerHost)
+	client, err := docker.NewClient(config["dockerHost"])
 	if err != nil {
 		panic(err)
 	}
@@ -66,6 +66,6 @@ func (cm *ContainerMap) All() []*Container {
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
-	SortContainers(cm.config.sortField, containers)
+	SortContainers(cm.config["sortField"], containers)
 	return containers
 }

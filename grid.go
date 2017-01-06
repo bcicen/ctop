@@ -54,11 +54,9 @@ func (g *Grid) cursorDown() {
 func (g *Grid) redrawCursor() {
 	for _, c := range g.containers {
 		if c.id == g.cursorID {
-			c.widgets.Name.TextFgColor = ui.ColorDefault
-			c.widgets.Name.TextBgColor = ui.ColorWhite
+			c.widgets.Highlight()
 		} else {
-			c.widgets.Name.TextFgColor = ui.ColorWhite
-			c.widgets.Name.TextBgColor = ui.ColorDefault
+			c.widgets.UnHighlight()
 		}
 		ui.Render(ui.Body)
 	}

@@ -4,20 +4,32 @@ import (
 	"os"
 )
 
-type Config struct {
-	dockerHost string
-	sortField  string
+var configChan = make(chan ConfigMsg)
+
+type Config map[string]string
+
+type ConfigMsg struct {
+	key string
+	val string
 }
 
-var DefaultConfig = NewDefaultConfig()
+func updateConfig(k, v string) {
+	configChan <- ConfigMsg{k, v}
+}
 
 func NewDefaultConfig() Config {
 	docker := os.Getenv("DOCKER_HOST")
 	if docker == "" {
 		docker = "unix:///var/run/docker.sock"
 	}
-	return Config{
-		dockerHost: docker,
-		sortField:  "id",
+	config := Config{
+		"dockerHost": docker,
+		"sortField":  "id",
 	}
+	go func() {
+		for m := range configChan {
+			config[m.key] = m.val
+		}
+	}()
+	return config
 }

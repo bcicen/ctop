@@ -7,6 +7,15 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+type ContainerWidgets interface {
+	Row() *ui.Row
+	Highlight()
+	UnHighlight()
+	SetCPU(int)
+	SetNet(int64, int64)
+	SetMem(int64, int64, int)
+}
+
 type Compact struct {
 	Cid    *ui.Par
 	Net    *ui.Par
@@ -33,6 +42,16 @@ func (w *Compact) Row() *ui.Row {
 		ui.NewCol(2, 0, w.Memory),
 		ui.NewCol(2, 0, w.Net),
 	)
+}
+
+func (w *Compact) Highlight() {
+	w.Name.TextFgColor = ui.ColorDefault
+	w.Name.TextBgColor = ui.ColorWhite
+}
+
+func (w *Compact) UnHighlight() {
+	w.Name.TextFgColor = ui.ColorWhite
+	w.Name.TextBgColor = ui.ColorDefault
 }
 
 func (w *Compact) SetCPU(val int) {

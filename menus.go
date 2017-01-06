@@ -32,7 +32,7 @@ func SortMenu(g *Grid) {
 	ui.Render(m)
 	m.NavigationHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		g.containerMap.config.sortField = m.Items[m.CursorPos]
+		updateConfig("sortField", m.Items[m.CursorPos])
 		ui.StopLoop()
 	})
 	ui.Loop()
