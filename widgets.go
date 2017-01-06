@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
+	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 )
 
@@ -11,7 +11,7 @@ type Widgets struct {
 	cid    *ui.Par
 	net    *ui.Par
 	name   *ui.Par
-	cpu    *ui.Gauge
+	cpu    *widgets.CPU
 	memory *ui.Gauge
 }
 
@@ -23,16 +23,6 @@ func (w *Widgets) MakeRow() *ui.Row {
 		ui.NewCol(2, 0, w.memory),
 		ui.NewCol(2, 0, w.net),
 	)
-}
-
-func (w *Widgets) SetCPU(val int) {
-	w.cpu.BarColor = colorScale(val)
-	w.cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
-	if val < 5 {
-		val = 5
-		w.cpu.BarColor = ui.ColorBlack
-	}
-	w.cpu.Percent = val
 }
 
 func (w *Widgets) SetNet(rx int64, tx int64) {
@@ -71,7 +61,7 @@ func NewWidgets(id string, names string) *Widgets {
 	net.Width = 20
 	net.TextFgColor = ui.ColorWhite
 
-	return &Widgets{cid, net, name, mkGauge(), mkGauge()}
+	return &Widgets{cid, net, name, widgets.NewCPU(), mkGauge()}
 }
 
 func mkGauge() *ui.Gauge {

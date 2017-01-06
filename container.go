@@ -28,7 +28,7 @@ func (c *Container) Collect(client *docker.Client) {
 	go func() {
 		for s := range c.stats {
 			c.reader.Read(s)
-			c.widgets.SetCPU(c.reader.CPUUtil)
+			c.widgets.cpu.Set(c.reader.CPUUtil)
 			c.widgets.SetMem(c.reader.MemUsage, c.reader.MemLimit)
 			c.widgets.SetNet(c.reader.NetRx, c.reader.NetTx)
 		}

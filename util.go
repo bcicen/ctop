@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-
-	ui "github.com/gizak/termui"
 )
 
 const (
@@ -32,14 +30,4 @@ func byteFormat(n int64) string {
 
 func round(num float64) int {
 	return int(num + math.Copysign(0.5, num))
-}
-
-func colorScale(n int) ui.Attribute {
-	if n > 70 {
-		return ui.ColorRed
-	}
-	if n > 30 {
-		return ui.ColorYellow
-	}
-	return ui.ColorGreen
 }
