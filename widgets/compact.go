@@ -35,23 +35,21 @@ func (w *Compact) Row() *ui.Row {
 	)
 }
 
-func (w *Compact) SetCPU(val float64) {
-	intVal := round(val)
-	w.Cpu.BarColor = colorScale(intVal)
-	w.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(intVal))
-	if intVal < 5 {
-		intVal = 5
+func (w *Compact) SetCPU(val int) {
+	w.Cpu.BarColor = colorScale(val)
+	w.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
+	if val < 5 {
+		val = 5
 		w.Cpu.BarColor = ui.ColorBlack
 	}
-	w.Cpu.Percent = intVal
+	w.Cpu.Percent = val
 }
 
 func (w *Compact) SetNet(rx int64, tx int64) {
 	w.Net.Text = fmt.Sprintf("%s / %s", byteFormat(rx), byteFormat(tx))
 }
 
-func (w *Compact) SetMem(val int64, limit int64) {
-	percent := round((float64(val) / float64(limit)) * 100)
+func (w *Compact) SetMem(val int64, limit int64, percent int) {
 	w.Memory.Label = fmt.Sprintf("%s / %s", byteFormat(val), byteFormat(limit))
 	if percent < 5 {
 		percent = 5

@@ -1,16 +1,18 @@
 package main
 
 import (
+	"math"
+
 	"github.com/fsouza/go-dockerclient"
 )
 
 type StatReader struct {
-	CPUUtil  float64
-	NetTx    int64
-	NetRx    int64
-	MemUsage int64
-	MemLimit int64
-	//MemPercent int64
+	CPUUtil    int
+	NetTx      int64
+	NetRx      int64
+	MemLimit   int64
+	MemPercent int
+	MemUsage   int64
 	lastCpu    float64
 	lastSysCpu float64
 }
@@ -28,7 +30,7 @@ func (s *StatReader) ReadCPU(stats *docker.Stats) {
 
 	cpudiff := total - s.lastCpu
 	syscpudiff := system - s.lastSysCpu
-	s.CPUUtil = (cpudiff / syscpudiff * 100) * ncpus
+	s.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
 	s.lastCpu = total
 	s.lastSysCpu = system
 }
@@ -36,7 +38,7 @@ func (s *StatReader) ReadCPU(stats *docker.Stats) {
 func (s *StatReader) ReadMem(stats *docker.Stats) {
 	s.MemUsage = int64(stats.MemoryStats.Usage)
 	s.MemLimit = int64(stats.MemoryStats.Limit)
-	//s.MemPercent = round((float64(cur) / float64(limit)) * 100)
+	s.MemPercent = round((float64(s.MemUsage) / float64(s.MemLimit)) * 100)
 }
 
 func (s *StatReader) ReadNet(stats *docker.Stats) {
@@ -45,4 +47,8 @@ func (s *StatReader) ReadNet(stats *docker.Stats) {
 		s.NetTx += int64(network.TxBytes)
 		s.NetRx += int64(network.RxBytes)
 	}
+}
+
+func round(num float64) int {
+	return int(num + math.Copysign(0.5, num))
 }

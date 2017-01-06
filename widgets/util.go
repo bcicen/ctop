@@ -2,7 +2,6 @@ package widgets
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 
 	ui "github.com/gizak/termui"
@@ -28,10 +27,6 @@ func byteFormat(n int64) string {
 	}
 	n = n / gb
 	return fmt.Sprintf("%sG", strconv.FormatInt(n, 10))
-}
-
-func round(num float64) int {
-	return int(num + math.Copysign(0.5, num))
 }
 
 func compactPar(s string) *ui.Par {
