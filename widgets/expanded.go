@@ -1,24 +1,22 @@
 package widgets
 
 import (
-	"fmt"
-
 	ui "github.com/gizak/termui"
 )
 
 type Expanded struct {
-	Info   *ui.Table
-	Net    *ui.Par
-	Cpu    *ExpandedCpu
-	Memory *ui.Gauge
+	Info *ui.Table
+	Net  *ExpandedNet
+	Cpu  *ExpandedCpu
+	Mem  *ExpandedMem
 }
 
 func NewExpanded(id, name string) *Expanded {
 	return &Expanded{
-		Info:   NewInfo(id, name),
-		Net:    ui.NewPar("-"),
-		Cpu:    NewExpandedCpu(),
-		Memory: mkGauge(),
+		Info: NewInfo(id, name),
+		Net:  NewExpandedNet(),
+		Cpu:  NewExpandedCpu(),
+		Mem:  NewExpandedMem(),
 	}
 }
 
@@ -36,9 +34,9 @@ func NewInfo(id, name string) *ui.Table {
 }
 
 func (w *Expanded) Render() {
-	ui.Render(w.Info, w.Cpu)
+	ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
 	ui.Handle("/timer/1s", func(ui.Event) {
-		ui.Render(w.Info, w.Cpu)
+		ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
@@ -49,7 +47,7 @@ func (w *Expanded) Render() {
 func (w *Expanded) Row() *ui.Row {
 	return ui.NewRow(
 		ui.NewCol(2, 0, w.Cpu),
-		ui.NewCol(2, 0, w.Memory),
+		ui.NewCol(2, 0, w.Mem),
 		ui.NewCol(2, 0, w.Net),
 	)
 }
@@ -65,16 +63,9 @@ func (w *Expanded) SetCPU(val int) {
 }
 
 func (w *Expanded) SetNet(rx int64, tx int64) {
-	w.Net.Text = fmt.Sprintf("%s / %s", byteFormat(rx), byteFormat(tx))
+	w.Net.Update(rx, tx)
 }
 
 func (w *Expanded) SetMem(val int64, limit int64, percent int) {
-	w.Memory.Label = fmt.Sprintf("%s / %s", byteFormat(val), byteFormat(limit))
-	if percent < 5 {
-		percent = 5
-		w.Memory.BarColor = ui.ColorBlack
-	} else {
-		w.Memory.BarColor = ui.ColorGreen
-	}
-	w.Memory.Percent = percent
+	w.Mem.Update(int(val), int(limit))
 }
