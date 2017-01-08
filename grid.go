@@ -102,17 +102,15 @@ func headerPar(s string) *ui.Par {
 	return p
 }
 
-type View func(*Grid)
-
 func ResetView() {
 	ui.DefaultEvtStream.ResetHandlers()
 	ui.Clear()
 }
 
-func (g *Grid) OpenView(v View) {
+func OpenMenu(m func()) {
 	ResetView()
 	defer ResetView()
-	v(g)
+	m()
 }
 
 func (g *Grid) ExpandView() {
@@ -125,7 +123,7 @@ func (g *Grid) ExpandView() {
 }
 
 func Display(g *Grid) bool {
-	var newView View
+	var menu func()
 	var expand bool
 
 	// calculate layout
@@ -144,11 +142,11 @@ func Display(g *Grid) bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
-		newView = HelpMenu
+		menu = HelpMenu
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/s", func(ui.Event) {
-		newView = SortMenu
+		menu = SortMenu
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
@@ -167,8 +165,8 @@ func Display(g *Grid) bool {
 	})
 
 	ui.Loop()
-	if newView != nil {
-		g.OpenView(newView)
+	if menu != nil {
+		OpenMenu(menu)
 		return false
 	}
 	if expand {

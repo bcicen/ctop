@@ -11,7 +11,7 @@ var helpDialog = []string{
 	"[q] - exit ctop",
 }
 
-func HelpMenu(g *Grid) {
+func HelpMenu() {
 	m := widgets.NewMenu(helpDialog)
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
@@ -23,7 +23,7 @@ func HelpMenu(g *Grid) {
 	ui.Loop()
 }
 
-func SortMenu(g *Grid) {
+func SortMenu() {
 	m := widgets.NewMenu(SortFields)
 	m.Selectable = true
 	m.TextFgColor = ui.ColorWhite
