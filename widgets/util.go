@@ -13,6 +13,11 @@ const (
 	gb = mb * 1024
 )
 
+// convenience method
+func byteFormatInt(n int) string {
+	return byteFormat(int64(n))
+}
+
 func byteFormat(n int64) string {
 	if n < kb {
 		return fmt.Sprintf("%sB", strconv.FormatInt(n, 10))
