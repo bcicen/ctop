@@ -43,17 +43,6 @@ func compactPar(s string) *ui.Par {
 	return p
 }
 
-func mkGauge() *ui.Gauge {
-	g := ui.NewGauge()
-	g.Height = 1
-	g.Border = false
-	g.Percent = 0
-	g.PaddingBottom = 0
-	g.BarColor = ui.ColorGreen
-	g.Label = "-"
-	return g
-}
-
 func colorScale(n int) ui.Attribute {
 	if n > 70 {
 		return ui.ColorRed

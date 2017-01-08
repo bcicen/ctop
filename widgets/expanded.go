@@ -27,7 +27,7 @@ func NewInfo(id, name string) *ui.Table {
 		[]string{"id", id},
 	}
 	p.Height = 4
-	p.Width = 40
+	p.Width = 50
 	p.FgColor = ui.ColorWhite
 	p.Seperator = false
 	return p

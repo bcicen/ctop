@@ -30,8 +30,8 @@ func NewCompact(id string, name string) *Compact {
 		Cid:    compactPar(id),
 		Net:    compactPar("-"),
 		Name:   compactPar(name),
-		Cpu:    mkGauge(),
-		Memory: mkGauge(),
+		Cpu:    slimGauge(),
+		Memory: slimGauge(),
 	}
 }
 
@@ -81,4 +81,15 @@ func (w *Compact) SetMem(val int64, limit int64, percent int) {
 		w.Memory.BarColor = ui.ColorGreen
 	}
 	w.Memory.Percent = percent
+}
+
+func slimGauge() *ui.Gauge {
+	g := ui.NewGauge()
+	g.Height = 1
+	g.Border = false
+	g.Percent = 0
+	g.PaddingBottom = 0
+	g.BarColor = ui.ColorGreen
+	g.Label = "-"
+	return g
 }

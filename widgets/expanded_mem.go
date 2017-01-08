@@ -5,15 +5,13 @@ import (
 )
 
 type ExpandedMem struct {
-	*ui.MBarChart
-	valHist   IntHistData
-	limitHist IntHistData
+	*ui.BarChart
+	hist IntHistData
 }
 
 func NewExpandedMem() *ExpandedMem {
 	mem := &ExpandedMem{
-		ui.NewMBarChart(),
-		NewIntHistData(8),
+		ui.NewBarChart(),
 		NewIntHistData(8),
 	}
 	mem.BorderLabel = "MEM"
@@ -21,21 +19,22 @@ func NewExpandedMem() *ExpandedMem {
 	mem.Width = 50
 	mem.BarWidth = 5
 	mem.BarGap = 1
-	mem.X = 51
-	mem.Y = 4
+	mem.X = 0
+	mem.Y = 14
 	mem.TextColor = ui.ColorDefault
-	mem.Data[0] = mem.valHist.data
-	mem.Data[0] = mem.valHist.data
-	mem.Data[1] = mem.limitHist.data
-	mem.BarColor[0] = ui.ColorGreen
-	mem.BarColor[1] = ui.ColorBlack
-	mem.DataLabels = mem.valHist.labels
-	//mem.ShowScale = true
+	mem.Data = mem.hist.data
+	mem.BarColor = ui.ColorGreen
+	mem.DataLabels = mem.hist.labels
+	mem.NumFmt = byteFormatInt
 	return mem
 }
 
 func (w *ExpandedMem) Update(val int, limit int) {
-	w.valHist.Append(val)
-	w.limitHist.Append(limit - val)
-	//w.Data[0] = w.hist.data
+	// implement our own scaling for mem graph
+	if val*4 < limit {
+		w.SetMax(val * 4)
+	} else {
+		w.SetMax(limit)
+	}
+	w.hist.Append(val)
 }

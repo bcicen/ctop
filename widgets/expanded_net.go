@@ -14,23 +14,23 @@ type ExpandedNet struct {
 }
 
 func NewExpandedNet() *ExpandedNet {
-	net := &ExpandedNet{ui.NewSparklines(), NewDiffHistData(30), NewDiffHistData(30)}
+	net := &ExpandedNet{ui.NewSparklines(), NewDiffHistData(50), NewDiffHistData(50)}
 	net.BorderLabel = "NET"
-	net.Height = 8
-	net.Width = 35
+	net.Height = 6
+	net.Width = 50
 	net.X = 0
-	net.Y = 15
+	net.Y = 24
 
 	rx := ui.NewSparkline()
 	rx.Title = "RX"
-	rx.Height = 2
+	rx.Height = 1
 	rx.Data = net.rxHist.data
 	rx.TitleColor = ui.ColorDefault
 	rx.LineColor = ui.ColorGreen
 
 	tx := ui.NewSparkline()
 	tx.Title = "TX"
-	tx.Height = 2
+	tx.Height = 1
 	tx.Data = net.txHist.data
 	tx.TitleColor = ui.ColorDefault
 	tx.LineColor = ui.ColorYellow
