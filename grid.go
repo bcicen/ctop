@@ -8,20 +8,20 @@ import (
 )
 
 type Grid struct {
-	cursorID     string       // id of currently selected container
-	containers   []*Container // sorted slice of containers
-	containerMap *ContainerMap
-	header       *widgets.CTopHeader
+	cursorID   string // id of currently selected container
+	cmap       *ContainerMap
+	containers []*Container // sorted slice of containers
+	header     *widgets.CTopHeader
 }
 
 func NewGrid() *Grid {
-	containerMap := NewContainerMap()
-	containers := containerMap.All()
+	cmap := NewContainerMap()
+	containers := cmap.All()
 	return &Grid{
-		cursorID:     containers[0].id,
-		containers:   containers,
-		containerMap: containerMap,
-		header:       widgets.NewCTopHeader(),
+		cursorID:   containers[0].id,
+		cmap:       cmap,
+		containers: containers,
+		header:     widgets.NewCTopHeader(),
 	}
 }
 
@@ -116,7 +116,7 @@ func OpenMenu(m func()) {
 func (g *Grid) ExpandView() {
 	ResetView()
 	defer ResetView()
-	container := g.containerMap.Get(g.cursorID)
+	container := g.cmap.Get(g.cursorID)
 	container.Expand()
 	container.widgets.Render()
 	container.Collapse()
@@ -153,7 +153,7 @@ func Display(g *Grid) bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		g.containers = g.containerMap.All() // refresh containers for current sort order
+		g.containers = g.cmap.All() // refresh containers for current sort order
 		g.redrawRows()
 	})
 

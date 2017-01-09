@@ -14,7 +14,6 @@ func NewContainerMap() *ContainerMap {
 	if err != nil {
 		panic(err)
 	}
-
 	cm := &ContainerMap{
 		client:     client,
 		containers: make(map[string]*Container),
@@ -44,6 +43,15 @@ func (cm *ContainerMap) Refresh() {
 			cm.containers[id].Collect(cm.client)
 		}
 	}
+}
+
+// Kill a container by ID
+func (cm *ContainerMap) Kill(id string, sig docker.Signal) error {
+	opts := docker.KillContainerOptions{
+		ID:     id,
+		Signal: sig,
+	}
+	return cm.client.KillContainer(opts)
 }
 
 // Return number of containers/rows

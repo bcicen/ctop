@@ -40,16 +40,16 @@ type ByCPU []*Container
 
 func (a ByCPU) Len() int           { return len(a) }
 func (a ByCPU) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByCPU) Less(i, j int) bool { return a[i].reader.CPUUtil < a[j].reader.CPUUtil }
+func (a ByCPU) Less(i, j int) bool { return a[i].metrics.CPUUtil < a[j].metrics.CPUUtil }
 
 type ByMem []*Container
 
 func (a ByMem) Len() int           { return len(a) }
 func (a ByMem) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByMem) Less(i, j int) bool { return a[i].reader.MemUsage < a[j].reader.MemUsage }
+func (a ByMem) Less(i, j int) bool { return a[i].metrics.MemUsage < a[j].metrics.MemUsage }
 
 type ByMemPercent []*Container
 
 func (a ByMemPercent) Len() int           { return len(a) }
 func (a ByMemPercent) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByMemPercent) Less(i, j int) bool { return a[i].reader.MemPercent < a[j].reader.MemPercent }
+func (a ByMemPercent) Less(i, j int) bool { return a[i].metrics.MemPercent < a[j].metrics.MemPercent }

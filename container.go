@@ -12,7 +12,7 @@ type Container struct {
 	name    string
 	done    chan bool
 	widgets widgets.ContainerWidgets
-	reader  *MetricsReader
+	metrics *MetricsReader
 }
 
 func NewContainer(c docker.APIContainers) *Container {
@@ -23,7 +23,7 @@ func NewContainer(c docker.APIContainers) *Container {
 		name:    name,
 		done:    make(chan bool),
 		widgets: widgets.NewCompact(id, name),
-		reader:  NewMetricsReader(),
+		metrics: NewMetricsReader(),
 	}
 }
 
@@ -49,7 +49,7 @@ func (c *Container) Collect(client *docker.Client) {
 	}()
 
 	go func() {
-		for metrics := range c.reader.Read(stats) {
+		for metrics := range c.metrics.Read(stats) {
 			c.widgets.SetCPU(metrics.CPUUtil)
 			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
 			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)

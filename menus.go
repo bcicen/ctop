@@ -29,6 +29,15 @@ func SortMenu() {
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"
 	m.BorderFg = ui.ColorCyan
+
+	// set cursor position to current sort field
+	current := GlobalConfig["sortField"]
+	for n, field := range m.Items {
+		if field == current {
+			m.CursorPos = n
+		}
+	}
+
 	ui.Render(m)
 	m.NavigationHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
