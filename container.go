@@ -11,9 +11,8 @@ type Container struct {
 	id      string
 	name    string
 	done    chan bool
-	stats   chan *docker.Stats
 	widgets widgets.ContainerWidgets
-	reader  *StatReader
+	reader  *MetricsReader
 }
 
 func NewContainer(c docker.APIContainers) *Container {
@@ -23,9 +22,8 @@ func NewContainer(c docker.APIContainers) *Container {
 		id:      id,
 		name:    name,
 		done:    make(chan bool),
-		stats:   make(chan *docker.Stats),
 		widgets: widgets.NewCompact(id, name),
-		reader:  &StatReader{},
+		reader:  NewMetricsReader(),
 	}
 }
 
@@ -38,10 +36,12 @@ func (c *Container) Collapse() {
 }
 
 func (c *Container) Collect(client *docker.Client) {
+	stats := make(chan *docker.Stats)
+
 	go func() {
 		opts := docker.StatsOptions{
 			ID:     c.id,
-			Stats:  c.stats,
+			Stats:  stats,
 			Stream: true,
 			Done:   c.done,
 		}
@@ -49,11 +49,10 @@ func (c *Container) Collect(client *docker.Client) {
 	}()
 
 	go func() {
-		for s := range c.stats {
-			c.reader.Read(s)
-			c.widgets.SetCPU(c.reader.CPUUtil)
-			c.widgets.SetMem(c.reader.MemUsage, c.reader.MemLimit, c.reader.MemPercent)
-			c.widgets.SetNet(c.reader.NetRx, c.reader.NetTx)
+		for metrics := range c.reader.Read(stats) {
+			c.widgets.SetCPU(metrics.CPUUtil)
+			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
+			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)
 		}
 	}()
 }

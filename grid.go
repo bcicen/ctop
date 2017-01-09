@@ -8,8 +8,8 @@ import (
 )
 
 type Grid struct {
-	cursorID     string // id of currently selected container
-	containers   []*Container
+	cursorID     string       // id of currently selected container
+	containers   []*Container // sorted slice of containers
 	containerMap *ContainerMap
 	header       *widgets.CTopHeader
 }
