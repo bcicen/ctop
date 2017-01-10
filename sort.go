@@ -4,7 +4,7 @@ import (
 	"sort"
 )
 
-var SortFields = []string{"id", "name", "cpu", "mem", "mem %"}
+var SortFields = []string{"id", "name", "cpu", "mem", "mem %", "net"}
 
 // Sort array of containers by field
 func SortContainers(field string, containers []*Container) {
@@ -19,6 +19,8 @@ func SortContainers(field string, containers []*Container) {
 		sort.Sort(sort.Reverse(ByMem(containers)))
 	case "mem %":
 		sort.Sort(sort.Reverse(ByMemPercent(containers)))
+	case "net":
+		sort.Sort(sort.Reverse(ByNet(containers)))
 	default:
 		sort.Sort(ByID(containers))
 	}
@@ -53,3 +55,11 @@ type ByMemPercent []*Container
 func (a ByMemPercent) Len() int           { return len(a) }
 func (a ByMemPercent) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByMemPercent) Less(i, j int) bool { return a[i].metrics.MemPercent < a[j].metrics.MemPercent }
+
+type ByNet []*Container
+
+func (a ByNet) Len() int           { return len(a) }
+func (a ByNet) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByNet) Less(i, j int) bool { return sumNet(a[i]) < sumNet(a[j]) }
+
+func sumNet(c *Container) int64 { return c.metrics.NetRx + c.metrics.NetTx }
