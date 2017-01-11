@@ -34,15 +34,6 @@ func byteFormat(n int64) string {
 	return fmt.Sprintf("%sG", strconv.FormatInt(n, 10))
 }
 
-func compactPar(s string) *ui.Par {
-	p := ui.NewPar(s)
-	p.Border = false
-	p.Height = 1
-	p.Width = 20
-	p.TextFgColor = ui.ColorWhite
-	return p
-}
-
 func colorScale(n int) ui.Attribute {
 	if n > 70 {
 		return ui.ColorRed

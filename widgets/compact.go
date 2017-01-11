@@ -27,9 +27,9 @@ type Compact struct {
 
 func NewCompact(id string, name string) *Compact {
 	return &Compact{
-		Cid:    compactPar(id),
-		Net:    compactPar("-"),
-		Name:   compactPar(name),
+		Cid:    slimPar(id),
+		Net:    slimPar("-"),
+		Name:   slimPar(name),
 		Cpu:    slimGauge(),
 		Memory: slimGauge(),
 	}
@@ -81,6 +81,15 @@ func (w *Compact) SetMem(val int64, limit int64, percent int) {
 		w.Memory.BarColor = ui.ColorGreen
 	}
 	w.Memory.Percent = percent
+}
+
+func slimPar(s string) *ui.Par {
+	p := ui.NewPar(s)
+	p.Border = false
+	p.Height = 1
+	p.Width = 20
+	p.TextFgColor = ui.ColorWhite
+	return p
 }
 
 func slimGauge() *ui.Gauge {
