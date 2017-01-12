@@ -145,11 +145,14 @@ func Display(g *Grid) bool {
 		menu = HelpMenu
 		ui.StopLoop()
 	})
-	ui.Handle("/sys/kbd/s", func(ui.Event) {
-		menu = SortMenu
+	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
 	})
-	ui.Handle("/sys/kbd/q", func(ui.Event) {
+	ui.Handle("/sys/kbd/r", func(ui.Event) {
+		GlobalConfig.toggle("sortReversed")
+	})
+	ui.Handle("/sys/kbd/s", func(ui.Event) {
+		menu = SortMenu
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
