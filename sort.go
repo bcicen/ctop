@@ -4,62 +4,33 @@ import (
 	"sort"
 )
 
-var SortFields = []string{"id", "name", "cpu", "mem", "mem %", "net"}
+type sortMethod func(c1, c2 *Container) bool
 
-// Sort array of containers by field
-func SortContainers(field string, containers []*Container) {
-	switch field {
-	case "id":
-		sort.Sort(ByID(containers))
-	case "name":
-		sort.Sort(ByName(containers))
-	case "cpu":
-		sort.Sort(sort.Reverse(ByCPU(containers)))
-	case "mem":
-		sort.Sort(sort.Reverse(ByMem(containers)))
-	case "mem %":
-		sort.Sort(sort.Reverse(ByMemPercent(containers)))
-	case "net":
-		sort.Sort(sort.Reverse(ByNet(containers)))
-	default:
-		sort.Sort(ByID(containers))
-	}
+var Sorters = map[string]sortMethod{
+	"id":    func(c1, c2 *Container) bool { return c1.id < c2.id },
+	"name":  func(c1, c2 *Container) bool { return c1.name < c2.name },
+	"cpu":   func(c1, c2 *Container) bool { return c1.metrics.CPUUtil < c2.metrics.CPUUtil },
+	"mem":   func(c1, c2 *Container) bool { return c1.metrics.MemUsage < c2.metrics.MemUsage },
+	"mem %": func(c1, c2 *Container) bool { return c1.metrics.MemPercent < c2.metrics.MemPercent },
+	"net":   func(c1, c2 *Container) bool { return sumNet(c1) < sumNet(c2) },
 }
 
-type ByID []*Container
+func SortFields() []string {
+	a := sort.StringSlice{}
+	for k := range Sorters {
+		a = append(a, k)
+	}
+	sort.Sort(a)
+	return a
+}
 
-func (a ByID) Len() int           { return len(a) }
-func (a ByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByID) Less(i, j int) bool { return a[i].id < a[j].id }
+type Containers []*Container
 
-type ByName []*Container
-
-func (a ByName) Len() int           { return len(a) }
-func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByName) Less(i, j int) bool { return a[i].name < a[j].name }
-
-type ByCPU []*Container
-
-func (a ByCPU) Len() int           { return len(a) }
-func (a ByCPU) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByCPU) Less(i, j int) bool { return a[i].metrics.CPUUtil < a[j].metrics.CPUUtil }
-
-type ByMem []*Container
-
-func (a ByMem) Len() int           { return len(a) }
-func (a ByMem) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByMem) Less(i, j int) bool { return a[i].metrics.MemUsage < a[j].metrics.MemUsage }
-
-type ByMemPercent []*Container
-
-func (a ByMemPercent) Len() int           { return len(a) }
-func (a ByMemPercent) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByMemPercent) Less(i, j int) bool { return a[i].metrics.MemPercent < a[j].metrics.MemPercent }
-
-type ByNet []*Container
-
-func (a ByNet) Len() int           { return len(a) }
-func (a ByNet) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByNet) Less(i, j int) bool { return sumNet(a[i]) < sumNet(a[j]) }
+func (a Containers) Len() int      { return len(a) }
+func (a Containers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a Containers) Less(i, j int) bool {
+	f := Sorters[GlobalConfig["sortField"]]
+	return f(a[i], a[j])
+}
 
 func sumNet(c *Container) int64 { return c.metrics.NetRx + c.metrics.NetTx }

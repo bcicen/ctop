@@ -24,7 +24,7 @@ func HelpMenu() {
 }
 
 func SortMenu() {
-	m := widgets.NewMenu(SortFields)
+	m := widgets.NewMenu(SortFields())
 	m.Selectable = true
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"

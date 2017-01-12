@@ -1,6 +1,8 @@
 package main
 
 import (
+	"sort"
+
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -66,10 +68,10 @@ func (cm *ContainerMap) Get(id string) *Container {
 
 // Return array of all containers, sorted by field
 func (cm *ContainerMap) All() []*Container {
-	var containers []*Container
+	var containers Containers
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
-	SortContainers(GlobalConfig["sortField"], containers)
+	sort.Sort(containers)
 	return containers
 }
