@@ -40,14 +40,16 @@ func (h FloatHist) Append(val float64) {
 }
 
 type DiffHist struct {
-	data    []int
-	srcData []int
+	data    []int // data point derivatives
+	srcData []int // principal input data
+	labels  []string
 }
 
 func NewDiffHist(max int) DiffHist {
 	return DiffHist{
-		make([]int, max),
-		make([]int, max),
+		data:    make([]int, max),
+		srcData: make([]int, max),
+		labels:  make([]string, max),
 	}
 }
 
