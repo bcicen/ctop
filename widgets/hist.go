@@ -1,27 +1,27 @@
 package widgets
 
-type HistData struct {
+type Hist struct {
 	maxLen int
 	labels []string
 }
 
-func NewHistData(max int) HistData {
-	return HistData{
+func NewHist(max int) Hist {
+	return Hist{
 		maxLen: max,
 		labels: make([]string, max),
 	}
 }
 
-type IntHistData struct {
-	HistData
+type IntHist struct {
+	Hist
 	data []int
 }
 
-func NewIntHistData(max int) IntHistData {
-	return IntHistData{NewHistData(max), make([]int, max)}
+func NewIntHist(max int) IntHist {
+	return IntHist{NewHist(max), make([]int, max)}
 }
 
-func (h IntHistData) Append(val int) {
+func (h IntHist) Append(val int) {
 	if len(h.data) >= h.maxLen {
 		h.data = append(h.data[:0], h.data[1:]...)
 	}
@@ -29,42 +29,42 @@ func (h IntHistData) Append(val int) {
 	h.data = append(h.data, val)
 }
 
-type FloatHistData struct {
-	HistData
+type FloatHist struct {
+	Hist
 	data []float64
 }
 
-func NewFloatHistData(max int) FloatHistData {
-	return FloatHistData{NewHistData(max), make([]float64, max)}
+func NewFloatHist(max int) FloatHist {
+	return FloatHist{NewHist(max), make([]float64, max)}
 }
 
-func (h FloatHistData) Append(val float64) {
+func (h FloatHist) Append(val float64) {
 	if len(h.data) >= h.maxLen {
 		h.data = append(h.data[:0], h.data[1:]...)
 	}
 	h.data = append(h.data, val)
 }
 
-type DiffHistData struct {
-	HistData
+type DiffHist struct {
+	Hist
 	data    []int
 	srcData []int
 }
 
-func NewDiffHistData(max int) DiffHistData {
-	return DiffHistData{
-		NewHistData(max),
+func NewDiffHist(max int) DiffHist {
+	return DiffHist{
+		NewHist(max),
 		make([]int, max),
 		make([]int, max),
 	}
 }
 
 // return most recent value
-func (h DiffHistData) Last() int {
+func (h DiffHist) Last() int {
 	return h.data[len(h.data)-1]
 }
 
-func (h DiffHistData) Append(val int) {
+func (h DiffHist) Append(val int) {
 	if len(h.data) >= h.maxLen {
 		h.data = append(h.data[:0], h.data[1:]...)
 	}

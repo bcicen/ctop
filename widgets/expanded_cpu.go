@@ -6,11 +6,11 @@ import (
 
 type ExpandedCpu struct {
 	*ui.LineChart
-	hist FloatHistData
+	hist FloatHist
 }
 
 func NewExpandedCpu() *ExpandedCpu {
-	cpu := &ExpandedCpu{ui.NewLineChart(), NewFloatHistData(60)}
+	cpu := &ExpandedCpu{ui.NewLineChart(), NewFloatHist(60)}
 	cpu.BorderLabel = "CPU"
 	cpu.Height = 10
 	cpu.Width = 50

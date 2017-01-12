@@ -9,12 +9,12 @@ import (
 
 type ExpandedNet struct {
 	*ui.Sparklines
-	rxHist DiffHistData
-	txHist DiffHistData
+	rxHist DiffHist
+	txHist DiffHist
 }
 
 func NewExpandedNet() *ExpandedNet {
-	net := &ExpandedNet{ui.NewSparklines(), NewDiffHistData(50), NewDiffHistData(50)}
+	net := &ExpandedNet{ui.NewSparklines(), NewDiffHist(50), NewDiffHist(50)}
 	net.BorderLabel = "NET"
 	net.Height = 6
 	net.Width = 50

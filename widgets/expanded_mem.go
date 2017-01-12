@@ -6,13 +6,13 @@ import (
 
 type ExpandedMem struct {
 	*ui.BarChart
-	hist IntHistData
+	hist IntHist
 }
 
 func NewExpandedMem() *ExpandedMem {
 	mem := &ExpandedMem{
 		ui.NewBarChart(),
-		NewIntHistData(8),
+		NewIntHist(8),
 	}
 	mem.BorderLabel = "MEM"
 	mem.Height = 10
