@@ -1,30 +1,17 @@
 package main
 
 import (
-	"strings"
-
+	"github.com/bcicen/ctop/collector"
 	"github.com/bcicen/ctop/widgets"
-	"github.com/fsouza/go-dockerclient"
 )
 
 type Container struct {
 	id      string
 	name    string
 	done    chan bool
+	metrics collector.Metrics
+	collect collector.Collector
 	widgets widgets.ContainerWidgets
-	metrics *MetricsReader
-}
-
-func NewContainer(c docker.APIContainers) *Container {
-	id := c.ID[:12]
-	name := strings.Replace(c.Names[0], "/", "", 1) // use primary container name
-	return &Container{
-		id:      id,
-		name:    name,
-		done:    make(chan bool),
-		widgets: widgets.NewCompact(id, name),
-		metrics: NewMetricsReader(),
-	}
 }
 
 func (c *Container) Expand() {
@@ -35,21 +22,10 @@ func (c *Container) Collapse() {
 	c.widgets = widgets.NewCompact(c.id, c.name)
 }
 
-func (c *Container) Collect(client *docker.Client) {
-	stats := make(chan *docker.Stats)
-
+func (c *Container) Collect() {
 	go func() {
-		opts := docker.StatsOptions{
-			ID:     c.id,
-			Stats:  stats,
-			Stream: true,
-			Done:   c.done,
-		}
-		client.Stats(opts)
-	}()
-
-	go func() {
-		for metrics := range c.metrics.Read(stats) {
+		for metrics := range c.collect.Stream() {
+			c.metrics = metrics
 			c.widgets.SetCPU(metrics.CPUUtil)
 			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
 			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)

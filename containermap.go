@@ -2,7 +2,10 @@ package main
 
 import (
 	"sort"
+	"strings"
 
+	"github.com/bcicen/ctop/collector"
+	"github.com/bcicen/ctop/widgets"
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -30,7 +33,7 @@ type ContainerMap struct {
 }
 
 func (cm *ContainerMap) Refresh() {
-	var id string
+	var id, name string
 	opts := docker.ListContainersOptions{
 		Filters: filters,
 	}
@@ -41,8 +44,15 @@ func (cm *ContainerMap) Refresh() {
 	for _, c := range containers {
 		id = c.ID[:12]
 		if _, ok := cm.containers[id]; ok == false {
-			cm.containers[id] = NewContainer(c)
-			cm.containers[id].Collect(cm.client)
+			name = strings.Replace(c.Names[0], "/", "", 1) // use primary container name
+			cm.containers[id] = &Container{
+				id:      id,
+				name:    name,
+				done:    make(chan bool),
+				collect: collector.NewDocker(cm.client, id),
+				widgets: widgets.NewCompact(id, name),
+			}
+			cm.containers[id].Collect()
 		}
 	}
 }
