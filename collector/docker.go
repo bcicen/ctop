@@ -15,11 +15,9 @@ type Docker struct {
 
 func NewDocker(client *api.Client, id string) *Docker {
 	c := &Docker{
-		Metrics{},
-		make(chan Metrics),
-		make(chan bool),
-		0,
-		0,
+		Metrics: Metrics{},
+		stream:  make(chan Metrics),
+		done:    make(chan bool),
 	}
 
 	stats := make(chan *api.Stats)

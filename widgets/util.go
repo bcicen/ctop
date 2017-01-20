@@ -30,8 +30,23 @@ func byteFormat(n int64) string {
 		n = n / mb
 		return fmt.Sprintf("%sM", strconv.FormatInt(n, 10))
 	}
-	n = n / gb
-	return fmt.Sprintf("%sG", strconv.FormatInt(n, 10))
+	nf := float64(n) / gb
+	return fmt.Sprintf("%sG", unpadFloat(nf))
+}
+
+func unpadFloat(f float64) string {
+	return strconv.FormatFloat(f, 'f', getPrecision(f), 64)
+}
+
+func getPrecision(f float64) int {
+	frac := int((f - float64(int(f))) * 100)
+	if frac == 0 {
+		return 0
+	}
+	if frac%10 == 0 {
+		return 1
+	}
+	return 2 // default precision
 }
 
 func colorScale(n int) ui.Attribute {
