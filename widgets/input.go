@@ -14,6 +14,7 @@ type Input struct {
 	ui.Block
 	Label       string
 	Data        string
+	MaxLen      int
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
 	padding     Padding
@@ -23,12 +24,18 @@ func NewInput() *Input {
 	i := &Input{
 		Block:       *ui.NewBlock(),
 		Label:       "input",
+		MaxLen:      20,
 		TextFgColor: ui.ThemeAttr("par.text.fg"),
 		TextBgColor: ui.ThemeAttr("par.text.bg"),
 		padding:     Padding{4, 2},
 	}
-	i.Width, i.Height = 30, 3
+	i.calcSize()
 	return i
+}
+
+func (i *Input) calcSize() {
+	i.Height = 3 // minimum height
+	i.Width = i.MaxLen + (i.padding[0] * 2)
 }
 
 func (i *Input) Buffer() ui.Buffer {
@@ -53,6 +60,10 @@ func (i *Input) KeyPress(e ui.Event) {
 			i.Data = i.Data[0:idx]
 		}
 		ui.Render(i)
+		return
+	}
+	if len(i.Data) >= i.MaxLen {
+		return
 	}
 	if strings.Index(input_chars, ch) > -1 {
 		i.Data += ch
