@@ -24,6 +24,19 @@ func HelpMenu() {
 	ui.Loop()
 }
 
+func FilterMenu() {
+	i := widgets.NewInput()
+	i.TextFgColor = ui.ColorWhite
+	i.BorderLabel = "Filter"
+	i.BorderFg = ui.ColorCyan
+	ui.Render(i)
+	i.InputHandlers()
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+		ui.StopLoop()
+	})
+	ui.Loop()
+}
+
 func SortMenu() {
 	m := widgets.NewMenu(SortFields())
 	m.Selectable = true
