@@ -16,6 +16,7 @@ type Input struct {
 	Data        string
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
+	padding     Padding
 }
 
 func NewInput() *Input {
@@ -24,6 +25,7 @@ func NewInput() *Input {
 		Label:       "input",
 		TextFgColor: ui.ThemeAttr("par.text.fg"),
 		TextBgColor: ui.ThemeAttr("par.text.bg"),
+		padding:     Padding{4, 2},
 	}
 	i.Width, i.Height = 30, 3
 	return i
@@ -33,7 +35,7 @@ func (i *Input) Buffer() ui.Buffer {
 	var cell ui.Cell
 	buf := i.Block.Buffer()
 
-	x := x_padding
+	x := i.padding[0]
 	for _, ch := range i.Data {
 		cell = ui.Cell{Ch: ch, Fg: i.TextFgColor, Bg: i.TextBgColor}
 		buf.Set(x, 1, cell)

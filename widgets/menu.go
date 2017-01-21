@@ -4,11 +4,7 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var (
-	x_padding = 4
-	y_padding = 2
-	minWidth  = 8
-)
+type Padding [2]int // x,y padding
 
 type Menu struct {
 	ui.Block
@@ -18,6 +14,7 @@ type Menu struct {
 	TextBgColor  ui.Attribute
 	Selectable   bool
 	CursorPos    int
+	padding      Padding
 }
 
 func NewMenu(items []string) *Menu {
@@ -29,8 +26,9 @@ func NewMenu(items []string) *Menu {
 		TextBgColor:  ui.ThemeAttr("par.text.bg"),
 		Selectable:   false,
 		CursorPos:    0,
+		padding:      Padding{4, 2},
 	}
-	m.Width, m.Height = calcSize(items)
+	m.calcSize()
 	return m
 }
 
@@ -38,14 +36,8 @@ func (m *Menu) Buffer() ui.Buffer {
 	var cell ui.Cell
 	buf := m.Block.Buffer()
 
-	// override display of items, if given
-	items := m.Items
-	if len(m.DisplayItems) == len(m.Items) {
-		items = m.DisplayItems
-	}
-
-	for n, item := range items {
-		x := x_padding
+	for n, item := range m.displayItems() {
+		x := m.padding[0]
 		for _, ch := range item {
 			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.CursorPos {
@@ -53,7 +45,7 @@ func (m *Menu) Buffer() ui.Buffer {
 			} else {
 				cell = ui.Cell{Ch: ch, Fg: m.TextFgColor, Bg: m.TextBgColor}
 			}
-			buf.Set(x, n+y_padding, cell)
+			buf.Set(x, n+m.padding[1], cell)
 			x++
 		}
 	}
@@ -82,17 +74,25 @@ func (m *Menu) NavigationHandlers() {
 	ui.Handle("/sys/kbd/q", func(ui.Event) { ui.StopLoop() })
 }
 
-// return width and height based on menu items
-func calcSize(items []string) (w, h int) {
-	h = len(items) + (y_padding * 2)
+// override display of items, if given
+func (m *Menu) displayItems() []string {
+	if len(m.DisplayItems) == len(m.Items) {
+		return m.DisplayItems
+	}
+	return m.Items
+}
 
-	w = minWidth
+// Set width and height based on menu items
+func (m *Menu) calcSize() {
+	m.Width = 8 // minimum width
+
+	items := m.displayItems()
 	for _, s := range items {
-		if len(s) > w {
-			w = len(s)
+		if len(s) > m.Width {
+			m.Width = len(s)
 		}
 	}
-	w += (x_padding * 2)
 
-	return w, h
+	m.Width += (m.padding[0] * 2)
+	m.Height = len(items) + (m.padding[1] * 2)
 }
