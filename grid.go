@@ -68,6 +68,7 @@ func (g *Grid) redrawCursor() {
 func (g *Grid) redrawRows() {
 	// reinit body rows
 	ui.Body.Rows = []*ui.Row{}
+	ui.Clear()
 
 	// build layout
 	if GlobalConfig["enableHeader"] == "1" {

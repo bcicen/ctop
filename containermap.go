@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -79,9 +81,15 @@ func (cm *ContainerMap) Get(id string) *Container {
 // Return array of all containers, sorted by field
 func (cm *ContainerMap) All() []*Container {
 	var containers Containers
+	filter := GlobalConfig["filterStr"]
+	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+
 	for _, c := range cm.containers {
-		containers = append(containers, c)
+		if re.FindAllString(c.name, 1) != nil {
+			containers = append(containers, c)
+		}
 	}
+
 	sort.Sort(containers)
 	return containers
 }

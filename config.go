@@ -34,6 +34,7 @@ func NewDefaultConfig() Config {
 	}
 	config := Config{
 		"dockerHost":   docker,
+		"filterStr":    "",
 		"sortField":    "id",
 		"sortReverse":  "0",
 		"enableHeader": "0",

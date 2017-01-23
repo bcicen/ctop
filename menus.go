@@ -32,6 +32,7 @@ func FilterMenu() {
 	ui.Render(i)
 	i.InputHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+		updateConfig("filterStr", i.Data)
 		ui.StopLoop()
 	})
 	ui.Loop()
