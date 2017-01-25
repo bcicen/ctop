@@ -16,13 +16,16 @@ type Grid struct {
 
 func NewGrid() *Grid {
 	cmap := NewContainerMap()
-	containers := cmap.All()
-	return &Grid{
-		cursorID:   containers[0].id,
+	g := &Grid{
 		cmap:       cmap,
-		containers: containers,
+		containers: cmap.All(),
 		header:     widgets.NewCTopHeader(),
 	}
+	// set initial cursor position
+	if len(g.containers) > 0 {
+		g.cursorID = g.containers[0].id
+	}
+	return g
 }
 
 // Return current cursor index
