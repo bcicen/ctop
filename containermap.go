@@ -36,6 +36,7 @@ type ContainerMap struct {
 
 func (cm *ContainerMap) Refresh() {
 	var id, name string
+
 	opts := docker.ListContainersOptions{
 		Filters: filters,
 	}
@@ -43,6 +44,8 @@ func (cm *ContainerMap) Refresh() {
 	if err != nil {
 		panic(err)
 	}
+
+	// add new containers
 	for _, c := range containers {
 		id = c.ID[:12]
 		if _, ok := cm.containers[id]; ok == false {
@@ -50,13 +53,22 @@ func (cm *ContainerMap) Refresh() {
 			cm.containers[id] = &Container{
 				id:      id,
 				name:    name,
-				done:    make(chan bool),
 				collect: collector.NewDocker(cm.client, id),
 				widgets: widgets.NewCompact(id, name),
 			}
 			cm.containers[id].Collect()
 		}
 	}
+
+	// remove dead containers
+	var removeIDs []string
+	for id, c := range cm.containers {
+		if c.dead {
+			removeIDs = append(removeIDs, id)
+		}
+	}
+	cm.Del(removeIDs...)
+
 }
 
 // Kill a container by ID
@@ -78,9 +90,17 @@ func (cm *ContainerMap) Get(id string) *Container {
 	return cm.containers[id]
 }
 
+// Remove one or more containers
+func (cm *ContainerMap) Del(ids ...string) {
+	for _, id := range ids {
+		delete(cm.containers, id)
+	}
+}
+
 // Return array of all containers, sorted by field
 func (cm *ContainerMap) All() []*Container {
 	var containers Containers
+
 	filter := GlobalConfig["filterStr"]
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 

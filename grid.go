@@ -129,6 +129,7 @@ func (g *Grid) ExpandView() {
 func Display(g *Grid) bool {
 	var menu func()
 	var expand bool
+	var loopIter int
 
 	// calculate layout
 	ui.Body.Align()
@@ -164,6 +165,10 @@ func Display(g *Grid) bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/timer/1s", func(e ui.Event) {
+		loopIter++
+		if loopIter%5 == 0 {
+			g.cmap.Refresh()
+		}
 		g.containers = g.cmap.All() // refresh containers for current sort order
 		g.redrawRows()
 	})
