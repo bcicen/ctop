@@ -33,7 +33,6 @@ func NewDocker(client *api.Client, id string) *Docker {
 	}()
 
 	go func() {
-		defer close(stats)
 		defer close(c.stream)
 		for s := range stats {
 			c.ReadCPU(s)
