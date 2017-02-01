@@ -58,6 +58,9 @@ func (w *Expanded) Highlight() {
 func (w *Expanded) UnHighlight() {
 }
 
+func (w *Expanded) SetStatus(val int) {
+}
+
 func (w *Expanded) SetCPU(val int) {
 	w.Cpu.Update(val)
 }

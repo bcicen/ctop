@@ -7,17 +7,23 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+const (
+	mark = '\u25C9'
+)
+
 type ContainerWidgets interface {
 	Row() *ui.Row
 	Render()
 	Highlight()
 	UnHighlight()
+	SetStatus(int)
 	SetCPU(int)
 	SetNet(int64, int64)
 	SetMem(int64, int64, int)
 }
 
 type Compact struct {
+	Status *ui.Par
 	Cid    *ui.Par
 	Net    *ui.Par
 	Name   *ui.Par
@@ -27,6 +33,7 @@ type Compact struct {
 
 func NewCompact(id string, name string) *Compact {
 	return &Compact{
+		Status: slimPar(string(mark)),
 		Cid:    slimPar(id),
 		Net:    slimPar("-"),
 		Name:   slimPar(name),
@@ -39,7 +46,9 @@ func (w *Compact) Render() {
 }
 
 func (w *Compact) Row() *ui.Row {
+	centerParText(w.Status)
 	return ui.NewRow(
+		ui.NewCol(1, 0, w.Status),
 		ui.NewCol(2, 0, w.Name),
 		ui.NewCol(2, 0, w.Cid),
 		ui.NewCol(2, 0, w.Cpu),
@@ -56,6 +65,15 @@ func (w *Compact) Highlight() {
 func (w *Compact) UnHighlight() {
 	w.Name.TextFgColor = ui.ColorWhite
 	w.Name.TextBgColor = ui.ColorDefault
+}
+
+func (w *Compact) SetStatus(val int) {
+	switch val {
+	case 0:
+		w.Status.TextFgColor = ui.ColorGreen
+	default:
+		w.Status.TextFgColor = ui.ColorRed
+	}
 }
 
 func (w *Compact) SetCPU(val int) {
@@ -81,6 +99,24 @@ func (w *Compact) SetMem(val int64, limit int64, percent int) {
 		w.Memory.BarColor = ui.ColorGreen
 	}
 	w.Memory.Percent = percent
+}
+
+func centerParText(p *ui.Par) {
+	var text string
+	var padding string
+
+	// strip existing left-padding
+	for i, ch := range p.Text {
+		if string(ch) != " " {
+			text = p.Text[i:]
+		}
+	}
+
+	padlen := (p.InnerWidth() - len(text)) / 2
+	for i := 0; i < padlen; i++ {
+		padding += " "
+	}
+	p.Text = fmt.Sprintf("%s%s", padding, text)
 }
 
 func slimPar(s string) *ui.Par {

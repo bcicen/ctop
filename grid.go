@@ -89,6 +89,7 @@ func (g *Grid) redrawRows() {
 
 func fieldHeader() *ui.Row {
 	return ui.NewRow(
+		ui.NewCol(1, 0, headerPar("STATUS")),
 		ui.NewCol(2, 0, headerPar("NAME")),
 		ui.NewCol(2, 0, headerPar("CID")),
 		ui.NewCol(2, 0, headerPar("CPU")),
