@@ -15,6 +15,8 @@ type Metrics struct {
 
 type Collector interface {
 	Stream() chan Metrics
+	Running() bool
+	Start()
 	Stop()
 }
 

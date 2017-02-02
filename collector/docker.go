@@ -7,6 +7,9 @@ import (
 // Docker collector
 type Docker struct {
 	Metrics
+	id         string
+	client     *api.Client
+	running    bool
 	stream     chan Metrics
 	done       chan bool
 	lastCpu    float64
@@ -14,22 +17,27 @@ type Docker struct {
 }
 
 func NewDocker(client *api.Client, id string) *Docker {
-	c := &Docker{
+	return &Docker{
 		Metrics: Metrics{},
+		id:      id,
+		client:  client,
 		stream:  make(chan Metrics),
 		done:    make(chan bool),
 	}
+}
 
+func (c *Docker) Start() {
 	stats := make(chan *api.Stats)
 
 	go func() {
 		opts := api.StatsOptions{
-			ID:     id,
+			ID:     c.id,
 			Stats:  stats,
 			Stream: true,
 			Done:   c.done,
 		}
-		client.Stats(opts)
+		c.client.Stats(opts)
+		c.running = false
 	}()
 
 	go func() {
@@ -42,7 +50,11 @@ func NewDocker(client *api.Client, id string) *Docker {
 		}
 	}()
 
-	return c
+	c.running = true
+}
+
+func (c *Docker) Running() bool {
+	return c.running
 }
 
 func (c *Docker) Stream() chan Metrics {

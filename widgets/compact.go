@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	mark = '\u25C9'
+	mark  = '\u25C9'
+	pause = '\u25AE'
 )
 
 type ContainerWidgets interface {
@@ -16,7 +17,7 @@ type ContainerWidgets interface {
 	Render()
 	Highlight()
 	UnHighlight()
-	SetStatus(int)
+	SetStatus(string)
 	SetCPU(int)
 	SetNet(int64, int64)
 	SetMem(int64, int64, int)
@@ -33,7 +34,7 @@ type Compact struct {
 
 func NewCompact(id string, name string) *Compact {
 	return &Compact{
-		Status: slimPar(string(mark)),
+		Status: slimPar(""),
 		Cid:    slimPar(id),
 		Net:    slimPar("-"),
 		Name:   slimPar(name),
@@ -67,11 +68,19 @@ func (w *Compact) UnHighlight() {
 	w.Name.TextBgColor = ui.ColorDefault
 }
 
-func (w *Compact) SetStatus(val int) {
+func (w *Compact) SetStatus(val string) {
 	switch val {
-	case 0:
+	case "running":
+		w.Status.Text = string(mark)
 		w.Status.TextFgColor = ui.ColorGreen
+	case "exited":
+		w.Status.Text = string(mark)
+		w.Status.TextFgColor = ui.ColorRed
+	case "paused":
+		w.Status.Text = fmt.Sprintf("%s%s", string(pause), string(pause))
+		w.Status.TextFgColor = ui.ColorDefault
 	default:
+		w.Status.Text = string(mark)
 		w.Status.TextFgColor = ui.ColorRed
 	}
 }
@@ -109,6 +118,7 @@ func centerParText(p *ui.Par) {
 	for i, ch := range p.Text {
 		if string(ch) != " " {
 			text = p.Text[i:]
+			break
 		}
 	}
 

@@ -11,10 +11,6 @@ import (
 	"github.com/fsouza/go-dockerclient"
 )
 
-var filters = map[string][]string{
-	"status": []string{"running"},
-}
-
 func NewContainerMap() *ContainerMap {
 	// init docker client
 	client, err := docker.NewClient(GlobalConfig["dockerHost"])
@@ -37,17 +33,17 @@ type ContainerMap struct {
 func (cm *ContainerMap) Refresh() {
 	var id, name string
 
-	opts := docker.ListContainersOptions{
-		Filters: filters,
-	}
+	opts := docker.ListContainersOptions{All: true}
 	containers, err := cm.client.ListContainers(opts)
 	if err != nil {
 		panic(err)
 	}
 
 	// add new containers
+	states := make(map[string]string)
 	for _, c := range containers {
 		id = c.ID[:12]
+		states[id] = c.State
 		if _, ok := cm.containers[id]; ok == false {
 			name = strings.Replace(c.Names[0], "/", "", 1) // use primary container name
 			cm.containers[id] = &Container{
@@ -56,19 +52,25 @@ func (cm *ContainerMap) Refresh() {
 				collect: collector.NewDocker(cm.client, id),
 				widgets: widgets.NewCompact(id, name),
 			}
-			cm.containers[id].Collect()
 		}
+	}
+
+	var removeIDs []string
+	for id, c := range cm.containers {
+		// mark stale internal containers
+		if _, ok := states[id]; ok == false {
+			removeIDs = append(removeIDs, id)
+			continue
+		}
+		// start collector if necessary
+		if states[id] == "running" && !c.collect.Running() {
+			c.Collect()
+		}
+		c.widgets.SetStatus(states[id])
 	}
 
 	// remove dead containers
-	var removeIDs []string
-	for id, c := range cm.containers {
-		if c.dead {
-			removeIDs = append(removeIDs, id)
-		}
-	}
 	cm.Del(removeIDs...)
-
 }
 
 // Kill a container by ID

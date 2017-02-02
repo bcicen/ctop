@@ -58,7 +58,7 @@ func (w *Expanded) Highlight() {
 func (w *Expanded) UnHighlight() {
 }
 
-func (w *Expanded) SetStatus(val int) {
+func (w *Expanded) SetStatus(val string) {
 }
 
 func (w *Expanded) SetCPU(val int) {

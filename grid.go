@@ -135,7 +135,7 @@ func Display(g *Grid) bool {
 	// calculate layout
 	ui.Body.Align()
 	g.redrawCursor()
-	ui.Render(ui.Body)
+	g.redrawRows()
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
 		g.cursorUp()

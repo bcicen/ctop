@@ -23,6 +23,7 @@ func (c *Container) Collapse() {
 }
 
 func (c *Container) Collect() {
+	c.collect.Start()
 	go func() {
 		for metrics := range c.collect.Stream() {
 			c.metrics = metrics
