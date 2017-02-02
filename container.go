@@ -8,7 +8,6 @@ import (
 type Container struct {
 	id      string
 	name    string
-	dead    bool
 	metrics collector.Metrics
 	collect collector.Collector
 	widgets widgets.ContainerWidgets
@@ -31,6 +30,5 @@ func (c *Container) Collect() {
 			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
 			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)
 		}
-		c.dead = true
 	}()
 }
