@@ -62,11 +62,7 @@ func (cm *ContainerMap) Refresh() {
 			removeIDs = append(removeIDs, id)
 			continue
 		}
-		// start collector if necessary
-		if states[id] == "running" && !c.collect.Running() {
-			c.Collect()
-		}
-		c.widgets.SetStatus(states[id])
+		c.SetState(states[id])
 	}
 
 	// remove dead containers
