@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"fmt"
 	"net"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 )
 
 const (
-	size = 64
+	size = 1024
 	path = "/tmp/ctop.sock"
 )
 
@@ -19,6 +20,29 @@ var format = logging.MustStringFormatter(
 type CTopLogger struct {
 	*logging.Logger
 	backend *logging.MemoryBackend
+	done    chan bool
+}
+
+func New(serverEnabled string) *CTopLogger {
+	log := &CTopLogger{
+		logging.MustGetLogger("ctop"),
+		logging.NewMemoryBackend(size),
+		make(chan bool),
+	}
+
+	backendFmt := logging.NewBackendFormatter(log.backend, format)
+	logging.SetBackend(backendFmt)
+	log.Info("logger initialized")
+
+	if serverEnabled == "1" {
+		log.Serve()
+	}
+
+	return log
+}
+
+func (log *CTopLogger) Exit() {
+	log.done <- true
 }
 
 func (log *CTopLogger) Serve() {
@@ -27,18 +51,33 @@ func (log *CTopLogger) Serve() {
 		panic(err)
 	}
 
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			panic(err)
+	go func() {
+		switch {
+		case <-log.done:
+			ln.Close()
+			return
+		default:
+			//
 		}
-		go log.handler(conn)
-	}
+	}()
+
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				panic(err)
+			}
+			go log.handler(conn)
+		}
+	}()
+
+	log.Info("logging server started")
 }
 
 func (log *CTopLogger) handler(conn net.Conn) {
 	defer conn.Close()
 	for msg := range log.tail() {
+		msg = fmt.Sprintf("%s\n", msg)
 		conn.Write([]byte(msg))
 	}
 }
@@ -62,21 +101,4 @@ func (log *CTopLogger) tail() chan string {
 	}()
 
 	return stream
-}
-
-func New(serverEnabled string) *CTopLogger {
-
-	log := &CTopLogger{
-		logging.MustGetLogger("ctop"),
-		logging.NewMemoryBackend(size),
-	}
-
-	logging.SetBackend(logging.NewBackendFormatter(log.backend, format))
-	log.Info("initialized logging")
-
-	if serverEnabled == "1" {
-		go log.Serve()
-	}
-
-	return log
 }
