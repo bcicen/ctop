@@ -33,11 +33,12 @@ func NewDefaultConfig() Config {
 		docker = "unix:///var/run/docker.sock"
 	}
 	config := Config{
-		"dockerHost":   docker,
-		"filterStr":    "",
-		"sortField":    "id",
-		"sortReverse":  "0",
-		"enableHeader": "0",
+		"dockerHost":     docker,
+		"filterStr":      "",
+		"sortField":      "id",
+		"sortReverse":    "0",
+		"enableHeader":   "0",
+		"loggingEnabled": "1",
 	}
 	go func() {
 		for m := range configChan {
