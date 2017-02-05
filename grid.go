@@ -127,10 +127,21 @@ func (g *Grid) ExpandView() {
 	container.Collapse()
 }
 
+func logEvent(e ui.Event) {
+	var s string
+	s += fmt.Sprintf("Type: %s\n", e.Type)
+	s += fmt.Sprintf("Path: %s\n", e.Path)
+	s += fmt.Sprintf("From: %s\n", e.From)
+	s += fmt.Sprintf("To: %s", e.To)
+	log.Debugf("new event:\n%s", s)
+}
+
 func Display(g *Grid) bool {
 	var menu func()
 	var expand bool
 	var loopIter int
+
+	ui.DefaultEvtStream.Hook(logEvent)
 
 	// calculate layout
 	ui.Body.Align()
