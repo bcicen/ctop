@@ -17,6 +17,8 @@ func main() {
 	for {
 		exit := Display(g)
 		if exit {
+			log.Notice("shutting down")
+			log.Exit()
 			return
 		}
 	}

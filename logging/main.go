@@ -3,6 +3,7 @@ package logging
 import (
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/op/go-logging"
@@ -16,23 +17,23 @@ const (
 var format = logging.MustStringFormatter(
 	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 )
+var exited bool
+var wg sync.WaitGroup
 
 type CTopLogger struct {
 	*logging.Logger
 	backend *logging.MemoryBackend
-	done    chan bool
 }
 
 func New(serverEnabled string) *CTopLogger {
 	log := &CTopLogger{
 		logging.MustGetLogger("ctop"),
 		logging.NewMemoryBackend(size),
-		make(chan bool),
 	}
 
 	backendFmt := logging.NewBackendFormatter(log.backend, format)
 	logging.SetBackend(backendFmt)
-	log.Info("logger initialized")
+	log.Notice("logger initialized")
 
 	if serverEnabled == "1" {
 		log.Serve()
@@ -42,7 +43,8 @@ func New(serverEnabled string) *CTopLogger {
 }
 
 func (log *CTopLogger) Exit() {
-	log.done <- true
+	exited = true
+	wg.Wait()
 }
 
 func (log *CTopLogger) Serve() {
@@ -52,34 +54,30 @@ func (log *CTopLogger) Serve() {
 	}
 
 	go func() {
-		switch {
-		case <-log.done:
-			ln.Close()
-			return
-		default:
-			//
-		}
-	}()
-
-	go func() {
 		for {
 			conn, err := ln.Accept()
 			if err != nil {
-				panic(err)
+				if err, ok := err.(net.Error); ok && err.Temporary() {
+					continue
+				}
+				return
 			}
 			go log.handler(conn)
 		}
 	}()
 
-	log.Info("logging server started")
+	log.Notice("logging server started")
 }
 
 func (log *CTopLogger) handler(conn net.Conn) {
+	wg.Add(1)
+	defer wg.Done()
 	defer conn.Close()
 	for msg := range log.tail() {
 		msg = fmt.Sprintf("%s\n", msg)
 		conn.Write([]byte(msg))
 	}
+	conn.Write([]byte("bye\n"))
 }
 
 func (log *CTopLogger) tail() chan string {
@@ -94,6 +92,10 @@ func (log *CTopLogger) tail() chan string {
 				if nnode != nil {
 					node = nnode
 					break
+				}
+				if exited {
+					close(stream)
+					return
 				}
 				time.Sleep(1 * time.Second)
 			}
