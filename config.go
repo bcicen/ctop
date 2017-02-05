@@ -15,6 +15,7 @@ type ConfigMsg struct {
 }
 
 func updateConfig(k, v string) {
+	log.Noticef("config update: %s = %s", k, v)
 	configChan <- ConfigMsg{k, v}
 }
 
