@@ -1,11 +1,12 @@
 package main
 
 import (
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/logging"
 	ui "github.com/gizak/termui"
 )
 
-var log = logging.New(GlobalConfig["loggingEnabled"])
+var log = logging.New(config.Global["loggingEnabled"])
 
 func main() {
 	if err := ui.Init(); err != nil {

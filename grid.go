@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 )
@@ -74,7 +75,7 @@ func (g *Grid) redrawRows() {
 	ui.Clear()
 
 	// build layout
-	if GlobalConfig["enableHeader"] == "1" {
+	if config.Global["enableHeader"] == "1" {
 		g.header.SetCount(len(g.containers))
 		ui.Body.AddRows(g.header.Row())
 	}
@@ -170,7 +171,7 @@ func Display(g *Grid) bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/r", func(e ui.Event) {
-		GlobalConfig.toggle("sortReversed")
+		config.Toggle("sortReversed")
 	})
 	ui.Handle("/sys/kbd/s", func(ui.Event) {
 		menu = SortMenu

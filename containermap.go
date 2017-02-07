@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/bcicen/ctop/collector"
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/fsouza/go-dockerclient"
 )
 
 func NewContainerMap() *ContainerMap {
 	// init docker client
-	client, err := docker.NewClient(GlobalConfig["dockerHost"])
+	client, err := docker.NewClient(config.Global["dockerHost"])
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +100,7 @@ func (cm *ContainerMap) Del(ids ...string) {
 func (cm *ContainerMap) All() []*Container {
 	var containers Containers
 
-	filter := GlobalConfig["filterStr"]
+	filter := config.Global["filterStr"]
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
 	for _, c := range cm.containers {

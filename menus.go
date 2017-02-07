@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 )
@@ -32,7 +33,7 @@ func FilterMenu() {
 	ui.Render(i)
 	i.InputHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		updateConfig("filterStr", i.Data)
+		config.Update("filterStr", i.Data)
 		ui.StopLoop()
 	})
 	ui.Loop()
@@ -46,7 +47,7 @@ func SortMenu() {
 	m.BorderFg = ui.ColorCyan
 
 	// set cursor position to current sort field
-	current := GlobalConfig["sortField"]
+	current := config.Global["sortField"]
 	for n, field := range m.Items {
 		if field == current {
 			m.CursorPos = n
@@ -56,7 +57,7 @@ func SortMenu() {
 	ui.Render(m)
 	m.NavigationHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		updateConfig("sortField", m.Items[m.CursorPos])
+		config.Update("sortField", m.Items[m.CursorPos])
 		ui.StopLoop()
 	})
 	ui.Loop()

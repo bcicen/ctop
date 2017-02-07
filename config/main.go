@@ -1,10 +1,10 @@
-package main
+package config
 
 import (
 	"os"
 )
 
-var GlobalConfig = NewDefaultConfig()
+var Global = NewDefaultConfig()
 var configChan = make(chan ConfigMsg)
 
 type Config map[string]string
@@ -14,17 +14,17 @@ type ConfigMsg struct {
 	val string
 }
 
-func updateConfig(k, v string) {
-	log.Noticef("config update: %s = %s", k, v)
+func Update(k, v string) {
+	//log.Noticef("config update: %s = %s", k, v)
 	configChan <- ConfigMsg{k, v}
 }
 
 // Toggle a boolean option
-func (c Config) toggle(k string) {
-	if c[k] == "0" {
-		c[k] = "1"
+func Toggle(k string) {
+	if Global[k] == "0" {
+		Global[k] = "1"
 	} else {
-		c[k] = "0"
+		Global[k] = "0"
 	}
 }
 
