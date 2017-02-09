@@ -4,8 +4,10 @@ import (
 	"os"
 )
 
-var Global = NewDefaultConfig()
-var configChan = make(chan ConfigMsg)
+var (
+	Global     = NewDefaultConfig()
+	configChan = make(chan ConfigMsg)
+)
 
 type Config map[string]string
 
