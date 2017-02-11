@@ -14,11 +14,13 @@ const (
 	path = "/tmp/ctop.sock"
 )
 
-var format = logging.MustStringFormatter(
-	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+var (
+	exited bool
+	wg     sync.WaitGroup
+	format = logging.MustStringFormatter(
+		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	)
 )
-var exited bool
-var wg sync.WaitGroup
 
 type CTopLogger struct {
 	*logging.Logger
