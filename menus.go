@@ -47,7 +47,7 @@ func SortMenu() {
 	m.BorderFg = ui.ColorCyan
 
 	// set cursor position to current sort field
-	current := config.Global["sortField"]
+	current := config.Get("sortField")
 	for n, field := range m.Items {
 		if field == current {
 			m.CursorPos = n

@@ -75,7 +75,7 @@ func (g *Grid) redrawRows() {
 	ui.Clear()
 
 	// build layout
-	if config.Global["enableHeader"] == "1" {
+	if config.GetToggle("enableHeader") {
 		g.header.SetCount(len(g.containers))
 		ui.Body.AddRows(g.header.Row())
 	}
