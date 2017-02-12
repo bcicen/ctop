@@ -36,6 +36,7 @@ func GetToggle(k string) bool {
 // Toggle a boolean option
 func Toggle(k string) {
 	Global.toggles[k] = Global.toggles[k] != true
+	log.Noticef("config change: %s = %t", k, Global.toggles[k])
 }
 
 type ConfigMsg struct {
@@ -44,7 +45,6 @@ type ConfigMsg struct {
 }
 
 func Update(k, v string) {
-	log.Noticef("config update: %s = %s", k, v)
 	Global.updates <- ConfigMsg{k, v}
 }
 
@@ -70,6 +70,7 @@ func NewDefaultConfig() Config {
 	go func() {
 		for m := range config.updates {
 			config.params[m.key] = m.val
+			log.Noticef("config change: %s = %s", m.key, m.val)
 		}
 	}()
 	return config
