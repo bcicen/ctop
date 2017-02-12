@@ -15,8 +15,9 @@ const (
 )
 
 var (
-	exited bool
+	Log    *CTopLogger
 	wg     sync.WaitGroup
+	exited bool
 	format = logging.MustStringFormatter(
 		`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 	)
@@ -27,21 +28,22 @@ type CTopLogger struct {
 	backend *logging.MemoryBackend
 }
 
-func New(serverEnabled string) *CTopLogger {
-	log := &CTopLogger{
-		logging.MustGetLogger("ctop"),
-		logging.NewMemoryBackend(size),
+func Init(serverEnabled string) *CTopLogger {
+	if Log == nil {
+		Log = &CTopLogger{
+			logging.MustGetLogger("ctop"),
+			logging.NewMemoryBackend(size),
+		}
+
+		backendFmt := logging.NewBackendFormatter(Log.backend, format)
+		logging.SetBackend(backendFmt)
+		Log.Notice("logger initialized")
+
+		if serverEnabled == "1" {
+			Log.Serve()
+		}
 	}
-
-	backendFmt := logging.NewBackendFormatter(log.backend, format)
-	logging.SetBackend(backendFmt)
-	log.Notice("logger initialized")
-
-	if serverEnabled == "1" {
-		log.Serve()
-	}
-
-	return log
+	return Log
 }
 
 func (log *CTopLogger) Exit() {

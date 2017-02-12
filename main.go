@@ -6,9 +6,10 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var log = logging.New(config.Global["loggingEnabled"])
+var log *logging.CTopLogger
 
 func main() {
+	log = logging.Init(config.Global["loggingEnabled"])
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
