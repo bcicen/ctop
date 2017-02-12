@@ -9,7 +9,10 @@ import (
 var log *logging.CTopLogger
 
 func main() {
-	log = logging.Init(config.Global["loggingEnabled"])
+	log = logging.Init()
+	if config.Global["loggingEnabled"] == "1" {
+		log.StartServer()
+	}
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}

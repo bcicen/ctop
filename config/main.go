@@ -2,10 +2,13 @@ package config
 
 import (
 	"os"
+
+	"github.com/bcicen/ctop/logging"
 )
 
 var (
 	Global     = NewDefaultConfig()
+	log        = logging.Init()
 	configChan = make(chan ConfigMsg)
 )
 
@@ -17,7 +20,7 @@ type ConfigMsg struct {
 }
 
 func Update(k, v string) {
-	//log.Noticef("config update: %s = %s", k, v)
+	log.Noticef("config update: %s = %s", k, v)
 	configChan <- ConfigMsg{k, v}
 }
 

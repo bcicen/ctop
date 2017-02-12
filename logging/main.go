@@ -28,7 +28,7 @@ type CTopLogger struct {
 	backend *logging.MemoryBackend
 }
 
-func Init(serverEnabled string) *CTopLogger {
+func Init() *CTopLogger {
 	if Log == nil {
 		Log = &CTopLogger{
 			logging.MustGetLogger("ctop"),
@@ -38,10 +38,6 @@ func Init(serverEnabled string) *CTopLogger {
 		backendFmt := logging.NewBackendFormatter(Log.backend, format)
 		logging.SetBackend(backendFmt)
 		Log.Notice("logger initialized")
-
-		if serverEnabled == "1" {
-			Log.Serve()
-		}
 	}
 	return Log
 }
@@ -51,7 +47,7 @@ func (log *CTopLogger) Exit() {
 	wg.Wait()
 }
 
-func (log *CTopLogger) Serve() {
+func (log *CTopLogger) StartServer() {
 	ln, err := net.Listen("unix", path)
 	if err != nil {
 		panic(err)
