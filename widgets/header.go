@@ -8,14 +8,16 @@ import (
 )
 
 type CTopHeader struct {
-	Time  *ui.Par
-	Count *ui.Par
+	Time   *ui.Par
+	Count  *ui.Par
+	Filter *ui.Par
 }
 
 func NewCTopHeader() *CTopHeader {
 	return &CTopHeader{
-		Time:  headerPar(timeStr()),
-		Count: headerPar("-"),
+		Time:   headerPar(timeStr()),
+		Count:  headerPar("-"),
+		Filter: headerPar(""),
 	}
 }
 
@@ -24,11 +26,20 @@ func (c *CTopHeader) Row() *ui.Row {
 	return ui.NewRow(
 		ui.NewCol(2, 0, c.Time),
 		ui.NewCol(2, 0, c.Count),
+		ui.NewCol(8, 0, c.Filter),
 	)
 }
 
 func (c *CTopHeader) SetCount(val int) {
 	c.Count.Text = fmt.Sprintf("%d containers", val)
+}
+
+func (c *CTopHeader) SetFilter(val string) {
+	if val == "" {
+		c.Filter.Text = ""
+	} else {
+		c.Filter.Text = fmt.Sprintf("filter: %s", val)
+	}
 }
 
 func timeStr() string {

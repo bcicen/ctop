@@ -77,6 +77,7 @@ func (g *Grid) redrawRows() {
 	// build layout
 	if config.GetToggle("enableHeader") {
 		g.header.SetCount(len(g.containers))
+		g.header.SetFilter(config.Get("filterStr"))
 		ui.Body.AddRows(g.header.Row())
 	}
 	ui.Body.AddRows(fieldHeader())
@@ -160,6 +161,10 @@ func Display(g *Grid) bool {
 	ui.Handle("/sys/kbd/h", func(ui.Event) {
 		menu = HelpMenu
 		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/H", func(ui.Event) {
+		config.Toggle("enableHeader")
+		g.redrawRows()
 	})
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
