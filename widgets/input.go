@@ -42,10 +42,11 @@ func (i *Input) Buffer() ui.Buffer {
 	var cell ui.Cell
 	buf := i.Block.Buffer()
 
-	x := i.padding[0]
+	x := i.Block.X + i.padding[0]
+	y := i.Block.Y + 1
 	for _, ch := range i.Data {
 		cell = ui.Cell{Ch: ch, Fg: i.TextFgColor, Bg: i.TextBgColor}
-		buf.Set(x, 1, cell)
+		buf.Set(x, y, cell)
 		x++
 	}
 
