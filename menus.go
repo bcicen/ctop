@@ -14,6 +14,9 @@ var helpDialog = []string{
 }
 
 func HelpMenu() {
+	ResetView()
+	defer ResetView()
+
 	m := widgets.NewMenu(helpDialog)
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
@@ -26,10 +29,14 @@ func HelpMenu() {
 }
 
 func FilterMenu() {
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ResetView()
+
 	i := widgets.NewInput()
 	i.TextFgColor = ui.ColorWhite
 	i.BorderLabel = "Filter"
 	i.BorderFg = ui.ColorCyan
+	i.SetY(ui.TermHeight() - i.Height)
 	ui.Render(i)
 	i.InputHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
@@ -40,6 +47,9 @@ func FilterMenu() {
 }
 
 func SortMenu() {
+	ResetView()
+	defer ResetView()
+
 	m := widgets.NewMenu(SortFields())
 	m.Selectable = true
 	m.TextFgColor = ui.ColorWhite

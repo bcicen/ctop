@@ -113,12 +113,6 @@ func ResetView() {
 	ui.Clear()
 }
 
-func OpenMenu(m func()) {
-	ResetView()
-	defer ResetView()
-	m()
-}
-
 func (g *Grid) ExpandView() {
 	ResetView()
 	defer ResetView()
@@ -195,7 +189,7 @@ func Display(g *Grid) bool {
 
 	ui.Loop()
 	if menu != nil {
-		OpenMenu(menu)
+		menu()
 		return false
 	}
 	if expand {
