@@ -12,3 +12,12 @@ git clone https://github.com/bcicen/ctop.git
 cd ctop
 go build && ./ctop
 ```
+
+## Keybindings
+
+Key | Action
+--- | ---
+h | Open help dialog
+s | Select container sort field
+r | Reverse container sort order
+q |  Quit ctop
