@@ -58,8 +58,8 @@ func SortMenu() {
 
 	// set cursor position to current sort field
 	current := config.Get("sortField")
-	for n, field := range m.Items {
-		if field == current {
+	for n, item := range m.Items {
+		if item.Val == current {
 			m.CursorPos = n
 		}
 	}
@@ -67,7 +67,7 @@ func SortMenu() {
 	ui.Render(m)
 	m.NavigationHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		config.Update("sortField", m.Items[m.CursorPos])
+		config.Update("sortField", m.Items[m.CursorPos].Val)
 		ui.StopLoop()
 	})
 	ui.Loop()
