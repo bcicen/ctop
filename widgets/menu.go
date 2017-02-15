@@ -66,12 +66,26 @@ func (m *Menu) AddItems(items ...MenuItem) {
 	m.refresh()
 }
 
+// Remove menu item by value or label
+func (m *Menu) DelItem(s string) (success bool) {
+	for n, i := range m.Items {
+		if i.Val == s || i.Label == s {
+			m.Items = append(m.Items[:n], m.Items[n+1:]...)
+			success = true
+			m.refresh()
+			break
+		}
+	}
+	return success
+}
+
 // Sort menu items(if enabled) and re-calculate window size
 func (m *Menu) refresh() {
 	if m.SortItems {
 		sort.Sort(m.Items)
 	}
 	m.calcSize()
+	ui.Render(m)
 }
 
 func (m *Menu) SelectedItem() MenuItem {
