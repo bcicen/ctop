@@ -23,6 +23,14 @@ func (m MenuItem) Text() string {
 
 type MenuItems []MenuItem
 
+// Create new MenuItems from string array
+func NewMenuItems(a []string) (items MenuItems) {
+	for _, s := range a {
+		items = append(items, MenuItem{Val: s})
+	}
+	return items
+}
+
 // Sort methods for MenuItems
 func (m MenuItems) Len() int      { return len(m) }
 func (m MenuItems) Swap(a, b int) { m[a], m[b] = m[b], m[a] }
@@ -33,6 +41,7 @@ func (m MenuItems) Less(a, b int) bool {
 type Menu struct {
 	ui.Block
 	Items       MenuItems
+	SortItems   bool // enable automatic sorting of menu items
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
 	Selectable  bool
@@ -40,28 +49,28 @@ type Menu struct {
 	padding     Padding
 }
 
-func NewMenu(items []string) *Menu {
-	m := &Menu{
+func NewMenu() *Menu {
+	return &Menu{
 		Block:       *ui.NewBlock(),
 		TextFgColor: ui.ThemeAttr("par.text.fg"),
 		TextBgColor: ui.ThemeAttr("par.text.bg"),
-		Selectable:  false,
 		CursorPos:   0,
 		padding:     Padding{4, 2},
 	}
-
-	for _, s := range items {
-		m.Items = append(m.Items, MenuItem{Val: s})
-	}
-	sort.Sort(m.Items)
-
-	m.calcSize()
-	return m
 }
 
-func (m *Menu) SetItems(items []MenuItem) {
-	m.Items = items
-	sort.Sort(m.Items)
+func (m *Menu) AddItems(items ...MenuItem) {
+	for _, i := range items {
+		m.Items = append(m.Items, i)
+	}
+	m.refresh()
+}
+
+// Sort menu items(if enabled) and re-calculate window size
+func (m *Menu) refresh() {
+	if m.SortItems {
+		sort.Sort(m.Items)
+	}
 	m.calcSize()
 }
 

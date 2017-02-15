@@ -17,10 +17,11 @@ func HelpMenu() {
 	ResetView()
 	defer ResetView()
 
-	m := widgets.NewMenu(helpDialog)
+	m := widgets.NewMenu()
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
 	m.BorderFg = ui.ColorCyan
+	m.AddItems(widgets.NewMenuItems(helpDialog)...)
 	ui.Render(m)
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
@@ -50,11 +51,14 @@ func SortMenu() {
 	ResetView()
 	defer ResetView()
 
-	m := widgets.NewMenu(SortFields())
+	m := widgets.NewMenu()
 	m.Selectable = true
+	m.SortItems = true
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"
 	m.BorderFg = ui.ColorCyan
+
+	m.AddItems(widgets.NewMenuItems(SortFields())...)
 
 	// set cursor position to current sort field
 	current := config.Get("sortField")

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"sort"
-
 	"github.com/bcicen/ctop/config"
 )
 
@@ -17,13 +15,11 @@ var Sorters = map[string]sortMethod{
 	"net":   func(c1, c2 *Container) bool { return sumNet(c1) < sumNet(c2) },
 }
 
-func SortFields() []string {
-	a := sort.StringSlice{}
+func SortFields() (fields []string) {
 	for k := range Sorters {
-		a = append(a, k)
+		fields = append(fields, k)
 	}
-	sort.Sort(a)
-	return a
+	return fields
 }
 
 type Containers []*Container
