@@ -1,19 +1,38 @@
 package widgets
 
 import (
+	"sort"
+
 	ui "github.com/gizak/termui"
 )
 
 type Padding [2]int // x,y padding
 
 type MenuItem struct {
-	Val  string
-	Text string
+	Val   string
+	Label string
+}
+
+// Use label as display text of item, if given
+func (m MenuItem) Text() string {
+	if m.Label != "" {
+		return m.Label
+	}
+	return m.Val
+}
+
+type MenuItems []MenuItem
+
+// Sort methods for MenuItems
+func (m MenuItems) Len() int      { return len(m) }
+func (m MenuItems) Swap(a, b int) { m[a], m[b] = m[b], m[a] }
+func (m MenuItems) Less(a, b int) bool {
+	return m[a].Text() < m[b].Text()
 }
 
 type Menu struct {
 	ui.Block
-	Items       []MenuItem
+	Items       MenuItems
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
 	Selectable  bool
@@ -22,25 +41,27 @@ type Menu struct {
 }
 
 func NewMenu(items []string) *Menu {
-	var mItems []MenuItem
-	for _, s := range items {
-		mItems = append(mItems, MenuItem{Val: s})
-	}
 	m := &Menu{
 		Block:       *ui.NewBlock(),
-		Items:       mItems,
 		TextFgColor: ui.ThemeAttr("par.text.fg"),
 		TextBgColor: ui.ThemeAttr("par.text.bg"),
 		Selectable:  false,
 		CursorPos:   0,
 		padding:     Padding{4, 2},
 	}
+
+	for _, s := range items {
+		m.Items = append(m.Items, MenuItem{Val: s})
+	}
+	sort.Sort(m.Items)
+
 	m.calcSize()
 	return m
 }
 
 func (m *Menu) SetItems(items []MenuItem) {
 	m.Items = items
+	sort.Sort(m.Items)
 	m.calcSize()
 }
 
@@ -54,7 +75,7 @@ func (m *Menu) Buffer() ui.Buffer {
 
 	for n, item := range m.Items {
 		x := m.padding[0]
-		for _, ch := range getDisplayText(item) {
+		for _, ch := range item.Text() {
 			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.CursorPos {
 				cell = ui.Cell{Ch: ch, Fg: m.TextBgColor, Bg: m.TextFgColor}
@@ -96,7 +117,7 @@ func (m *Menu) calcSize() {
 
 	items := m.Items
 	for _, i := range m.Items {
-		s := getDisplayText(i)
+		s := i.Text()
 		if len(s) > m.Width {
 			m.Width = len(s)
 		}
@@ -104,12 +125,4 @@ func (m *Menu) calcSize() {
 
 	m.Width += (m.padding[0] * 2)
 	m.Height = len(items) + (m.padding[1] * 2)
-}
-
-// override display text of item, if given
-func getDisplayText(m MenuItem) string {
-	if m.Text != "" {
-		return m.Text
-	}
-	return m.Val
 }
