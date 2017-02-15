@@ -3,25 +3,26 @@ package main
 import (
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/widgets"
+	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
 )
 
-var helpDialog = []string{
-	"[h] - open this help dialog",
-	"[s] - select container sort field",
-	"[r] - reverse container sort order",
-	"[q] - exit ctop",
+var helpDialog = []menu.Item{
+	menu.Item{"[h] - open this help dialog", ""},
+	menu.Item{"[s] - select container sort field", ""},
+	menu.Item{"[r] - reverse container sort order", ""},
+	menu.Item{"[q] - exit ctop", ""},
 }
 
 func HelpMenu() {
 	ResetView()
 	defer ResetView()
 
-	m := widgets.NewMenu()
+	m := menu.NewMenu()
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
 	m.BorderFg = ui.ColorCyan
-	m.AddItems(widgets.NewMenuItems(helpDialog)...)
+	m.AddItems(helpDialog...)
 	ui.Render(m)
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
@@ -51,27 +52,29 @@ func SortMenu() {
 	ResetView()
 	defer ResetView()
 
-	m := widgets.NewMenu()
+	m := menu.NewMenu()
 	m.Selectable = true
 	m.SortItems = true
 	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"
 	m.BorderFg = ui.ColorCyan
 
-	m.AddItems(widgets.NewMenuItems(SortFields())...)
+	for _, field := range SortFields() {
+		m.AddItems(menu.Item{field, ""})
+	}
 
 	// set cursor position to current sort field
-	current := config.Get("sortField")
-	for n, item := range m.Items {
-		if item.Val == current {
-			m.CursorPos = n
-		}
-	}
+	//current := config.Get("sortField")
+	//for n, item := range m.Items {
+	//if item.Val == current {
+	//m.CursorPos = n
+	//}
+	//}
 
 	ui.Render(m)
 	m.NavigationHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		config.Update("sortField", m.Items[m.CursorPos].Val)
+		config.Update("sortField", m.SelectedItem().Val)
 		ui.StopLoop()
 	})
 	ui.Loop()

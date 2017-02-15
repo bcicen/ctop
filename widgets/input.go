@@ -10,6 +10,8 @@ var (
 	input_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_."
 )
 
+type Padding [2]int // x,y padding
+
 type Input struct {
 	ui.Block
 	Label       string

@@ -1,4 +1,4 @@
-package widgets
+package menu
 
 import (
 	"sort"
@@ -8,44 +8,14 @@ import (
 
 type Padding [2]int // x,y padding
 
-type MenuItem struct {
-	Val   string
-	Label string
-}
-
-// Use label as display text of item, if given
-func (m MenuItem) Text() string {
-	if m.Label != "" {
-		return m.Label
-	}
-	return m.Val
-}
-
-type MenuItems []MenuItem
-
-// Create new MenuItems from string array
-func NewMenuItems(a []string) (items MenuItems) {
-	for _, s := range a {
-		items = append(items, MenuItem{Val: s})
-	}
-	return items
-}
-
-// Sort methods for MenuItems
-func (m MenuItems) Len() int      { return len(m) }
-func (m MenuItems) Swap(a, b int) { m[a], m[b] = m[b], m[a] }
-func (m MenuItems) Less(a, b int) bool {
-	return m[a].Text() < m[b].Text()
-}
-
 type Menu struct {
 	ui.Block
-	Items       MenuItems
 	SortItems   bool // enable automatic sorting of menu items
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
 	Selectable  bool
 	CursorPos   int
+	items       Items
 	padding     Padding
 }
 
@@ -59,18 +29,18 @@ func NewMenu() *Menu {
 	}
 }
 
-func (m *Menu) AddItems(items ...MenuItem) {
+func (m *Menu) AddItems(items ...Item) {
 	for _, i := range items {
-		m.Items = append(m.Items, i)
+		m.items = append(m.items, i)
 	}
 	m.refresh()
 }
 
 // Remove menu item by value or label
 func (m *Menu) DelItem(s string) (success bool) {
-	for n, i := range m.Items {
+	for n, i := range m.items {
 		if i.Val == s || i.Label == s {
-			m.Items = append(m.Items[:n], m.Items[n+1:]...)
+			m.items = append(m.items[:n], m.items[n+1:]...)
 			success = true
 			m.refresh()
 			break
@@ -82,21 +52,21 @@ func (m *Menu) DelItem(s string) (success bool) {
 // Sort menu items(if enabled) and re-calculate window size
 func (m *Menu) refresh() {
 	if m.SortItems {
-		sort.Sort(m.Items)
+		sort.Sort(m.items)
 	}
 	m.calcSize()
 	ui.Render(m)
 }
 
-func (m *Menu) SelectedItem() MenuItem {
-	return m.Items[m.CursorPos]
+func (m *Menu) SelectedItem() Item {
+	return m.items[m.CursorPos]
 }
 
 func (m *Menu) Buffer() ui.Buffer {
 	var cell ui.Cell
 	buf := m.Block.Buffer()
 
-	for n, item := range m.Items {
+	for n, item := range m.items {
 		x := m.padding[0]
 		for _, ch := range item.Text() {
 			// invert bg/fg colors on currently selected row
@@ -121,7 +91,7 @@ func (m *Menu) Up(ui.Event) {
 }
 
 func (m *Menu) Down(ui.Event) {
-	if m.CursorPos < (len(m.Items) - 1) {
+	if m.CursorPos < (len(m.items) - 1) {
 		m.CursorPos++
 		ui.Render(m)
 	}
@@ -138,8 +108,8 @@ func (m *Menu) NavigationHandlers() {
 func (m *Menu) calcSize() {
 	m.Width = 8 // minimum width
 
-	items := m.Items
-	for _, i := range m.Items {
+	items := m.items
+	for _, i := range m.items {
 		s := i.Text()
 		if len(s) > m.Width {
 			m.Width = len(s)
