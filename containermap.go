@@ -104,9 +104,15 @@ func (cm *ContainerMap) All() []*Container {
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
 	for _, c := range cm.containers {
-		if re.FindAllString(c.name, 1) != nil {
-			containers = append(containers, c)
+		// Apply name filter
+		if re.FindAllString(c.name, 1) == nil {
+			continue
 		}
+		// Apply state filter
+		if !config.GetSwitchVal("allContainers") && c.state != "running" {
+			continue
+		}
+		containers = append(containers, c)
 	}
 
 	sort.Sort(containers)

@@ -82,9 +82,6 @@ func (g *Grid) redrawRows() {
 	}
 	ui.Body.AddRows(fieldHeader())
 	for _, c := range g.containers {
-		if !config.GetSwitchVal("allContainers") && c.state != "running" {
-			continue
-		}
 		ui.Body.AddRows(c.widgets.Row())
 	}
 
