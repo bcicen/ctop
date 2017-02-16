@@ -12,31 +12,9 @@ var (
 )
 
 type Config struct {
-	params  map[string]string
-	toggles map[string]bool
-	updates chan ConfigMsg
-}
-
-// Return param value
-func Get(k string) string {
-	if _, ok := Global.params[k]; ok == true {
-		return Global.params[k]
-	}
-	return ""
-}
-
-// Return toggle value
-func GetToggle(k string) bool {
-	if _, ok := Global.toggles[k]; ok == true {
-		return Global.toggles[k]
-	}
-	return false
-}
-
-// Toggle a boolean option
-func Toggle(k string) {
-	Global.toggles[k] = Global.toggles[k] != true
-	log.Noticef("config change: %s = %t", k, Global.toggles[k])
+	params   map[string]*Param
+	switches map[string]*Switch
+	updates  chan ConfigMsg
 }
 
 type ConfigMsg struct {
@@ -49,30 +27,37 @@ func Update(k, v string) {
 }
 
 func NewDefaultConfig() Config {
-	docker := os.Getenv("DOCKER_HOST")
-	if docker == "" {
-		docker = "unix:///var/run/docker.sock"
+	config := Config{
+		params:   make(map[string]*Param),
+		switches: make(map[string]*Switch),
+		updates:  make(chan ConfigMsg),
 	}
 
-	params := map[string]string{
-		"dockerHost": docker,
-		"filterStr":  "",
-		"sortField":  "id",
+	for _, p := range params {
+		config.params[p.key] = p
+		log.Debugf("loaded config param: \"%s\": \"%s\"", p.key, p.val)
 	}
 
-	toggles := map[string]bool{
-		"sortReverse":    false,
-		"allContainers":  false,
-		"enableHeader":   false,
-		"loggingEnabled": true,
+	for _, t := range switches {
+		config.switches[t.key] = t
+		log.Debugf("loaded config switch: \"%s\": %t", t.key, t.val)
 	}
 
-	config := Config{params, toggles, make(chan ConfigMsg)}
 	go func() {
 		for m := range config.updates {
-			config.params[m.key] = m.val
-			log.Noticef("config change: %s = %s", m.key, m.val)
+			config.params[m.key].val = m.val
+			log.Noticef("config change: %s: %s", m.key, m.val)
 		}
 	}()
+
 	return config
+}
+
+// Return env var value if set, else return defaultVal
+func getEnv(key, defaultVal string) string {
+	val := os.Getenv(key)
+	if val != "" {
+		return val
+	}
+	return defaultVal
 }

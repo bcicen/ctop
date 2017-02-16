@@ -10,7 +10,7 @@ var log *logging.CTopLogger
 
 func main() {
 	log = logging.Init()
-	if config.GetToggle("loggingEnabled") {
+	if config.GetSwitch("loggingEnabled") {
 		log.StartServer()
 	}
 	if err := ui.Init(); err != nil {
