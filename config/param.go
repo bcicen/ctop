@@ -1,5 +1,6 @@
 package config
 
+// defaults
 var params = []*Param{
 	&Param{
 		key:   "dockerHost",
@@ -26,8 +27,22 @@ type Param struct {
 
 // Return param value
 func Get(k string) string {
-	if _, ok := Global.params[k]; ok == true {
-		return Global.params[k].val
+	for _, p := range GlobalParams {
+		if p.key == k {
+			return p.val
+		}
 	}
-	return ""
+	return "" // default
+}
+
+// Set param value
+func Update(k, v string) {
+	for _, p := range GlobalParams {
+		if p.key == k {
+			log.Noticef("config change: %s: %s -> %s", k, p.val, v)
+			p.val = v
+			return
+		}
+	}
+	log.Errorf("ignoring update for non-existant parameter: %s", k)
 }

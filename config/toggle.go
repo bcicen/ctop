@@ -1,8 +1,9 @@
 package config
 
+// defaults
 var switches = []*Switch{
 	&Switch{
-		key:   "sortReverse",
+		key:   "sortReversed",
 		val:   false,
 		label: "Reverse Sort Order",
 	},
@@ -31,14 +32,23 @@ type Switch struct {
 
 // Return toggle value
 func GetSwitch(k string) bool {
-	if _, ok := Global.switches[k]; ok == true {
-		return Global.switches[k].val
+	for _, sw := range GlobalSwitches {
+		if sw.key == k {
+			return sw.val
+		}
 	}
 	return false // default
 }
 
 // Toggle a boolean switch
 func Toggle(k string) {
-	Global.switches[k].val = Global.switches[k].val != true
-	log.Noticef("config change: %s: %t", k, Global.switches[k].val)
+	for _, sw := range GlobalSwitches {
+		if sw.key == k {
+			newVal := sw.val != true
+			log.Noticef("config change: %s: %t -> %t", k, sw.val, newVal)
+			sw.val = newVal
+			return
+		}
+	}
+	log.Errorf("ignoring toggle for non-existant switch: %s", k)
 }

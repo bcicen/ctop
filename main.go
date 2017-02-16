@@ -9,6 +9,7 @@ import (
 var log *logging.CTopLogger
 
 func main() {
+	config.Init()
 	log = logging.Init()
 	if config.GetSwitch("loggingEnabled") {
 		log.StartServer()

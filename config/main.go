@@ -7,50 +7,21 @@ import (
 )
 
 var (
-	Global = NewDefaultConfig()
-	log    = logging.Init()
+	GlobalParams   []*Param
+	GlobalSwitches []*Switch
+	log            = logging.Init()
 )
 
-type Config struct {
-	params   map[string]*Param
-	switches map[string]*Switch
-	updates  chan ConfigMsg
-}
-
-type ConfigMsg struct {
-	key string
-	val string
-}
-
-func Update(k, v string) {
-	Global.updates <- ConfigMsg{k, v}
-}
-
-func NewDefaultConfig() Config {
-	config := Config{
-		params:   make(map[string]*Param),
-		switches: make(map[string]*Switch),
-		updates:  make(chan ConfigMsg),
-	}
-
+func Init() {
 	for _, p := range params {
-		config.params[p.key] = p
+		GlobalParams = append(GlobalParams, p)
 		log.Debugf("loaded config param: \"%s\": \"%s\"", p.key, p.val)
 	}
 
-	for _, t := range switches {
-		config.switches[t.key] = t
-		log.Debugf("loaded config switch: \"%s\": %t", t.key, t.val)
+	for _, s := range switches {
+		GlobalSwitches = append(GlobalSwitches, s)
+		log.Debugf("loaded config switch: \"%s\": %t", s.key, s.val)
 	}
-
-	go func() {
-		for m := range config.updates {
-			config.params[m.key].val = m.val
-			log.Noticef("config change: %s: %s", m.key, m.val)
-		}
-	}()
-
-	return config
 }
 
 // Return env var value if set, else return defaultVal
