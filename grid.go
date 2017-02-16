@@ -82,6 +82,9 @@ func (g *Grid) redrawRows() {
 	}
 	ui.Body.AddRows(fieldHeader())
 	for _, c := range g.containers {
+		if !config.GetToggle("allContainers") && c.state != "running" {
+			continue
+		}
 		ui.Body.AddRows(c.widgets.Row())
 	}
 
@@ -153,6 +156,10 @@ func Display(g *Grid) bool {
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		expand = true
 		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/a", func(ui.Event) {
+		config.Toggle("allContainers")
+		g.redrawRows()
 	})
 	ui.Handle("/sys/kbd/f", func(ui.Event) {
 		menu = FilterMenu

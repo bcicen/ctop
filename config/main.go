@@ -62,6 +62,7 @@ func NewDefaultConfig() Config {
 
 	toggles := map[string]bool{
 		"sortReverse":    false,
+		"allContainers":  false,
 		"enableHeader":   false,
 		"loggingEnabled": true,
 	}
