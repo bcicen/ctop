@@ -15,12 +15,12 @@ var (
 func Init() {
 	for _, p := range params {
 		GlobalParams = append(GlobalParams, p)
-		log.Debugf("loaded config param: \"%s\": \"%s\"", p.key, p.val)
+		log.Debugf("loaded config param: \"%s\": \"%s\"", p.Key, p.Val)
 	}
 
 	for _, s := range switches {
 		GlobalSwitches = append(GlobalSwitches, s)
-		log.Debugf("loaded config switch: \"%s\": %t", s.key, s.val)
+		log.Debugf("loaded config switch: \"%s\": %t", s.Key, s.Val)
 	}
 }
 

@@ -27,8 +27,8 @@ type Containers []*Container
 func (a Containers) Len() int      { return len(a) }
 func (a Containers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a Containers) Less(i, j int) bool {
-	f := Sorters[config.Get("sortField")]
-	if config.GetSwitch("sortReversed") {
+	f := Sorters[config.GetVal("sortField")]
+	if config.GetSwitchVal("sortReversed") {
 		return f(a[j], a[i])
 	}
 	return f(a[i], a[j])

@@ -14,7 +14,7 @@ import (
 
 func NewContainerMap() *ContainerMap {
 	// init docker client
-	client, err := docker.NewClient(config.Get("dockerHost"))
+	client, err := docker.NewClient(config.GetVal("dockerHost"))
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func (cm *ContainerMap) Del(ids ...string) {
 func (cm *ContainerMap) All() []*Container {
 	var containers Containers
 
-	filter := config.Get("filterStr")
+	filter := config.GetVal("filterStr")
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
 	for _, c := range cm.containers {

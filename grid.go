@@ -75,14 +75,14 @@ func (g *Grid) redrawRows() {
 	ui.Clear()
 
 	// build layout
-	if config.GetSwitch("enableHeader") {
+	if config.GetSwitchVal("enableHeader") {
 		g.header.SetCount(len(g.containers))
-		g.header.SetFilter(config.Get("filterStr"))
+		g.header.SetFilter(config.GetVal("filterStr"))
 		ui.Body.AddRows(g.header.Row())
 	}
 	ui.Body.AddRows(fieldHeader())
 	for _, c := range g.containers {
-		if !config.GetSwitch("allContainers") && c.state != "running" {
+		if !config.GetSwitchVal("allContainers") && c.state != "running" {
 			continue
 		}
 		ui.Body.AddRows(c.widgets.Row())

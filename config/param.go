@@ -3,46 +3,47 @@ package config
 // defaults
 var params = []*Param{
 	&Param{
-		key:   "dockerHost",
-		val:   getEnv("DOCKER_HOST", "unix:///var/run/docker.sock"),
-		label: "Docker API URL",
+		Key:   "dockerHost",
+		Val:   getEnv("DOCKER_HOST", "unix:///var/run/docker.sock"),
+		Label: "Docker API URL",
 	},
 	&Param{
-		key:   "filterStr",
-		val:   "",
-		label: "Container Name or ID Filter",
+		Key:   "filterStr",
+		Val:   "",
+		Label: "Container Name or ID Filter",
 	},
 	&Param{
-		key:   "sortField",
-		val:   "id",
-		label: "Container Sort Field",
+		Key:   "sortField",
+		Val:   "id",
+		Label: "Container Sort Field",
 	},
 }
 
 type Param struct {
-	key   string
-	val   string
-	label string
+	Key   string
+	Val   string
+	Label string
 }
 
-// Return param value
-func Get(k string) string {
+// Get Param by key
+func Get(k string) *Param {
 	for _, p := range GlobalParams {
-		if p.key == k {
-			return p.val
+		if p.Key == k {
+			return p
 		}
 	}
-	return "" // default
+	return &Param{} // default
+}
+
+// Get Param value by key
+func GetVal(k string) string {
+	return Get(k).Val
 }
 
 // Set param value
 func Update(k, v string) {
-	for _, p := range GlobalParams {
-		if p.key == k {
-			log.Noticef("config change: %s: %s -> %s", k, p.val, v)
-			p.val = v
-			return
-		}
-	}
-	log.Errorf("ignoring update for non-existant parameter: %s", k)
+	p := Get(k)
+	log.Noticef("config change: %s: %s -> %s", k, p.Val, v)
+	p.Val = v
+	// log.Errorf("ignoring update for non-existant parameter: %s", k)
 }
