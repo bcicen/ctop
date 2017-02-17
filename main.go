@@ -12,7 +12,7 @@ func main() {
 	config.Init()
 	log = logging.Init()
 	if config.GetSwitchVal("loggingEnabled") {
-		log.StartServer()
+		logging.StartServer()
 	}
 	if err := ui.Init(); err != nil {
 		panic(err)

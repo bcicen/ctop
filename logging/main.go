@@ -1,9 +1,6 @@
 package logging
 
 import (
-	"fmt"
-	"net"
-	"sync"
 	"time"
 
 	"github.com/op/go-logging"
@@ -11,12 +8,10 @@ import (
 
 const (
 	size = 1024
-	path = "/tmp/ctop.sock"
 )
 
 var (
 	Log    *CTopLogger
-	wg     sync.WaitGroup
 	exited bool
 	level  = logging.INFO
 	format = logging.MustStringFormatter(
@@ -47,44 +42,6 @@ func Init() *CTopLogger {
 	return Log
 }
 
-func (log *CTopLogger) Exit() {
-	exited = true
-	wg.Wait()
-}
-
-func (log *CTopLogger) StartServer() {
-	ln, err := net.Listen("unix", path)
-	if err != nil {
-		panic(err)
-	}
-
-	go func() {
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				if err, ok := err.(net.Error); ok && err.Temporary() {
-					continue
-				}
-				return
-			}
-			go log.handler(conn)
-		}
-	}()
-
-	log.Notice("logging server started")
-}
-
-func (log *CTopLogger) handler(conn net.Conn) {
-	wg.Add(1)
-	defer wg.Done()
-	defer conn.Close()
-	for msg := range log.tail() {
-		msg = fmt.Sprintf("%s\n", msg)
-		conn.Write([]byte(msg))
-	}
-	conn.Write([]byte("bye\n"))
-}
-
 func (log *CTopLogger) tail() chan string {
 	stream := make(chan string)
 
@@ -108,4 +65,9 @@ func (log *CTopLogger) tail() chan string {
 	}()
 
 	return stream
+}
+
+func (log *CTopLogger) Exit() {
+	exited = true
+	StopServer()
 }
