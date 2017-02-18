@@ -86,12 +86,38 @@ func (g *Grid) redrawRows() {
 	}
 
 	ui.Body.Align()
+	resizeIndicator()
 	ui.Render(ui.Body)
+
+	// dump aligned widget positions and sizes
+	for i, w := range ui.Body.Rows[1].Cols {
+		log.Infof("w%v: x=%v y=%v w=%v h=%v", i, w.X, w.Y, w.Width, w.Height)
+	}
+
+}
+
+// override Align()'d size for indicator column
+func resizeIndicator() {
+	xShift := 1
+	toWidth := 3
+	for i, r := range ui.Body.Rows {
+		if config.GetSwitchVal("enableHeader") && i == 0 {
+			continue
+		}
+		wDiff := r.Cols[0].Width - (toWidth + xShift)
+		r.Cols[0].SetX(xShift)      // set indicator width
+		r.Cols[0].SetWidth(toWidth) // set indicator width
+		// shift remainder of columns left by wDiff
+		for _, c := range r.Cols[1:] {
+			c.SetX(c.X - wDiff)
+			c.SetWidth(c.Width - wDiff)
+		}
+	}
 }
 
 func fieldHeader() *ui.Row {
 	return ui.NewRow(
-		ui.NewCol(1, 0, headerPar("STATUS")),
+		ui.NewCol(1, 0, headerPar("")),
 		ui.NewCol(2, 0, headerPar("NAME")),
 		ui.NewCol(2, 0, headerPar("CID")),
 		ui.NewCol(2, 0, headerPar("CPU")),
@@ -194,6 +220,7 @@ func Display(g *Grid) bool {
 		ui.Body.Align()
 		ui.Clear()
 		ui.Render(ui.Body)
+		log.Infof("resize: width=%v", ui.Body.Width)
 	})
 
 	ui.Loop()

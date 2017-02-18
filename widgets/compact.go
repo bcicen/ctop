@@ -47,7 +47,6 @@ func (w *Compact) Render() {
 }
 
 func (w *Compact) Row() *ui.Row {
-	centerParText(w.Status)
 	return ui.NewRow(
 		ui.NewCol(1, 0, w.Status),
 		ui.NewCol(2, 0, w.Name),
