@@ -76,9 +76,12 @@ func (g *Grid) redrawRows() {
 
 	// build layout
 	if config.GetSwitchVal("enableHeader") {
+		ui.Body.Y = g.header.Height()
 		g.header.SetCount(len(g.containers))
 		g.header.SetFilter(config.GetVal("filterStr"))
-		ui.Body.AddRows(g.header.Row())
+		g.header.Render()
+	} else {
+		ui.Body.Y = 0
 	}
 	ui.Body.AddRows(fieldHeader())
 	for _, c := range g.containers {
@@ -100,10 +103,7 @@ func (g *Grid) redrawRows() {
 func resizeIndicator() {
 	xShift := 1
 	toWidth := 3
-	for i, r := range ui.Body.Rows {
-		if config.GetSwitchVal("enableHeader") && i == 0 {
-			continue
-		}
+	for _, r := range ui.Body.Rows {
 		wDiff := r.Cols[0].Width - (toWidth + xShift)
 		// set indicator x, width
 		r.Cols[0].SetX(xShift)
@@ -137,14 +137,10 @@ func headerPar(s string) *ui.Par {
 	return p
 }
 
-func ResetView() {
-	ui.DefaultEvtStream.ResetHandlers()
-	ui.Clear()
-}
-
 func (g *Grid) ExpandView() {
-	ResetView()
-	defer ResetView()
+	ui.Clear()
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
 	container := g.cmap.Get(g.cursorID)
 	container.Expand()
 	container.widgets.Render()
@@ -167,8 +163,7 @@ func Display(g *Grid) bool {
 
 	ui.DefaultEvtStream.Hook(logEvent)
 
-	// calculate layout
-	ui.Body.Align()
+	// initial draw
 	g.redrawCursor()
 	g.redrawRows()
 
