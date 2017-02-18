@@ -44,7 +44,9 @@ func StartServer() {
 
 func StopServer() {
 	server.wg.Wait()
-	server.ln.Close()
+	if server.ln != nil {
+		server.ln.Close()
+	}
 }
 
 func handler(conn net.Conn) {

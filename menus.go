@@ -15,8 +15,8 @@ var helpDialog = []menu.Item{
 }
 
 func HelpMenu() {
-	ResetView()
-	defer ResetView()
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
 
 	m := menu.NewMenu()
 	m.TextFgColor = ui.ColorWhite
@@ -32,7 +32,7 @@ func HelpMenu() {
 
 func FilterMenu() {
 	ui.DefaultEvtStream.ResetHandlers()
-	defer ResetView()
+	defer ui.DefaultEvtStream.ResetHandlers()
 
 	i := widgets.NewInput()
 	i.TextFgColor = ui.ColorWhite
@@ -49,8 +49,8 @@ func FilterMenu() {
 }
 
 func SortMenu() {
-	ResetView()
-	defer ResetView()
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
 
 	m := menu.NewMenu()
 	m.Selectable = true
