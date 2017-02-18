@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	mark  = '\u25C9'
-	pause = '\u25AE'
+	mark = string('\u25C9')
+	vBar = string('\u25AE')
 )
 
 type ContainerWidgets interface {
@@ -70,16 +70,16 @@ func (w *Compact) UnHighlight() {
 func (w *Compact) SetStatus(val string) {
 	switch val {
 	case "running":
-		w.Status.Text = string(mark)
+		w.Status.Text = mark
 		w.Status.TextFgColor = ui.ColorGreen
 	case "exited":
-		w.Status.Text = string(mark)
+		w.Status.Text = mark
 		w.Status.TextFgColor = ui.ColorRed
 	case "paused":
-		w.Status.Text = fmt.Sprintf("%s%s", string(pause), string(pause))
+		w.Status.Text = fmt.Sprintf("%s%s", vBar, vBar)
 		w.Status.TextFgColor = ui.ColorDefault
 	default:
-		w.Status.Text = string(mark)
+		w.Status.Text = mark
 		w.Status.TextFgColor = ui.ColorRed
 	}
 }

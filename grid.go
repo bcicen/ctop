@@ -90,9 +90,9 @@ func (g *Grid) redrawRows() {
 	ui.Render(ui.Body)
 
 	// dump aligned widget positions and sizes
-	for i, w := range ui.Body.Rows[1].Cols {
-		log.Infof("w%v: x=%v y=%v w=%v h=%v", i, w.X, w.Y, w.Width, w.Height)
-	}
+	//for i, w := range ui.Body.Rows[1].Cols {
+	//log.Infof("w%v: x=%v y=%v w=%v h=%v", i, w.X, w.Y, w.Width, w.Height)
+	//}
 
 }
 
@@ -105,8 +105,10 @@ func resizeIndicator() {
 			continue
 		}
 		wDiff := r.Cols[0].Width - (toWidth + xShift)
-		r.Cols[0].SetX(xShift)      // set indicator width
-		r.Cols[0].SetWidth(toWidth) // set indicator width
+		// set indicator x, width
+		r.Cols[0].SetX(xShift)
+		r.Cols[0].SetWidth(toWidth)
+
 		// shift remainder of columns left by wDiff
 		for _, c := range r.Cols[1:] {
 			c.SetX(c.X - wDiff)
@@ -217,10 +219,8 @@ func Display(g *Grid) bool {
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		ui.Body.Width = ui.TermWidth()
-		ui.Body.Align()
-		ui.Clear()
-		ui.Render(ui.Body)
 		log.Infof("resize: width=%v", ui.Body.Width)
+		g.redrawRows()
 	})
 
 	ui.Loop()
