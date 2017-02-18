@@ -43,7 +43,7 @@ func GetVal(k string) string {
 // Set param value
 func Update(k, v string) {
 	p := Get(k)
-	log.Noticef("config change: %s: %s -> %s", k, p.Val, v)
+	log.Noticef("config change: %s: %s -> %s", k, quote(p.Val), quote(v))
 	p.Val = v
 	// log.Errorf("ignoring update for non-existant parameter: %s", k)
 }

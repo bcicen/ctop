@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/bcicen/ctop/logging"
@@ -15,13 +16,17 @@ var (
 func Init() {
 	for _, p := range params {
 		GlobalParams = append(GlobalParams, p)
-		log.Infof("loaded config param: \"%s\": \"%s\"", p.Key, p.Val)
+		log.Infof("loaded config param: %s: %s", quote(p.Key), quote(p.Val))
 	}
 
 	for _, s := range switches {
 		GlobalSwitches = append(GlobalSwitches, s)
-		log.Infof("loaded config switch: \"%s\": %t", s.Key, s.Val)
+		log.Infof("loaded config switch: %s: %t", quote(s.Key), s.Val)
 	}
+}
+
+func quote(s string) string {
+	return fmt.Sprintf("\"%s\"", s)
 }
 
 // Return env var value if set, else return defaultVal
