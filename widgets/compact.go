@@ -23,6 +23,15 @@ type ContainerWidgets interface {
 	SetMem(int64, int64, int)
 }
 
+var CompactHeader = ui.NewRow(
+	ui.NewCol(1, 0, slimPar("")),
+	ui.NewCol(2, 0, slimPar("NAME")),
+	ui.NewCol(2, 0, slimPar("CID")),
+	ui.NewCol(2, 0, slimPar("CPU")),
+	ui.NewCol(2, 0, slimPar("MEM")),
+	ui.NewCol(2, 0, slimPar("NET RX/TX")),
+)
+
 type Compact struct {
 	Status *ui.Par
 	Cid    *ui.Par

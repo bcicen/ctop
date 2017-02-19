@@ -83,7 +83,7 @@ func (g *Grid) redrawRows() {
 	} else {
 		ui.Body.Y = 0
 	}
-	ui.Body.AddRows(fieldHeader())
+	ui.Body.AddRows(widgets.CompactHeader)
 	for _, c := range g.containers {
 		ui.Body.AddRows(c.widgets.Row())
 	}
@@ -115,26 +115,6 @@ func resizeIndicator() {
 			c.SetWidth(c.Width - wDiff)
 		}
 	}
-}
-
-func fieldHeader() *ui.Row {
-	return ui.NewRow(
-		ui.NewCol(1, 0, headerPar("")),
-		ui.NewCol(2, 0, headerPar("NAME")),
-		ui.NewCol(2, 0, headerPar("CID")),
-		ui.NewCol(2, 0, headerPar("CPU")),
-		ui.NewCol(2, 0, headerPar("MEM")),
-		ui.NewCol(2, 0, headerPar("NET RX/TX")),
-	)
-}
-
-func headerPar(s string) *ui.Par {
-	p := ui.NewPar(fmt.Sprintf(" %s", s))
-	p.Border = false
-	p.Height = 2
-	p.Width = 20
-	p.TextFgColor = ui.ColorWhite
-	return p
 }
 
 func (g *Grid) ExpandView() {

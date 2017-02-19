@@ -65,11 +65,6 @@ func SortMenu() {
 
 	// set cursor position to current sort field
 	m.SetCursor(config.GetVal("sortField"))
-	//for n, item := range m.Items {
-	//if item.Val == current {
-	//m.CursorPos = n
-	//}
-	//}
 
 	ui.Render(m)
 	m.NavigationHandlers()
