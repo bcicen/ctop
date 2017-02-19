@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -100,18 +98,7 @@ func (cm *ContainerMap) Del(ids ...string) {
 func (cm *ContainerMap) All() []*Container {
 	var containers Containers
 
-	filter := config.GetVal("filterStr")
-	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
-
 	for _, c := range cm.containers {
-		// Apply name filter
-		if re.FindAllString(c.name, 1) == nil {
-			continue
-		}
-		// Apply state filter
-		if !config.GetSwitchVal("allContainers") && c.state != "running" {
-			continue
-		}
 		containers = append(containers, c)
 	}
 

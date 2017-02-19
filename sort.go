@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"regexp"
+
 	"github.com/bcicen/ctop/config"
 )
 
@@ -32,6 +35,25 @@ func (a Containers) Less(i, j int) bool {
 		return f(a[j], a[i])
 	}
 	return f(a[i], a[j])
+}
+
+func (a Containers) Filter() (filtered []*Container) {
+	filter := config.GetVal("filterStr")
+	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+
+	for _, c := range a {
+		// Apply name filter
+		if re.FindAllString(c.name, 1) == nil {
+			continue
+		}
+		// Apply state filter
+		if !config.GetSwitchVal("allContainers") && c.state != "running" {
+			continue
+		}
+		filtered = append(filtered, c)
+	}
+
+	return filtered
 }
 
 func sumNet(c *Container) int64 { return c.metrics.NetRx + c.metrics.NetTx }
