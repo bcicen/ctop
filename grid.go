@@ -11,7 +11,8 @@ import (
 type Grid struct {
 	cursorID   string // id of currently selected container
 	cmap       *ContainerMap
-	containers []*Container // sorted slice of containers
+	maxRows    int
+	containers Containers // sorted slice of containers
 	header     *widgets.CTopHeader
 }
 
@@ -25,8 +26,13 @@ func NewGrid() *Grid {
 	// set initial cursor position
 	if len(g.containers) > 0 {
 		g.cursorID = g.containers[0].id
+		g.containers[0].widgets.Highlight()
 	}
 	return g
+}
+
+func (g *Grid) calcMaxRows() {
+	g.maxRows = ui.TermHeight() - widgets.CompactHeader.Height - ui.Body.Y
 }
 
 // Return current cursor index
@@ -42,35 +48,40 @@ func (g *Grid) cursorIdx() int {
 func (g *Grid) cursorUp() {
 	idx := g.cursorIdx()
 	// decrement if possible
-	if idx > 0 {
-		g.cursorID = g.containers[idx-1].id
-		g.redrawCursor()
+	if idx <= 0 {
+		return
 	}
+	active := g.containers[idx]
+	next := g.containers[idx-1]
+
+	active.widgets.UnHighlight()
+	g.cursorID = next.id
+	next.widgets.Highlight()
+
+	ui.Render(ui.Body)
 }
 
 func (g *Grid) cursorDown() {
 	idx := g.cursorIdx()
 	// increment if possible
-	if idx < (len(g.containers) - 1) {
-		g.cursorID = g.containers[idx+1].id
-		g.redrawCursor()
+	if idx > (len(g.containers) - 1) {
+		return
 	}
-}
+	if idx >= g.maxRows-1 {
+		return
+	}
+	active := g.containers[idx]
+	next := g.containers[idx+1]
 
-// Redraw the cursor with the currently selected row
-func (g *Grid) redrawCursor() {
-	for _, c := range g.containers {
-		if c.id == g.cursorID {
-			c.widgets.Highlight()
-		} else {
-			c.widgets.UnHighlight()
-		}
-		ui.Render(ui.Body)
-	}
+	active.widgets.UnHighlight()
+	g.cursorID = next.id
+	next.widgets.Highlight()
+	ui.Render(ui.Body)
 }
 
 func (g *Grid) redrawRows() {
 	// reinit body rows
+	g.calcMaxRows()
 	ui.Body.Rows = []*ui.Row{}
 	ui.Clear()
 
@@ -84,7 +95,10 @@ func (g *Grid) redrawRows() {
 		ui.Body.Y = 0
 	}
 	ui.Body.AddRows(widgets.CompactHeader)
-	for _, c := range g.containers {
+	for n, c := range g.containers.Filter() {
+		if n >= g.maxRows {
+			break
+		}
 		ui.Body.AddRows(c.widgets.Row())
 	}
 
@@ -144,7 +158,6 @@ func Display(g *Grid) bool {
 	ui.DefaultEvtStream.Hook(logEvent)
 
 	// initial draw
-	g.redrawCursor()
 	g.redrawRows()
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
@@ -194,7 +207,7 @@ func Display(g *Grid) bool {
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		ui.Body.Width = ui.TermWidth()
-		log.Infof("resize: width=%v", ui.Body.Width)
+		log.Infof("resize: width=%v max-rows=%v", ui.Body.Width, g.maxRows)
 		g.redrawRows()
 	})
 

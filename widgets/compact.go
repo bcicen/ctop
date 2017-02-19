@@ -24,12 +24,12 @@ type ContainerWidgets interface {
 }
 
 var CompactHeader = ui.NewRow(
-	ui.NewCol(1, 0, slimPar("")),
-	ui.NewCol(2, 0, slimPar("NAME")),
-	ui.NewCol(2, 0, slimPar("CID")),
-	ui.NewCol(2, 0, slimPar("CPU")),
-	ui.NewCol(2, 0, slimPar("MEM")),
-	ui.NewCol(2, 0, slimPar("NET RX/TX")),
+	ui.NewCol(1, 0, slimHeaderPar("")),
+	ui.NewCol(2, 0, slimHeaderPar("NAME")),
+	ui.NewCol(2, 0, slimHeaderPar("CID")),
+	ui.NewCol(2, 0, slimHeaderPar("CPU")),
+	ui.NewCol(2, 0, slimHeaderPar("MEM")),
+	ui.NewCol(2, 0, slimHeaderPar("NET RX/TX")),
 )
 
 type Compact struct {
@@ -39,24 +39,19 @@ type Compact struct {
 	Name   *ui.Par
 	Cpu    *ui.Gauge
 	Memory *ui.Gauge
+	row    *ui.Row
 }
 
 func NewCompact(id string, name string) *Compact {
-	return &Compact{
-		Status: slimPar(""),
+	w := &Compact{
+		Status: slimPar(mark),
 		Cid:    slimPar(id),
 		Net:    slimPar("-"),
 		Name:   slimPar(name),
 		Cpu:    slimGauge(),
 		Memory: slimGauge(),
 	}
-}
-
-func (w *Compact) Render() {
-}
-
-func (w *Compact) Row() *ui.Row {
-	return ui.NewRow(
+	w.row = ui.NewRow(
 		ui.NewCol(1, 0, w.Status),
 		ui.NewCol(2, 0, w.Name),
 		ui.NewCol(2, 0, w.Cid),
@@ -64,6 +59,14 @@ func (w *Compact) Row() *ui.Row {
 		ui.NewCol(2, 0, w.Memory),
 		ui.NewCol(2, 0, w.Net),
 	)
+	return w
+}
+
+func (w *Compact) Render() {
+}
+
+func (w *Compact) Row() *ui.Row {
+	return w.row
 }
 
 func (w *Compact) Highlight() {
@@ -135,6 +138,12 @@ func centerParText(p *ui.Par) {
 		padding += " "
 	}
 	p.Text = fmt.Sprintf("%s%s", padding, text)
+}
+
+func slimHeaderPar(s string) *ui.Par {
+	p := slimPar(s)
+	p.Height = 2
+	return p
 }
 
 func slimPar(s string) *ui.Par {
