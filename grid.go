@@ -206,6 +206,7 @@ func Display(g *Grid) bool {
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		g.header.Align()
 		ui.Body.Width = ui.TermWidth()
 		log.Infof("resize: width=%v max-rows=%v", ui.Body.Width, g.maxRows)
 		g.redrawRows()

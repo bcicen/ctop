@@ -17,8 +17,8 @@ type CTopHeader struct {
 func NewCTopHeader() *CTopHeader {
 	return &CTopHeader{
 		Time:   headerPar(2, timeStr()),
-		Count:  headerPar(22, "-"),
-		Filter: headerPar(42, ""),
+		Count:  headerPar(27, "-"),
+		Filter: headerPar(47, ""),
 		bg:     headerBg(),
 	}
 }
@@ -27,6 +27,10 @@ func (c *CTopHeader) Render() {
 	c.Time.Text = timeStr()
 	ui.Render(c.bg)
 	ui.Render(c.Time, c.Count, c.Filter)
+}
+
+func (c *CTopHeader) Align() {
+	c.bg.SetWidth(ui.TermWidth() - 1)
 }
 
 func (c *CTopHeader) Height() int {
@@ -65,7 +69,8 @@ func (c *CTopHeader) SetFilter(val string) {
 }
 
 func timeStr() string {
-	return time.Now().Local().Format("15:04:05 MST")
+	ts := time.Now().Local().Format("15:04:05 MST")
+	return fmt.Sprintf("cTop - %s", ts)
 }
 
 func headerPar(x int, s string) *ui.Par {
