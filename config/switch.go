@@ -9,12 +9,12 @@ var switches = []*Switch{
 	},
 	&Switch{
 		Key:   "allContainers",
-		Val:   false,
+		Val:   true,
 		Label: "Show All Containers",
 	},
 	&Switch{
 		Key:   "enableHeader",
-		Val:   false,
+		Val:   true,
 		Label: "Enable cTop Status Line",
 	},
 	&Switch{
