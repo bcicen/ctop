@@ -79,7 +79,8 @@ func (m *Menu) Buffer() ui.Buffer {
 	buf := m.Block.Buffer()
 
 	for n, item := range m.items {
-		x := m.padding[0]
+		x := m.X + m.padding[0]
+		y := m.Y + m.padding[1]
 		for _, ch := range item.Text() {
 			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.cursorPos {
@@ -87,7 +88,7 @@ func (m *Menu) Buffer() ui.Buffer {
 			} else {
 				cell = ui.Cell{Ch: ch, Fg: m.TextFgColor, Bg: m.TextBgColor}
 			}
-			buf.Set(x, n+m.padding[1], cell)
+			buf.Set(x, y+n, cell)
 			x++
 		}
 	}
