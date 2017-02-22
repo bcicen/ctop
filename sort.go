@@ -16,6 +16,18 @@ var Sorters = map[string]sortMethod{
 	"mem":   func(c1, c2 *Container) bool { return c1.metrics.MemUsage < c2.metrics.MemUsage },
 	"mem %": func(c1, c2 *Container) bool { return c1.metrics.MemPercent < c2.metrics.MemPercent },
 	"net":   func(c1, c2 *Container) bool { return sumNet(c1) < sumNet(c2) },
+	"state": func(c1, c2 *Container) bool {
+		if c1.state == "running" {
+			return true
+		}
+		if c2.state == "running" {
+			return false
+		}
+		if c2.state == "paused" {
+			return false
+		}
+		return true
+	},
 }
 
 func SortFields() (fields []string) {

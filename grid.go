@@ -64,7 +64,7 @@ func (g *Grid) cursorUp() {
 func (g *Grid) cursorDown() {
 	idx := g.cursorIdx()
 	// increment if possible
-	if idx > (len(g.containers) - 1) {
+	if idx >= (len(g.containers) - 1) {
 		return
 	}
 	if idx >= g.maxRows-1 {
