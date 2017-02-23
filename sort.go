@@ -9,13 +9,40 @@ import (
 
 type sortMethod func(c1, c2 *Container) bool
 
+func lessStr(s1, s2 string) bool { return s1 < s2 }
+
+var idSorter = func(c1, c2 *Container) bool { return c1.id < c2.id }
+var nameSorter = func(c1, c2 *Container) bool { return c1.name < c2.name }
+
 var Sorters = map[string]sortMethod{
-	"id":    func(c1, c2 *Container) bool { return c1.id < c2.id },
-	"name":  func(c1, c2 *Container) bool { return c1.name < c2.name },
-	"cpu":   func(c1, c2 *Container) bool { return c1.metrics.CPUUtil < c2.metrics.CPUUtil },
-	"mem":   func(c1, c2 *Container) bool { return c1.metrics.MemUsage < c2.metrics.MemUsage },
-	"mem %": func(c1, c2 *Container) bool { return c1.metrics.MemPercent < c2.metrics.MemPercent },
-	"net":   func(c1, c2 *Container) bool { return sumNet(c1) < sumNet(c2) },
+	"id":   idSorter,
+	"name": nameSorter,
+	"cpu": func(c1, c2 *Container) bool {
+		if c1.metrics.CPUUtil == c2.metrics.CPUUtil {
+			return nameSorter(c1, c2)
+		}
+		return c1.metrics.CPUUtil < c2.metrics.CPUUtil
+	},
+	"mem": func(c1, c2 *Container) bool {
+		if c1.metrics.MemUsage == c2.metrics.MemUsage {
+			return nameSorter(c1, c2)
+		}
+		return c1.metrics.MemUsage < c2.metrics.MemUsage
+	},
+	"mem %": func(c1, c2 *Container) bool {
+		if c1.metrics.MemPercent == c2.metrics.MemPercent {
+			return nameSorter(c1, c2)
+		}
+		return c1.metrics.MemPercent < c2.metrics.MemPercent
+	},
+	"net": func(c1, c2 *Container) bool {
+		sum1 := sumNet(c1)
+		sum2 := sumNet(c2)
+		if sum1 == sum2 {
+			return nameSorter(c1, c2)
+		}
+		return sum1 < sum2
+	},
 	"state": func(c1, c2 *Container) bool {
 		if c1.state == "running" {
 			return true

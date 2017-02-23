@@ -32,6 +32,7 @@ func (c *Container) SetState(s string) {
 }
 
 func (c *Container) Collect() {
+	log.Infof("starting collector for container: %s", c.id)
 	c.collect.Start()
 	go func() {
 		for metrics := range c.collect.Stream() {
