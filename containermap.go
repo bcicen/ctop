@@ -12,7 +12,7 @@ import (
 
 type ContainerMap struct {
 	client     *docker.Client
-	containers map[string]*Container
+	containers Containers
 	collectors map[string]metrics.Collector
 }
 
@@ -24,10 +24,9 @@ func NewContainerMap() *ContainerMap {
 	}
 	cm := &ContainerMap{
 		client:     client,
-		containers: make(map[string]*Container),
 		collectors: make(map[string]metrics.Collector),
 	}
-	cm.Refresh()
+	//cm.Refresh()
 	return cm
 }
 
@@ -35,24 +34,25 @@ func (cm *ContainerMap) Refresh() {
 	var id, name string
 
 	opts := docker.ListContainersOptions{All: true}
-	containers, err := cm.client.ListContainers(opts)
+	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
 		panic(err)
 	}
 
 	// add new containers
 	states := make(map[string]string)
-	for _, c := range containers {
+	for _, c := range allContainers {
 		id = c.ID[:12]
 		states[id] = c.State
 
-		if _, ok := cm.containers[id]; ok == false {
+		if _, ok := cm.Get(id); ok == false {
 			name = strings.Replace(c.Names[0], "/", "", 1) // use primary container name
-			cm.containers[id] = &Container{
+			newc := &Container{
 				id:      id,
 				name:    name,
 				widgets: widgets.NewCompact(id, name),
 			}
+			cm.containers = append(cm.containers, newc)
 		}
 
 		if _, ok := cm.collectors[id]; ok == false {
@@ -61,31 +61,26 @@ func (cm *ContainerMap) Refresh() {
 
 	}
 
-	var removeIDs []string
-	var collectIDs []string
-	for id, c := range cm.containers {
+	var removeIdxs []int
+	for n, c := range cm.containers {
+
 		// mark stale internal containers
-		if _, ok := states[id]; ok == false {
-			removeIDs = append(removeIDs, id)
+		if _, ok := states[c.id]; ok == false {
+			removeIdxs = append(removeIdxs, n)
 			continue
 		}
-		c.SetState(states[id])
-		// start collector if needed
-		if c.state == "running" {
-			collectIDs = append(collectIDs, id)
-		}
-	}
 
-	for _, id := range collectIDs {
-		if !cm.collectors[id].Running() {
-			cm.collectors[id].Start()
-			stream := cm.collectors[id].Stream()
-			cm.containers[id].Read(stream)
+		c.SetState(states[c.id])
+		// start collector if needed
+		//collector := cm.collectors[id]
+		if c.state == "running" && !cm.collectors[c.id].Running() {
+			cm.collectors[c.id].Start()
+			c.Read(cm.collectors[c.id].Stream())
 		}
 	}
 
 	// delete removed containers
-	cm.Del(removeIDs...)
+	cm.Del(removeIdxs...)
 }
 
 // Kill a container by ID
@@ -103,26 +98,24 @@ func (cm *ContainerMap) Len() uint {
 }
 
 // Get a single container, by ID
-func (cm *ContainerMap) Get(id string) *Container {
-	return cm.containers[id]
+func (cm *ContainerMap) Get(id string) (*Container, bool) {
+	for _, c := range cm.containers {
+		if c.id == id {
+			return c, true
+		}
+	}
+	return nil, false
 }
 
-// Remove one or more containers
-func (cm *ContainerMap) Del(ids ...string) {
-	for _, id := range ids {
-		delete(cm.containers, id)
-		delete(cm.collectors, id)
+// Remove one or more containers by index
+func (cm *ContainerMap) Del(idx ...int) {
+	for _, i := range idx {
+		cm.containers = append(cm.containers[:i], cm.containers[i+1:]...)
 	}
 }
 
 // Return array of all containers, sorted by field
 func (cm *ContainerMap) All() []*Container {
-	var containers Containers
-
-	for _, c := range cm.containers {
-		containers = append(containers, c)
-	}
-
-	sort.Sort(containers)
-	return containers
+	sort.Sort(cm.containers)
+	return cm.containers
 }

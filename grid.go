@@ -135,7 +135,7 @@ func (g *Grid) ExpandView() {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
-	container := g.cmap.Get(g.cursorID)
+	container, _ := g.cmap.Get(g.cursorID)
 	container.Expand()
 	container.widgets.Render()
 	container.Collapse()
@@ -158,6 +158,7 @@ func Display(g *Grid) bool {
 	ui.DefaultEvtStream.Hook(logEvent)
 
 	// initial draw
+	g.cmap.Refresh()
 	g.redrawRows()
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
@@ -170,6 +171,7 @@ func Display(g *Grid) bool {
 		expand = true
 		ui.StopLoop()
 	})
+
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
 		g.redrawRows()
@@ -196,6 +198,7 @@ func Display(g *Grid) bool {
 		menu = SortMenu
 		ui.StopLoop()
 	})
+
 	ui.Handle("/timer/1s", func(e ui.Event) {
 		loopIter++
 		if loopIter%5 == 0 {
