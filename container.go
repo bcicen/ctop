@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bcicen/ctop/collector"
+	"github.com/bcicen/ctop/metrics"
 	"github.com/bcicen/ctop/widgets"
 )
 
@@ -9,7 +9,7 @@ type Container struct {
 	id      string
 	name    string
 	state   string
-	metrics collector.Metrics
+	metrics metrics.Metrics
 	widgets widgets.ContainerWidgets
 }
 
@@ -27,7 +27,7 @@ func (c *Container) SetState(s string) {
 }
 
 // Read metric stream, updating widgets
-func (c *Container) Read(stream chan collector.Metrics) {
+func (c *Container) Read(stream chan metrics.Metrics) {
 	log.Infof("starting reader for container: %s", c.id)
 	go func() {
 		for metrics := range stream {

@@ -1,4 +1,4 @@
-package collector
+package metrics
 
 import (
 	api "github.com/fsouza/go-dockerclient"

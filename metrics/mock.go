@@ -1,4 +1,4 @@
-package collector
+package metrics
 
 import (
 	"math/rand"

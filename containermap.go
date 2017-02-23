@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bcicen/ctop/collector"
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/metrics"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/fsouza/go-dockerclient"
 )
@@ -13,7 +13,7 @@ import (
 type ContainerMap struct {
 	client     *docker.Client
 	containers map[string]*Container
-	collectors map[string]collector.Collector
+	collectors map[string]metrics.Collector
 }
 
 func NewContainerMap() *ContainerMap {
@@ -25,7 +25,7 @@ func NewContainerMap() *ContainerMap {
 	cm := &ContainerMap{
 		client:     client,
 		containers: make(map[string]*Container),
-		collectors: make(map[string]collector.Collector),
+		collectors: make(map[string]metrics.Collector),
 	}
 	cm.Refresh()
 	return cm
@@ -69,7 +69,7 @@ func (cm *ContainerMap) Refresh() {
 		if c.state == "running" {
 			if _, ok := cm.collectors[id]; ok == false {
 				log.Infof("starting collector for container: %s", id)
-				cm.collectors[id] = collector.NewDocker(cm.client, id)
+				cm.collectors[id] = metrics.NewDocker(cm.client, id)
 				cm.collectors[id].Start()
 				c.Read(cm.collectors[id].Stream())
 			}
