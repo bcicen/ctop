@@ -9,8 +9,6 @@ import (
 
 type sortMethod func(c1, c2 *Container) bool
 
-func lessStr(s1, s2 string) bool { return s1 < s2 }
-
 var idSorter = func(c1, c2 *Container) bool { return c1.id < c2.id }
 var nameSorter = func(c1, c2 *Container) bool { return c1.name < c2.name }
 

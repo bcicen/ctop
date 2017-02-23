@@ -10,6 +10,12 @@ import (
 	"github.com/fsouza/go-dockerclient"
 )
 
+type ContainerMap struct {
+	client     *docker.Client
+	containers map[string]*Container
+	collectors map[string]collector.Collector
+}
+
 func NewContainerMap() *ContainerMap {
 	// init docker client
 	client, err := docker.NewClient(config.GetVal("dockerHost"))
@@ -19,14 +25,10 @@ func NewContainerMap() *ContainerMap {
 	cm := &ContainerMap{
 		client:     client,
 		containers: make(map[string]*Container),
+		collectors: make(map[string]collector.Collector),
 	}
 	cm.Refresh()
 	return cm
-}
-
-type ContainerMap struct {
-	client     *docker.Client
-	containers map[string]*Container
 }
 
 func (cm *ContainerMap) Refresh() {
@@ -43,15 +45,16 @@ func (cm *ContainerMap) Refresh() {
 	for _, c := range containers {
 		id = c.ID[:12]
 		states[id] = c.State
+
 		if _, ok := cm.containers[id]; ok == false {
 			name = strings.Replace(c.Names[0], "/", "", 1) // use primary container name
 			cm.containers[id] = &Container{
 				id:      id,
 				name:    name,
-				collect: collector.NewDocker(cm.client, id),
 				widgets: widgets.NewCompact(id, name),
 			}
 		}
+
 	}
 
 	var removeIDs []string
@@ -62,6 +65,15 @@ func (cm *ContainerMap) Refresh() {
 			continue
 		}
 		c.SetState(states[id])
+		// start collector if needed
+		if c.state == "running" {
+			if _, ok := cm.collectors[id]; ok == false {
+				log.Infof("starting collector for container: %s", id)
+				cm.collectors[id] = collector.NewDocker(cm.client, id)
+				cm.collectors[id].Start()
+				c.Read(cm.collectors[id].Stream())
+			}
+		}
 	}
 
 	// remove dead containers

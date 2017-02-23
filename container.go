@@ -10,7 +10,6 @@ type Container struct {
 	name    string
 	state   string
 	metrics collector.Metrics
-	collect collector.Collector
 	widgets widgets.ContainerWidgets
 }
 
@@ -25,17 +24,13 @@ func (c *Container) Collapse() {
 func (c *Container) SetState(s string) {
 	c.state = s
 	c.widgets.SetStatus(s)
-	// start collector if necessary
-	if s == "running" && !c.collect.Running() {
-		c.Collect()
-	}
 }
 
-func (c *Container) Collect() {
-	log.Infof("starting collector for container: %s", c.id)
-	c.collect.Start()
+// Read metric stream, updating widgets
+func (c *Container) Read(stream chan collector.Metrics) {
+	log.Infof("starting reader for container: %s", c.id)
 	go func() {
-		for metrics := range c.collect.Stream() {
+		for metrics := range stream {
 			c.metrics = metrics
 			c.widgets.SetCPU(metrics.CPUUtil)
 			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
