@@ -28,7 +28,6 @@ func (c *Container) SetState(s string) {
 
 // Read metric stream, updating widgets
 func (c *Container) Read(stream chan metrics.Metrics) {
-	log.Infof("starting reader for container: %s", c.id)
 	go func() {
 		for metrics := range stream {
 			c.metrics = metrics
@@ -36,5 +35,7 @@ func (c *Container) Read(stream chan metrics.Metrics) {
 			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
 			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)
 		}
+		log.Infof("reader stopped for container: %s", c.id)
 	}()
+	log.Infof("reader started for container: %s", c.id)
 }

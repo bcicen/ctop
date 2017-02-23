@@ -2,7 +2,11 @@ package metrics
 
 import (
 	"math"
+
+	"github.com/bcicen/ctop/logging"
 )
+
+var log = logging.Init()
 
 type Metrics struct {
 	CPUUtil    int

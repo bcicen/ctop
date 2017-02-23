@@ -21,12 +21,12 @@ func NewDocker(client *api.Client, id string) *Docker {
 		Metrics: Metrics{},
 		id:      id,
 		client:  client,
-		stream:  make(chan Metrics),
-		done:    make(chan bool),
 	}
 }
 
 func (c *Docker) Start() {
+	c.done = make(chan bool)
+	c.stream = make(chan Metrics)
 	stats := make(chan *api.Stats)
 
 	go func() {
@@ -48,9 +48,11 @@ func (c *Docker) Start() {
 			c.ReadNet(s)
 			c.stream <- c.Metrics
 		}
+		log.Infof("collector stopped for container: %s", c.id)
 	}()
 
 	c.running = true
+	log.Infof("collector started for container: %s", c.id)
 }
 
 func (c *Docker) Running() bool {

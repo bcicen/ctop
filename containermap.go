@@ -55,9 +55,14 @@ func (cm *ContainerMap) Refresh() {
 			}
 		}
 
+		if _, ok := cm.collectors[id]; ok == false {
+			cm.collectors[id] = metrics.NewDocker(cm.client, id)
+		}
+
 	}
 
 	var removeIDs []string
+	var collectIDs []string
 	for id, c := range cm.containers {
 		// mark stale internal containers
 		if _, ok := states[id]; ok == false {
@@ -67,16 +72,19 @@ func (cm *ContainerMap) Refresh() {
 		c.SetState(states[id])
 		// start collector if needed
 		if c.state == "running" {
-			if _, ok := cm.collectors[id]; ok == false {
-				log.Infof("starting collector for container: %s", id)
-				cm.collectors[id] = metrics.NewDocker(cm.client, id)
-				cm.collectors[id].Start()
-				c.Read(cm.collectors[id].Stream())
-			}
+			collectIDs = append(collectIDs, id)
 		}
 	}
 
-	// remove dead containers
+	for _, id := range collectIDs {
+		if !cm.collectors[id].Running() {
+			cm.collectors[id].Start()
+			stream := cm.collectors[id].Stream()
+			cm.containers[id].Read(stream)
+		}
+	}
+
+	// delete removed containers
 	cm.Del(removeIDs...)
 }
 
@@ -103,6 +111,7 @@ func (cm *ContainerMap) Get(id string) *Container {
 func (cm *ContainerMap) Del(ids ...string) {
 	for _, id := range ids {
 		delete(cm.containers, id)
+		delete(cm.collectors, id)
 	}
 }
 
