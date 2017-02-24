@@ -23,16 +23,19 @@ func NewGrid() *Grid {
 		containers: cmap.All(),
 		header:     widgets.NewCTopHeader(),
 	}
-	// set initial cursor position
-	if len(g.containers) > 0 {
-		g.cursorID = g.containers[0].id
-		g.containers[0].widgets.Highlight()
-	}
 	return g
 }
 
 func (g *Grid) calcMaxRows() {
 	g.maxRows = ui.TermHeight() - widgets.CompactHeader.Height - ui.Body.Y
+}
+
+// Set an initial cursor position, if possible
+func (g *Grid) cursorReset() {
+	if len(g.containers) > 0 {
+		g.cursorID = g.containers[0].id
+		g.containers[0].widgets.Highlight()
+	}
 }
 
 // Return current cursor index
@@ -94,12 +97,22 @@ func (g *Grid) redrawRows() {
 	} else {
 		ui.Body.Y = 0
 	}
+
 	ui.Body.AddRows(widgets.CompactHeader)
+
+	var cursorVisible bool
 	for n, c := range g.containers.Filter() {
 		if n >= g.maxRows {
 			break
 		}
+		if c.id == g.cursorID {
+			cursorVisible = true
+		}
 		ui.Body.AddRows(c.widgets.Row())
+	}
+
+	if !cursorVisible {
+		g.cursorReset()
 	}
 
 	ui.Body.Align()
@@ -137,8 +150,6 @@ func (g *Grid) ExpandView() {
 	defer ui.DefaultEvtStream.ResetHandlers()
 	container, _ := g.cmap.Get(g.cursorID)
 	container.Expand()
-	container.widgets.Render()
-	container.Collapse()
 }
 
 func logEvent(e ui.Event) {
@@ -153,7 +164,6 @@ func logEvent(e ui.Event) {
 func Display(g *Grid) bool {
 	var menu func()
 	var expand bool
-	var loopIter int
 
 	ui.DefaultEvtStream.Hook(logEvent)
 
@@ -199,10 +209,6 @@ func Display(g *Grid) bool {
 	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		loopIter++
-		if loopIter%5 == 0 {
-			g.cmap.Update()
-		}
 		g.containers = g.cmap.All() // refresh containers for current sort order
 		g.redrawRows()
 	})

@@ -20,7 +20,7 @@ func NewContainer(id, name string) *Container {
 		id:   id,
 		name: name,
 	}
-	c.Collapse()
+	c.widgets = widgets.NewCompact(c.ShortID(), c.ShortName(), c.state)
 	return c
 }
 
@@ -33,16 +33,23 @@ func (c *Container) ShortName() string {
 }
 
 func (c *Container) Expand() {
-	c.widgets = widgets.NewExpanded(c.id, c.name)
-}
+	var curWidgets widgets.ContainerWidgets
 
-func (c *Container) Collapse() {
-	c.widgets = widgets.NewCompact(c.ShortID(), c.ShortName())
+	curWidgets = c.widgets
+	c.widgets = widgets.NewExpanded(c.ShortID(), c.ShortName())
+	c.widgets.Render()
+	c.widgets = curWidgets
 }
 
 func (c *Container) SetState(s string) {
 	c.state = s
 	c.widgets.SetStatus(s)
+}
+
+// Set metrics to zero state, clear widget gauges
+func (c *Container) reset() {
+	c.metrics = metrics.Metrics{}
+	c.widgets.Reset()
 }
 
 // Read metric stream, updating widgets
@@ -55,6 +62,7 @@ func (c *Container) Read(stream chan metrics.Metrics) {
 			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)
 		}
 		log.Infof("reader stopped for container: %s", c.id)
+		c.reset()
 	}()
 	log.Infof("reader started for container: %s", c.id)
 }

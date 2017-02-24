@@ -33,6 +33,9 @@ func NewInfo(id, name string) *ui.Table {
 	return p
 }
 
+func (w *Expanded) Reset() {
+}
+
 func (w *Expanded) Render() {
 	ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
 	ui.Handle("/timer/1s", func(ui.Event) {

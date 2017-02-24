@@ -15,6 +15,7 @@ const (
 type ContainerWidgets interface {
 	Row() *ui.Row
 	Render()
+	Reset()
 	Highlight()
 	UnHighlight()
 	SetStatus(string)
@@ -42,15 +43,22 @@ type Compact struct {
 	row    *ui.Row
 }
 
-func NewCompact(id string, name string) *Compact {
+func NewCompact(id, name, status string) *Compact {
 	w := &Compact{
 		Status: slimPar(mark),
 		Cid:    slimPar(id),
-		Net:    slimPar("-"),
 		Name:   slimPar(name),
-		Cpu:    slimGauge(),
-		Memory: slimGauge(),
 	}
+	w.Reset()
+	w.SetStatus(status)
+	return w
+}
+
+// Set gauges, counters to default unread values
+func (w *Compact) Reset() {
+	w.Net = slimPar("-")
+	w.Cpu = slimGauge()
+	w.Memory = slimGauge()
 	w.row = ui.NewRow(
 		ui.NewCol(1, 0, w.Status),
 		ui.NewCol(2, 0, w.Name),
@@ -59,7 +67,6 @@ func NewCompact(id string, name string) *Compact {
 		ui.NewCol(2, 0, w.Memory),
 		ui.NewCol(2, 0, w.Net),
 	)
-	return w
 }
 
 func (w *Compact) Render() {
