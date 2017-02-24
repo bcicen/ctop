@@ -158,7 +158,6 @@ func Display(g *Grid) bool {
 	ui.DefaultEvtStream.Hook(logEvent)
 
 	// initial draw
-	g.cmap.Refresh()
 	g.redrawRows()
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
@@ -202,7 +201,7 @@ func Display(g *Grid) bool {
 	ui.Handle("/timer/1s", func(e ui.Event) {
 		loopIter++
 		if loopIter%5 == 0 {
-			g.cmap.Refresh()
+			g.cmap.Update()
 		}
 		g.containers = g.cmap.All() // refresh containers for current sort order
 		g.redrawRows()

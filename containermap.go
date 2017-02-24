@@ -2,18 +2,17 @@ package main
 
 import (
 	"sort"
-	"strings"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/metrics"
-	"github.com/bcicen/ctop/widgets"
 	"github.com/fsouza/go-dockerclient"
 )
 
 type ContainerMap struct {
-	client     *docker.Client
-	containers Containers
-	collectors map[string]metrics.Collector
+	client       *docker.Client
+	containers   Containers
+	collectors   map[string]metrics.Collector
+	needsRefresh map[string]int // container IDs requiring refresh
 }
 
 func NewContainerMap() *ContainerMap {
@@ -23,74 +22,114 @@ func NewContainerMap() *ContainerMap {
 		panic(err)
 	}
 	cm := &ContainerMap{
-		client:     client,
-		collectors: make(map[string]metrics.Collector),
+		client:       client,
+		collectors:   make(map[string]metrics.Collector),
+		needsRefresh: make(map[string]int),
 	}
-	//cm.Refresh()
+	cm.refreshAll()
+	go cm.watch()
 	return cm
 }
 
-func (cm *ContainerMap) Refresh() {
-	var id, name string
+// Docker events watcher
+func (cm *ContainerMap) watch() {
+	log.Info("docker event listener starting")
+	events := make(chan *docker.APIEvents)
+	cm.client.AddEventListener(events)
 
+	for e := range events {
+		cm.handleEvent(e)
+	}
+}
+
+// Docker event handler
+func (cm *ContainerMap) handleEvent(e *docker.APIEvents) {
+	// only process container events
+	if e.Type != "container" {
+		return
+	}
+	switch e.Action {
+	case "start", "die", "pause", "unpause":
+		cm.needsRefresh[e.ID] = 1
+	case "destroy":
+		cm.DelByID(e.ID)
+	}
+}
+
+func (cm *ContainerMap) refresh(id string) {
+	insp := cm.inspect(id)
+	// remove container if no longer exists
+	if insp == nil {
+		cm.DelByID(id)
+		return
+	}
+
+	c, ok := cm.Get(id)
+	// append container struct for new containers
+	if !ok {
+		c = &Container{
+			id:   id,
+			name: insp.Name,
+		}
+		c.Collapse()
+		cm.containers = append(cm.containers, c)
+		// create collector
+		if _, ok := cm.collectors[id]; ok == false {
+			cm.collectors[id] = metrics.NewDocker(cm.client, id)
+		}
+	}
+
+	c.SetState(insp.State.Status)
+
+	// start collector if needed
+	if c.state == "running" && !cm.collectors[c.id].Running() {
+		cm.collectors[c.id].Start()
+		c.Read(cm.collectors[c.id].Stream())
+	}
+}
+
+func (cm *ContainerMap) inspect(id string) *docker.Container {
+	c, err := cm.client.InspectContainer(id)
+	if err != nil {
+		if _, ok := err.(*docker.NoSuchContainer); ok == false {
+			log.Errorf(err.Error())
+		}
+	}
+	return c
+}
+
+func (cm *ContainerMap) refreshAll() {
 	opts := docker.ListContainersOptions{All: true}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
 		panic(err)
 	}
 
-	// add new containers
-	states := make(map[string]string)
 	for _, c := range allContainers {
-		id = c.ID[:12]
-		states[id] = c.State
-
-		if _, ok := cm.Get(id); ok == false {
-			name = strings.Replace(c.Names[0], "/", "", 1) // use primary container name
-			newc := &Container{
-				id:      id,
-				name:    name,
-				widgets: widgets.NewCompact(id, name),
-			}
-			cm.containers = append(cm.containers, newc)
-		}
-
-		if _, ok := cm.collectors[id]; ok == false {
-			cm.collectors[id] = metrics.NewDocker(cm.client, id)
-		}
-
+		cm.needsRefresh[c.ID] = 1
 	}
+	cm.Update()
+}
 
-	var removeIdxs []int
-	for n, c := range cm.containers {
-
-		// mark stale internal containers
-		if _, ok := states[c.id]; ok == false {
-			removeIdxs = append(removeIdxs, n)
-			continue
-		}
-
-		c.SetState(states[c.id])
-		// start collector if needed
-		//collector := cm.collectors[id]
-		if c.state == "running" && !cm.collectors[c.id].Running() {
-			cm.collectors[c.id].Start()
-			c.Read(cm.collectors[c.id].Stream())
-		}
+func (cm *ContainerMap) Update() {
+	var ids []string
+	for id, _ := range cm.needsRefresh {
+		cm.refresh(id)
+		ids = append(ids, id)
 	}
-
-	// delete removed containers
-	cm.Del(removeIdxs...)
+	for _, id := range ids {
+		delete(cm.needsRefresh, id)
+	}
 }
 
 // Kill a container by ID
-func (cm *ContainerMap) Kill(id string, sig docker.Signal) error {
-	opts := docker.KillContainerOptions{
-		ID:     id,
-		Signal: sig,
-	}
-	return cm.client.KillContainer(opts)
-}
+//func (cm *ContainerMap) Kill(id string, sig docker.Signal) error {
+//opts := docker.KillContainerOptions{
+//ID:     id,
+//Signal: sig,
+//}
+//return cm.client.KillContainer(opts)
+//}
 
 // Return number of containers/rows
 func (cm *ContainerMap) Len() uint {
@@ -105,6 +144,16 @@ func (cm *ContainerMap) Get(id string) (*Container, bool) {
 		}
 	}
 	return nil, false
+}
+
+// Remove containers by ID
+func (cm *ContainerMap) DelByID(id string) {
+	for n, c := range cm.containers {
+		if c.id == id {
+			cm.Del(n)
+			return
+		}
+	}
 }
 
 // Remove one or more containers by index

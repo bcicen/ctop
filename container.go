@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/bcicen/ctop/metrics"
 	"github.com/bcicen/ctop/widgets"
 )
@@ -13,12 +15,29 @@ type Container struct {
 	widgets widgets.ContainerWidgets
 }
 
+func NewContainer(id, name string) *Container {
+	c := &Container{
+		id:   id,
+		name: name,
+	}
+	c.Collapse()
+	return c
+}
+
+func (c *Container) ShortID() string {
+	return c.id[:12]
+}
+
+func (c *Container) ShortName() string {
+	return strings.Replace(c.name, "/", "", 1) // use primary container name
+}
+
 func (c *Container) Expand() {
 	c.widgets = widgets.NewExpanded(c.id, c.name)
 }
 
 func (c *Container) Collapse() {
-	c.widgets = widgets.NewCompact(c.id, c.name)
+	c.widgets = widgets.NewCompact(c.ShortID(), c.ShortName())
 }
 
 func (c *Container) SetState(s string) {
