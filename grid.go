@@ -8,10 +8,13 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+func maxRows() int {
+	return ui.TermHeight() - widgets.CompactHeader.Height - ui.Body.Y
+}
+
 type Grid struct {
 	cursorID   string // id of currently selected container
 	cmap       *ContainerMap
-	maxRows    int
 	containers Containers // sorted slice of containers
 	header     *widgets.CTopHeader
 }
@@ -24,10 +27,6 @@ func NewGrid() *Grid {
 		header:     widgets.NewCTopHeader(),
 	}
 	return g
-}
-
-func (g *Grid) calcMaxRows() {
-	g.maxRows = ui.TermHeight() - widgets.CompactHeader.Height - ui.Body.Y
 }
 
 // Set an initial cursor position, if possible
@@ -70,7 +69,7 @@ func (g *Grid) cursorDown() {
 	if idx >= (len(g.containers) - 1) {
 		return
 	}
-	if idx >= g.maxRows-1 {
+	if idx >= maxRows()-1 {
 		return
 	}
 	active := g.containers[idx]
@@ -84,7 +83,6 @@ func (g *Grid) cursorDown() {
 
 func (g *Grid) redrawRows() {
 	// reinit body rows
-	g.calcMaxRows()
 	ui.Body.Rows = []*ui.Row{}
 	ui.Clear()
 
@@ -101,8 +99,9 @@ func (g *Grid) redrawRows() {
 	ui.Body.AddRows(widgets.CompactHeader)
 
 	var cursorVisible bool
+	max := maxRows()
 	for n, c := range g.containers.Filter() {
-		if n >= g.maxRows {
+		if n >= max {
 			break
 		}
 		if c.id == g.cursorID {
@@ -216,7 +215,7 @@ func Display(g *Grid) bool {
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		g.header.Align()
 		ui.Body.Width = ui.TermWidth()
-		log.Infof("resize: width=%v max-rows=%v", ui.Body.Width, g.maxRows)
+		log.Infof("resize: width=%v max-rows=%v", ui.Body.Width, maxRows())
 		g.redrawRows()
 	})
 
