@@ -287,5 +287,6 @@ func slimGauge() *ui.Gauge {
 	g.PaddingBottom = 0
 	g.BarColor = ui.ColorGreen
 	g.Label = "-"
+	g.Bg = ui.ColorBlack
 	return g
 }

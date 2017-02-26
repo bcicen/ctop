@@ -16,16 +16,16 @@ func maxRows() int {
 
 type Grid struct {
 	cursorID   string // id of currently selected container
-	cmap       *ContainerMap
+	cSource    ContainerSource
 	containers Containers // sorted slice of containers
 	header     *widgets.CTopHeader
 }
 
 func NewGrid() *Grid {
-	cmap := NewContainerMap()
+	cs := NewDockerContainerSource()
 	g := &Grid{
-		cmap:       cmap,
-		containers: cmap.All(),
+		cSource:    cs,
+		containers: cs.All(),
 		header:     widgets.NewCTopHeader(),
 	}
 	return g
@@ -125,7 +125,7 @@ func (g *Grid) ExpandView() {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
-	container, _ := g.cmap.Get(g.cursorID)
+	container, _ := g.cSource.Get(g.cursorID)
 	container.Expand()
 }
 
@@ -187,7 +187,7 @@ func Display(g *Grid) bool {
 	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		g.containers = g.cmap.All() // refresh containers for current sort order
+		g.containers = g.cSource.All() // refresh containers for current sort order
 		g.redrawRows()
 	})
 

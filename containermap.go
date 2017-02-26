@@ -12,32 +12,37 @@ import (
 
 var lock = sync.RWMutex{}
 
-type ContainerMap struct {
+type ContainerSource interface {
+	All() []*Container
+	Get(string) (*Container, bool)
+}
+
+type DockerContainerSource struct {
 	client       *docker.Client
 	containers   Containers
 	collectors   map[string]metrics.Collector
 	needsRefresh map[string]int // container IDs requiring refresh
 }
 
-func NewContainerMap() *ContainerMap {
+func NewDockerContainerSource() *DockerContainerSource {
 	// init docker client
 	client, err := docker.NewClient(config.GetVal("dockerHost"))
 	if err != nil {
 		panic(err)
 	}
-	cm := &ContainerMap{
+	cm := &DockerContainerSource{
 		client:       client,
 		collectors:   make(map[string]metrics.Collector),
 		needsRefresh: make(map[string]int),
 	}
 	cm.refreshAll()
-	go cm.UpdateLoop()
+	go cm.Loop()
 	go cm.watchEvents()
 	return cm
 }
 
 // Docker events watcher
-func (cm *ContainerMap) watchEvents() {
+func (cm *DockerContainerSource) watchEvents() {
 	log.Info("docker event listener starting")
 	events := make(chan *docker.APIEvents)
 	cm.client.AddEventListener(events)
@@ -52,16 +57,16 @@ func (cm *ContainerMap) watchEvents() {
 			cm.needsRefresh[e.ID] = 1
 		case "destroy":
 			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-			cm.DelByID(e.ID)
+			cm.delByID(e.ID)
 		}
 	}
 }
 
-func (cm *ContainerMap) refresh(id string) {
+func (cm *DockerContainerSource) refresh(id string) {
 	insp := cm.inspect(id)
 	// remove container if no longer exists
 	if insp == nil {
-		cm.DelByID(id)
+		cm.delByID(id)
 		return
 	}
 
@@ -91,7 +96,7 @@ func (cm *ContainerMap) refresh(id string) {
 	}
 }
 
-func (cm *ContainerMap) inspect(id string) *docker.Container {
+func (cm *DockerContainerSource) inspect(id string) *docker.Container {
 	c, err := cm.client.InspectContainer(id)
 	if err != nil {
 		if _, ok := err.(*docker.NoSuchContainer); ok == false {
@@ -101,7 +106,8 @@ func (cm *ContainerMap) inspect(id string) *docker.Container {
 	return c
 }
 
-func (cm *ContainerMap) refreshAll() {
+// Mark all container IDs for refresh
+func (cm *DockerContainerSource) refreshAll() {
 	opts := docker.ListContainersOptions{All: true}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
@@ -113,7 +119,7 @@ func (cm *ContainerMap) refreshAll() {
 	}
 }
 
-func (cm *ContainerMap) UpdateLoop() {
+func (cm *DockerContainerSource) Loop() {
 	for {
 		switch {
 		case len(cm.needsRefresh) > 0:
@@ -126,13 +132,13 @@ func (cm *ContainerMap) UpdateLoop() {
 				delete(cm.needsRefresh, id)
 			}
 		default:
-			time.Sleep(1 * time.Second)
+			time.Sleep(3 * time.Second)
 		}
 	}
 }
 
 // Get a single container, by ID
-func (cm *ContainerMap) Get(id string) (*Container, bool) {
+func (cm *DockerContainerSource) Get(id string) (*Container, bool) {
 	for _, c := range cm.containers {
 		if c.id == id {
 			return c, true
@@ -142,17 +148,17 @@ func (cm *ContainerMap) Get(id string) (*Container, bool) {
 }
 
 // Remove containers by ID
-func (cm *ContainerMap) DelByID(id string) {
+func (cm *DockerContainerSource) delByID(id string) {
 	for n, c := range cm.containers {
 		if c.id == id {
-			cm.Del(n)
+			cm.del(n)
 			return
 		}
 	}
 }
 
 // Remove one or more containers by index
-func (cm *ContainerMap) Del(idx ...int) {
+func (cm *DockerContainerSource) del(idx ...int) {
 	lock.Lock()
 	defer lock.Unlock()
 	for _, i := range idx {
@@ -162,7 +168,7 @@ func (cm *ContainerMap) Del(idx ...int) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *ContainerMap) All() []*Container {
+func (cm *DockerContainerSource) All() []*Container {
 	sort.Sort(cm.containers)
 	return cm.containers
 }

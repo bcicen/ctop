@@ -16,32 +16,40 @@ var Sorters = map[string]sortMethod{
 	"id":   idSorter,
 	"name": nameSorter,
 	"cpu": func(c1, c2 *Container) bool {
+		// Use secondary sort method if equal values
 		if c1.metrics.CPUUtil == c2.metrics.CPUUtil {
 			return nameSorter(c1, c2)
 		}
-		return c1.metrics.CPUUtil < c2.metrics.CPUUtil
+		return c1.metrics.CPUUtil > c2.metrics.CPUUtil
 	},
 	"mem": func(c1, c2 *Container) bool {
+		// Use secondary sort method if equal values
 		if c1.metrics.MemUsage == c2.metrics.MemUsage {
 			return nameSorter(c1, c2)
 		}
-		return c1.metrics.MemUsage < c2.metrics.MemUsage
+		return c1.metrics.MemUsage > c2.metrics.MemUsage
 	},
 	"mem %": func(c1, c2 *Container) bool {
+		// Use secondary sort method if equal values
 		if c1.metrics.MemPercent == c2.metrics.MemPercent {
 			return nameSorter(c1, c2)
 		}
-		return c1.metrics.MemPercent < c2.metrics.MemPercent
+		return c1.metrics.MemPercent > c2.metrics.MemPercent
 	},
 	"net": func(c1, c2 *Container) bool {
 		sum1 := sumNet(c1)
 		sum2 := sumNet(c2)
+		// Use secondary sort method if equal values
 		if sum1 == sum2 {
 			return nameSorter(c1, c2)
 		}
-		return sum1 < sum2
+		return sum1 > sum2
 	},
 	"state": func(c1, c2 *Container) bool {
+		// Use secondary sort method if equal values
+		if c1.state == c2.state {
+			return nameSorter(c1, c2)
+		}
 		if c1.state == "running" {
 			return true
 		}
