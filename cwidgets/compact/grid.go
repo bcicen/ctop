@@ -7,11 +7,12 @@ import (
 
 type CompactGrid struct {
 	ui.GridBufferer
-	Rows   []cwidgets.ContainerWidgets
-	X, Y   int
-	Width  int
-	Height int
-	header *CompactHeader
+	Rows     []cwidgets.ContainerWidgets
+	X, Y     int
+	Width    int
+	Height   int
+	header   *CompactHeader
+	cursorID string
 }
 
 func NewCompactGrid() *CompactGrid {

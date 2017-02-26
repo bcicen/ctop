@@ -2,11 +2,14 @@ package compact
 
 import (
 	"fmt"
-	"github.com/bcicen/ctop/cwidgets"
 	"strconv"
 
+	"github.com/bcicen/ctop/cwidgets"
+	"github.com/bcicen/ctop/logging"
 	ui "github.com/gizak/termui"
 )
+
+var log = logging.Init()
 
 const (
 	mark        = string('\u25C9')
@@ -22,47 +25,58 @@ type Compact struct {
 	Name   *ui.Par
 	Cpu    *ui.Gauge
 	Memory *ui.Gauge
+	X, Y   int
+	Width  int
+	Height int
 }
 
 func NewCompact(id, name, status string) *Compact {
-	w := &Compact{
+	row := &Compact{
 		Status: slimPar(mark),
 		Cid:    slimPar(id),
 		Name:   slimPar(name),
+		Height: 1,
 	}
-	w.Reset()
-	w.SetStatus(status)
-	return w
+	row.Reset()
+	row.SetStatus(status)
+	return row
 }
 
 // Set gauges, counters to default unread values
-func (w *Compact) Reset() {
-	w.Net = slimPar("-")
-	w.Cpu = slimGauge()
-	w.Memory = slimGauge()
+func (row *Compact) Reset() {
+	row.Net = slimPar("-")
+	row.Cpu = slimGauge()
+	row.Memory = slimGauge()
 }
 
-func (w *Compact) all() []ui.GridBufferer {
+func (row *Compact) all() []ui.GridBufferer {
 	return []ui.GridBufferer{
-		w.Status,
-		w.Name,
-		w.Cid,
-		w.Cpu,
-		w.Memory,
-		w.Net,
+		row.Status,
+		row.Name,
+		row.Cid,
+		row.Cpu,
+		row.Memory,
+		row.Net,
 	}
 }
 
-func (w *Compact) SetY(y int) {
-	for _, col := range w.all() {
+func (row *Compact) SetY(y int) {
+	if y == row.Y {
+		return
+	}
+	for _, col := range row.all() {
 		col.SetY(y)
 	}
+	row.Y = y
 }
 
-func (w *Compact) SetWidth(width int) {
+func (row *Compact) SetWidth(width int) {
+	if row.Width == width {
+		return
+	}
 	x := 1
 	autoWidth := calcWidth(width, 5)
-	for n, col := range w.all() {
+	for n, col := range row.all() {
 		if n == 0 {
 			col.SetX(x)
 			col.SetWidth(statusWidth)
@@ -73,71 +87,71 @@ func (w *Compact) SetWidth(width int) {
 		col.SetWidth(autoWidth)
 		x += autoWidth + colSpacing
 	}
+	row.Width = width
+	log.Info("resized row width")
 }
 
-func (w *Compact) Render(y, rowWidth int) {}
-
-func (w *Compact) Buffer() ui.Buffer {
+func (row *Compact) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
 
-	buf.Merge(w.Status.Buffer())
-	buf.Merge(w.Name.Buffer())
-	buf.Merge(w.Cid.Buffer())
-	buf.Merge(w.Cpu.Buffer())
-	buf.Merge(w.Memory.Buffer())
-	buf.Merge(w.Net.Buffer())
+	buf.Merge(row.Status.Buffer())
+	buf.Merge(row.Name.Buffer())
+	buf.Merge(row.Cid.Buffer())
+	buf.Merge(row.Cpu.Buffer())
+	buf.Merge(row.Memory.Buffer())
+	buf.Merge(row.Net.Buffer())
 
 	return buf
 }
 
-func (w *Compact) Highlight() {
-	w.Name.TextFgColor = ui.ColorDefault
-	w.Name.TextBgColor = ui.ColorWhite
+func (row *Compact) Highlight() {
+	row.Name.TextFgColor = ui.ColorDefault
+	row.Name.TextBgColor = ui.ColorWhite
 }
 
-func (w *Compact) UnHighlight() {
-	w.Name.TextFgColor = ui.ColorWhite
-	w.Name.TextBgColor = ui.ColorDefault
+func (row *Compact) UnHighlight() {
+	row.Name.TextFgColor = ui.ColorWhite
+	row.Name.TextBgColor = ui.ColorDefault
 }
 
-func (w *Compact) SetStatus(val string) {
+func (row *Compact) SetStatus(val string) {
 	switch val {
 	case "running":
-		w.Status.Text = mark
-		w.Status.TextFgColor = ui.ColorGreen
+		row.Status.Text = mark
+		row.Status.TextFgColor = ui.ColorGreen
 	case "exited":
-		w.Status.Text = mark
-		w.Status.TextFgColor = ui.ColorRed
+		row.Status.Text = mark
+		row.Status.TextFgColor = ui.ColorRed
 	case "paused":
-		w.Status.Text = fmt.Sprintf("%s%s", vBar, vBar)
-		w.Status.TextFgColor = ui.ColorDefault
+		row.Status.Text = fmt.Sprintf("%s%s", vBar, vBar)
+		row.Status.TextFgColor = ui.ColorDefault
 	default:
-		w.Status.Text = mark
-		w.Status.TextFgColor = ui.ColorRed
+		row.Status.Text = mark
+		row.Status.TextFgColor = ui.ColorRed
 	}
 }
 
-func (w *Compact) SetCPU(val int) {
-	w.Cpu.BarColor = cwidgets.ColorScale(val)
-	w.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
+func (row *Compact) SetCPU(val int) {
+	row.Cpu.BarColor = cwidgets.ColorScale(val)
+	row.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
 	if val < 5 {
 		val = 5
-		w.Cpu.BarColor = ui.ColorBlack
+		row.Cpu.BarColor = ui.ColorBlack
 	}
-	w.Cpu.Percent = val
+	row.Cpu.Percent = val
 }
 
-func (w *Compact) SetNet(rx int64, tx int64) {
-	w.Net.Text = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(rx), cwidgets.ByteFormat(tx))
+func (row *Compact) SetNet(rx int64, tx int64) {
+	row.Net.Text = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(rx), cwidgets.ByteFormat(tx))
 }
 
-func (w *Compact) SetMem(val int64, limit int64, percent int) {
-	w.Memory.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(val), cwidgets.ByteFormat(limit))
+func (row *Compact) SetMem(val int64, limit int64, percent int) {
+	row.Memory.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(val), cwidgets.ByteFormat(limit))
 	if percent < 5 {
 		percent = 5
-		w.Memory.BarColor = ui.ColorBlack
+		row.Memory.BarColor = ui.ColorBlack
 	} else {
-		w.Memory.BarColor = ui.ColorGreen
+		row.Memory.BarColor = ui.ColorGreen
 	}
-	w.Memory.Percent = percent
+	row.Memory.Percent = percent
 }

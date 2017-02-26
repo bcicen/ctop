@@ -5,7 +5,10 @@ import (
 )
 
 type CompactHeader struct {
-	pars []*ui.Par
+	pars   []*ui.Par
+	X, Y   int
+	Width  int
+	Height int
 }
 
 func NewCompactHeader() *CompactHeader {
@@ -18,6 +21,9 @@ func NewCompactHeader() *CompactHeader {
 }
 
 func (c *CompactHeader) SetWidth(w int) {
+	if w == c.Width {
+		return
+	}
 	x := 1
 	autoWidth := calcWidth(w, 5)
 	for n, col := range c.pars {
@@ -31,12 +37,17 @@ func (c *CompactHeader) SetWidth(w int) {
 		col.SetWidth(autoWidth)
 		x += autoWidth + colSpacing
 	}
+	c.Width = w
 }
 
 func (c *CompactHeader) SetY(y int) {
+	if y == c.Y {
+		return
+	}
 	for _, p := range c.pars {
 		p.SetY(y)
 	}
+	c.Y = y
 }
 
 func (c *CompactHeader) Buffer() ui.Buffer {

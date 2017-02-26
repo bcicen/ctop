@@ -126,8 +126,22 @@ func (g *Grid) ExpandView() {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
+
 	container, _ := g.cSource.Get(g.cursorID)
+	// copy current widgets to restore on exit view
+	curWidgets := container.widgets
 	container.Expand()
+
+	ui.Render(container.widgets)
+	ui.Handle("/timer/1s", func(ui.Event) {
+		ui.Render(container.widgets)
+	})
+	ui.Handle("/sys/kbd/", func(ui.Event) {
+		ui.StopLoop()
+	})
+	ui.Loop()
+
+	container.widgets = curWidgets
 }
 
 func logEvent(e ui.Event) {

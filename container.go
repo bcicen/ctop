@@ -35,12 +35,7 @@ func (c *Container) ShortName() string {
 }
 
 func (c *Container) Expand() {
-	var curWidgets cwidgets.ContainerWidgets
-
-	curWidgets = c.widgets
 	c.widgets = expanded.NewExpanded(c.ShortID(), c.name)
-	c.widgets.Render(0, 0)
-	c.widgets = curWidgets
 }
 
 func (c *Container) SetState(s string) {

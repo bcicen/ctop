@@ -34,7 +34,12 @@ func NewInfo(id, name string) *ui.Table {
 }
 
 func (w *Expanded) Buffer() ui.Buffer {
-	return ui.NewBuffer()
+	buf := ui.NewBuffer()
+	buf.Merge(w.Info.Buffer())
+	buf.Merge(w.Cpu.Buffer())
+	buf.Merge(w.Mem.Buffer())
+	buf.Merge(w.Net.Buffer())
+	return buf
 }
 
 func (w *Expanded) Reset()               {}
@@ -43,17 +48,6 @@ func (w *Expanded) SetWidth(_ int)       {}
 func (w *Expanded) Highlight()           {}
 func (w *Expanded) UnHighlight()         {}
 func (w *Expanded) SetStatus(val string) {}
-
-func (w *Expanded) Render(_, _ int) {
-	ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
-	ui.Handle("/timer/1s", func(ui.Event) {
-		ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
-	})
-	ui.Handle("/sys/kbd/", func(ui.Event) {
-		ui.StopLoop()
-	})
-	ui.Loop()
-}
 
 func (w *Expanded) SetCPU(val int) {
 	w.Cpu.Update(val)
