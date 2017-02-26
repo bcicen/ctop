@@ -21,26 +21,37 @@ type CompactGrid struct {
 	X, Y   int
 	Width  int
 	Height int
+	header *CompactHeader
 }
 
-func (c CompactGrid) SetX(x int) { c.X = x }
-func (c CompactGrid) SetY(y int) {
-	c.Y = y
+func NewCompactGrid() *CompactGrid {
+	return &CompactGrid{
+		header: NewCompactHeader(),
+	}
+}
+
+func (c *CompactGrid) Align() {
+	// Update y recursively
+	c.header.SetY(c.Y)
+	y := c.Y + 1
 	for n, r := range c.Rows {
-		log.Infof("row %d: y=%d", n, c.Y+n)
-		r.SetY(c.Y + n)
+		r.SetY(y + n)
 	}
-}
-func (c CompactGrid) GetHeight() int { return len(c.Rows) }
-func (c CompactGrid) SetWidth(w int) {
-	c.Width = w
+	// Update width recursively
+	c.header.SetWidth(c.Width)
 	for _, r := range c.Rows {
-		r.SetWidth(w)
+		r.SetWidth(c.Width)
 	}
 }
 
-func (c CompactGrid) Buffer() ui.Buffer {
+func (c *CompactGrid) GetHeight() int { return len(c.Rows) }
+func (c *CompactGrid) SetX(x int)     { c.X = x }
+func (c *CompactGrid) SetY(y int)     { c.Y = y }
+func (c *CompactGrid) SetWidth(w int) { c.Width = w }
+
+func (c *CompactGrid) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
+	buf.Merge(c.header.Buffer())
 	for _, r := range c.Rows {
 		buf.Merge(r.Buffer())
 	}
@@ -72,6 +83,29 @@ func NewCompactHeader() *CompactHeader {
 		header.pars = append(header.pars, slimHeaderPar(f))
 	}
 	return header
+}
+
+func (c *CompactHeader) SetWidth(w int) {
+	x := 1
+	statusWidth := 3
+	autoWidth := (w - statusWidth) / 5
+	for n, col := range c.pars {
+		if n == 0 {
+			col.SetX(x)
+			col.SetWidth(statusWidth)
+			x += statusWidth
+			continue
+		}
+		col.SetX(x)
+		col.SetWidth(autoWidth)
+		x += autoWidth
+	}
+}
+
+func (c *CompactHeader) SetY(y int) {
+	for _, p := range c.pars {
+		p.SetY(y)
+	}
 }
 
 func (c *CompactHeader) Buffer() ui.Buffer {
@@ -130,7 +164,6 @@ func (w *Compact) SetWidth(width int) {
 	x := 1
 	statusWidth := 3
 	autoWidth := (width - statusWidth) / 5
-	log.Infof("autowidth: %d", autoWidth)
 	for n, col := range w.all() {
 		if n == 0 {
 			col.SetX(x)

@@ -131,11 +131,6 @@ func (cm *ContainerMap) UpdateLoop() {
 	}
 }
 
-// Return number of containers/rows
-func (cm *ContainerMap) Len() uint {
-	return uint(len(cm.containers))
-}
-
 // Get a single container, by ID
 func (cm *ContainerMap) Get(id string) (*Container, bool) {
 	for _, c := range cm.containers {

@@ -8,27 +8,25 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var cGrid = &widgets.CompactGrid{}
+var cGrid = widgets.NewCompactGrid()
 
 func maxRows() int {
 	return ui.TermHeight() - 2 - cGrid.Y
 }
 
 type Grid struct {
-	cursorID    string // id of currently selected container
-	cmap        *ContainerMap
-	containers  Containers // sorted slice of containers
-	header      *widgets.CTopHeader
-	fieldHeader *widgets.CompactHeader
+	cursorID   string // id of currently selected container
+	cmap       *ContainerMap
+	containers Containers // sorted slice of containers
+	header     *widgets.CTopHeader
 }
 
 func NewGrid() *Grid {
 	cmap := NewContainerMap()
 	g := &Grid{
-		cmap:        cmap,
-		containers:  cmap.All(),
-		header:      widgets.NewCTopHeader(),
-		fieldHeader: widgets.NewCompactHeader(),
+		cmap:       cmap,
+		containers: cmap.All(),
+		header:     widgets.NewCTopHeader(),
 	}
 	return g
 }
@@ -88,7 +86,6 @@ func (g *Grid) cursorDown() {
 func (g *Grid) redrawRows() {
 	// reinit body rows
 	cGrid.Rows = []widgets.ContainerWidgets{}
-	ui.Clear()
 
 	// build layout
 	y := 1
@@ -98,10 +95,10 @@ func (g *Grid) redrawRows() {
 		g.header.Render()
 		y += g.header.Height()
 	}
+	cGrid.SetY(y)
 
 	var cursorVisible bool
 	max := maxRows()
-	y += 2 // for field header
 	for n, c := range g.containers.Filter() {
 		if n >= max {
 			break
@@ -111,20 +108,16 @@ func (g *Grid) redrawRows() {
 			cursorVisible = true
 		}
 	}
-	cGrid.SetY(y)
-	cGrid.SetWidth(ui.TermWidth())
-
-	//log.Infof("rows: %d", len(cGrid.Rows))
-	//log.Infof("Width: %d", cGrid.Width)
-	//log.Infof("Height: %d", cGrid.Height)
-	//log.Infof("X: %d", cGrid.X)
-	//log.Infof("Y: %d", cGrid.Y)
 
 	if !cursorVisible {
 		g.cursorReset()
 	}
 
-	ui.Render(g.fieldHeader)
+	ui.Clear()
+	if config.GetSwitchVal("enableHeader") {
+		g.header.Render()
+	}
+	cGrid.Align()
 	ui.Render(cGrid)
 }
 
