@@ -1,6 +1,7 @@
-package widgets
+package expanded
 
 import (
+	"github.com/bcicen/ctop/cwidgets"
 	ui "github.com/gizak/termui"
 )
 
@@ -25,7 +26,7 @@ func NewExpandedMem() *ExpandedMem {
 	mem.Data = mem.hist.data
 	mem.BarColor = ui.ColorGreen
 	mem.DataLabels = mem.hist.labels
-	mem.NumFmt = byteFormatInt
+	mem.NumFmt = cwidgets.ByteFormatInt
 	return mem
 }
 

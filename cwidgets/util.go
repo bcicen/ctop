@@ -1,4 +1,4 @@
-package widgets
+package cwidgets
 
 import (
 	"fmt"
@@ -14,11 +14,11 @@ const (
 )
 
 // convenience method
-func byteFormatInt(n int) string {
-	return byteFormat(int64(n))
+func ByteFormatInt(n int) string {
+	return ByteFormat(int64(n))
 }
 
-func byteFormat(n int64) string {
+func ByteFormat(n int64) string {
 	if n < kb {
 		return fmt.Sprintf("%sB", strconv.FormatInt(n, 10))
 	}
@@ -49,7 +49,7 @@ func getPrecision(f float64) int {
 	return 2 // default precision
 }
 
-func colorScale(n int) ui.Attribute {
+func ColorScale(n int) ui.Attribute {
 	if n > 70 {
 		return ui.ColorRed
 	}

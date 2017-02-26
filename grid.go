@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 )
 
-var cGrid = widgets.NewCompactGrid()
+var cGrid = compact.NewCompactGrid()
 
 func maxRows() int {
 	return ui.TermHeight() - 2 - cGrid.Y
@@ -85,7 +86,7 @@ func (g *Grid) cursorDown() {
 
 func (g *Grid) redrawRows() {
 	// reinit body rows
-	cGrid.Rows = []widgets.ContainerWidgets{}
+	cGrid.Clear()
 
 	// build layout
 	y := 1

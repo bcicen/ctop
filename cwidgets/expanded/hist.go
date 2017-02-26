@@ -1,4 +1,4 @@
-package widgets
+package expanded
 
 type IntHist struct {
 	data   []int

@@ -1,9 +1,10 @@
-package widgets
+package expanded
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/bcicen/ctop/cwidgets"
 	ui "github.com/gizak/termui"
 )
 
@@ -43,10 +44,10 @@ func (w *ExpandedNet) Update(rx int64, tx int64) {
 	var rate string
 
 	w.rxHist.Append(int(rx))
-	rate = strings.ToLower(byteFormatInt(w.rxHist.Last()))
+	rate = strings.ToLower(cwidgets.ByteFormatInt(w.rxHist.Last()))
 	w.Lines[0].Title = fmt.Sprintf("RX [%s/s]", rate)
 
 	w.txHist.Append(int(tx))
-	rate = strings.ToLower(byteFormatInt(w.txHist.Last()))
+	rate = strings.ToLower(cwidgets.ByteFormatInt(w.txHist.Last()))
 	w.Lines[1].Title = fmt.Sprintf("TX [%s/s]", rate)
 }

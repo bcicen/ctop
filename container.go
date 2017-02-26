@@ -3,8 +3,10 @@ package main
 import (
 	"strings"
 
+	"github.com/bcicen/ctop/cwidgets"
+	"github.com/bcicen/ctop/cwidgets/compact"
+	"github.com/bcicen/ctop/cwidgets/expanded"
 	"github.com/bcicen/ctop/metrics"
-	"github.com/bcicen/ctop/widgets"
 )
 
 type Container struct {
@@ -12,7 +14,7 @@ type Container struct {
 	name    string
 	state   string
 	metrics metrics.Metrics
-	widgets widgets.ContainerWidgets
+	widgets cwidgets.ContainerWidgets
 }
 
 func NewContainer(id, name string) *Container {
@@ -20,7 +22,7 @@ func NewContainer(id, name string) *Container {
 		id:   id,
 		name: name,
 	}
-	c.widgets = widgets.NewCompact(c.ShortID(), c.ShortName(), c.state)
+	c.widgets = compact.NewCompact(c.ShortID(), c.ShortName(), c.state)
 	return c
 }
 
@@ -33,10 +35,10 @@ func (c *Container) ShortName() string {
 }
 
 func (c *Container) Expand() {
-	var curWidgets widgets.ContainerWidgets
+	var curWidgets cwidgets.ContainerWidgets
 
 	curWidgets = c.widgets
-	c.widgets = widgets.NewExpanded(c.ShortID(), c.name)
+	c.widgets = expanded.NewExpanded(c.ShortID(), c.name)
 	c.widgets.Render(0, 0)
 	c.widgets = curWidgets
 }

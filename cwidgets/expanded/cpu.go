@@ -1,4 +1,4 @@
-package widgets
+package expanded
 
 import (
 	ui "github.com/gizak/termui"
