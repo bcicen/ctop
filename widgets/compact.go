@@ -11,8 +11,10 @@ import (
 var log = logging.Init()
 
 const (
-	mark = string('\u25C9')
-	vBar = string('\u25AE')
+	mark        = string('\u25C9')
+	vBar        = string('\u25AE')
+	colSpacing  = 1
+	statusWidth = 3
 )
 
 type CompactGrid struct {
@@ -85,10 +87,15 @@ func NewCompactHeader() *CompactHeader {
 	return header
 }
 
+// Calculate per-column width, given total width and number of items
+func calcWidth(width, items int) int {
+	spacing := colSpacing * items
+	return (width - statusWidth - spacing) / items
+}
+
 func (c *CompactHeader) SetWidth(w int) {
 	x := 1
-	statusWidth := 3
-	autoWidth := (w - statusWidth) / 5
+	autoWidth := calcWidth(w, 5)
 	for n, col := range c.pars {
 		if n == 0 {
 			col.SetX(x)
@@ -98,7 +105,7 @@ func (c *CompactHeader) SetWidth(w int) {
 		}
 		col.SetX(x)
 		col.SetWidth(autoWidth)
-		x += autoWidth
+		x += autoWidth + colSpacing
 	}
 }
 
@@ -162,8 +169,7 @@ func (w *Compact) SetY(y int) {
 
 func (w *Compact) SetWidth(width int) {
 	x := 1
-	statusWidth := 3
-	autoWidth := (width - statusWidth) / 5
+	autoWidth := calcWidth(width, 5)
 	for n, col := range w.all() {
 		if n == 0 {
 			col.SetX(x)
@@ -173,7 +179,7 @@ func (w *Compact) SetWidth(width int) {
 		}
 		col.SetX(x)
 		col.SetWidth(autoWidth)
-		x += autoWidth
+		x += autoWidth + colSpacing
 	}
 }
 
@@ -287,6 +293,5 @@ func slimGauge() *ui.Gauge {
 	g.PaddingBottom = 0
 	g.BarColor = ui.ColorGreen
 	g.Label = "-"
-	g.Bg = ui.ColorBlack
 	return g
 }
