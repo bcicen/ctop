@@ -4,34 +4,83 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/bcicen/ctop/logging"
 	ui "github.com/gizak/termui"
 )
+
+var log = logging.Init()
 
 const (
 	mark = string('\u25C9')
 	vBar = string('\u25AE')
 )
 
+type CompactGrid struct {
+	ui.GridBufferer
+	Rows   []ContainerWidgets
+	X, Y   int
+	Width  int
+	Height int
+}
+
+func (c CompactGrid) SetX(x int) { c.X = x }
+func (c CompactGrid) SetY(y int) {
+	c.Y = y
+	for n, r := range c.Rows {
+		log.Infof("row %d: y=%d", n, c.Y+n)
+		r.SetY(c.Y + n)
+	}
+}
+func (c CompactGrid) GetHeight() int { return len(c.Rows) }
+func (c CompactGrid) SetWidth(w int) {
+	c.Width = w
+	for _, r := range c.Rows {
+		r.SetWidth(w)
+	}
+}
+
+func (c CompactGrid) Buffer() ui.Buffer {
+	buf := ui.NewBuffer()
+	for _, r := range c.Rows {
+		buf.Merge(r.Buffer())
+	}
+	return buf
+}
+
 type ContainerWidgets interface {
-	Row() *ui.Row
-	Render()
+	Render(int, int)
 	Reset()
+	Buffer() ui.Buffer
 	Highlight()
 	UnHighlight()
+	SetY(int)
+	SetWidth(int)
 	SetStatus(string)
 	SetCPU(int)
 	SetNet(int64, int64)
 	SetMem(int64, int64, int)
 }
 
-var CompactHeader = ui.NewRow(
-	ui.NewCol(1, 0, slimHeaderPar("")),
-	ui.NewCol(2, 0, slimHeaderPar("NAME")),
-	ui.NewCol(2, 0, slimHeaderPar("CID")),
-	ui.NewCol(2, 0, slimHeaderPar("CPU")),
-	ui.NewCol(2, 0, slimHeaderPar("MEM")),
-	ui.NewCol(2, 0, slimHeaderPar("NET RX/TX")),
-)
+type CompactHeader struct {
+	pars []*ui.Par
+}
+
+func NewCompactHeader() *CompactHeader {
+	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX"}
+	header := &CompactHeader{}
+	for _, f := range fields {
+		header.pars = append(header.pars, slimHeaderPar(f))
+	}
+	return header
+}
+
+func (c *CompactHeader) Buffer() ui.Buffer {
+	buf := ui.NewBuffer()
+	for _, p := range c.pars {
+		buf.Merge(p.Buffer())
+	}
+	return buf
+}
 
 type Compact struct {
 	Status *ui.Par
@@ -40,7 +89,6 @@ type Compact struct {
 	Name   *ui.Par
 	Cpu    *ui.Gauge
 	Memory *ui.Gauge
-	row    *ui.Row
 }
 
 func NewCompact(id, name, status string) *Compact {
@@ -59,21 +107,56 @@ func (w *Compact) Reset() {
 	w.Net = slimPar("-")
 	w.Cpu = slimGauge()
 	w.Memory = slimGauge()
-	w.row = ui.NewRow(
-		ui.NewCol(1, 0, w.Status),
-		ui.NewCol(2, 0, w.Name),
-		ui.NewCol(2, 0, w.Cid),
-		ui.NewCol(2, 0, w.Cpu),
-		ui.NewCol(2, 0, w.Memory),
-		ui.NewCol(2, 0, w.Net),
-	)
 }
 
-func (w *Compact) Render() {
+func (w *Compact) all() []ui.GridBufferer {
+	return []ui.GridBufferer{
+		w.Status,
+		w.Name,
+		w.Cid,
+		w.Cpu,
+		w.Memory,
+		w.Net,
+	}
 }
 
-func (w *Compact) Row() *ui.Row {
-	return w.row
+func (w *Compact) SetY(y int) {
+	for _, col := range w.all() {
+		col.SetY(y)
+	}
+}
+
+func (w *Compact) SetWidth(width int) {
+	x := 1
+	statusWidth := 3
+	autoWidth := (width - statusWidth) / 5
+	log.Infof("autowidth: %d", autoWidth)
+	for n, col := range w.all() {
+		if n == 0 {
+			col.SetX(x)
+			col.SetWidth(statusWidth)
+			x += statusWidth
+			continue
+		}
+		col.SetX(x)
+		col.SetWidth(autoWidth)
+		x += autoWidth
+	}
+}
+
+func (w *Compact) Render(y, rowWidth int) {}
+
+func (w *Compact) Buffer() ui.Buffer {
+	buf := ui.NewBuffer()
+
+	buf.Merge(w.Status.Buffer())
+	buf.Merge(w.Name.Buffer())
+	buf.Merge(w.Cid.Buffer())
+	buf.Merge(w.Cpu.Buffer())
+	buf.Merge(w.Memory.Buffer())
+	buf.Merge(w.Net.Buffer())
+
+	return buf
 }
 
 func (w *Compact) Highlight() {
@@ -149,6 +232,7 @@ func centerParText(p *ui.Par) {
 
 func slimHeaderPar(s string) *ui.Par {
 	p := slimPar(s)
+	p.Y = 2
 	p.Height = 2
 	return p
 }

@@ -8,23 +8,27 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+var cGrid = &widgets.CompactGrid{}
+
 func maxRows() int {
-	return ui.TermHeight() - widgets.CompactHeader.Height - ui.Body.Y
+	return ui.TermHeight() - 2 - cGrid.Y
 }
 
 type Grid struct {
-	cursorID   string // id of currently selected container
-	cmap       *ContainerMap
-	containers Containers // sorted slice of containers
-	header     *widgets.CTopHeader
+	cursorID    string // id of currently selected container
+	cmap        *ContainerMap
+	containers  Containers // sorted slice of containers
+	header      *widgets.CTopHeader
+	fieldHeader *widgets.CompactHeader
 }
 
 func NewGrid() *Grid {
 	cmap := NewContainerMap()
 	g := &Grid{
-		cmap:       cmap,
-		containers: cmap.All(),
-		header:     widgets.NewCTopHeader(),
+		cmap:        cmap,
+		containers:  cmap.All(),
+		header:      widgets.NewCTopHeader(),
+		fieldHeader: widgets.NewCompactHeader(),
 	}
 	return g
 }
@@ -60,7 +64,7 @@ func (g *Grid) cursorUp() {
 	g.cursorID = next.id
 	next.widgets.Highlight()
 
-	ui.Render(ui.Body)
+	ui.Render(cGrid)
 }
 
 func (g *Grid) cursorDown() {
@@ -78,69 +82,50 @@ func (g *Grid) cursorDown() {
 	active.widgets.UnHighlight()
 	g.cursorID = next.id
 	next.widgets.Highlight()
-	ui.Render(ui.Body)
+	ui.Render(cGrid)
 }
 
 func (g *Grid) redrawRows() {
 	// reinit body rows
-	ui.Body.Rows = []*ui.Row{}
+	cGrid.Rows = []widgets.ContainerWidgets{}
 	ui.Clear()
 
 	// build layout
+	y := 1
 	if config.GetSwitchVal("enableHeader") {
-		ui.Body.Y = g.header.Height()
 		g.header.SetCount(len(g.containers))
 		g.header.SetFilter(config.GetVal("filterStr"))
 		g.header.Render()
-	} else {
-		ui.Body.Y = 0
+		y += g.header.Height()
 	}
-
-	ui.Body.AddRows(widgets.CompactHeader)
 
 	var cursorVisible bool
 	max := maxRows()
+	y += 2 // for field header
 	for n, c := range g.containers.Filter() {
 		if n >= max {
 			break
 		}
+		cGrid.Rows = append(cGrid.Rows, c.widgets)
 		if c.id == g.cursorID {
 			cursorVisible = true
 		}
-		ui.Body.AddRows(c.widgets.Row())
 	}
+	cGrid.SetY(y)
+	cGrid.SetWidth(ui.TermWidth())
+
+	//log.Infof("rows: %d", len(cGrid.Rows))
+	//log.Infof("Width: %d", cGrid.Width)
+	//log.Infof("Height: %d", cGrid.Height)
+	//log.Infof("X: %d", cGrid.X)
+	//log.Infof("Y: %d", cGrid.Y)
 
 	if !cursorVisible {
 		g.cursorReset()
 	}
 
-	ui.Body.Align()
-	resizeIndicator()
-	ui.Render(ui.Body)
-
-	// dump aligned widget positions and sizes
-	//for i, w := range ui.Body.Rows[1].Cols {
-	//log.Infof("w%v: x=%v y=%v w=%v h=%v", i, w.X, w.Y, w.Width, w.Height)
-	//}
-
-}
-
-// override Align()'d size for indicator column
-func resizeIndicator() {
-	xShift := 1
-	toWidth := 3
-	for _, r := range ui.Body.Rows {
-		wDiff := r.Cols[0].Width - (toWidth + xShift)
-		// set indicator x, width
-		r.Cols[0].SetX(xShift)
-		r.Cols[0].SetWidth(toWidth)
-
-		// shift remainder of columns left by wDiff
-		for _, c := range r.Cols[1:] {
-			c.SetX(c.X - wDiff)
-			c.SetWidth(c.Width - wDiff)
-		}
-	}
+	ui.Render(g.fieldHeader)
+	ui.Render(cGrid)
 }
 
 func (g *Grid) ExpandView() {
@@ -164,6 +149,7 @@ func Display(g *Grid) bool {
 	var menu func()
 	var expand bool
 
+	cGrid.SetWidth(ui.TermWidth())
 	ui.DefaultEvtStream.Hook(logEvent)
 
 	// initial draw
@@ -214,8 +200,8 @@ func Display(g *Grid) bool {
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		g.header.Align()
-		ui.Body.Width = ui.TermWidth()
-		log.Infof("resize: width=%v max-rows=%v", ui.Body.Width, maxRows())
+		cGrid.SetWidth(ui.TermWidth())
+		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, maxRows())
 		g.redrawRows()
 	})
 

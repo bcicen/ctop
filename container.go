@@ -37,7 +37,7 @@ func (c *Container) Expand() {
 
 	curWidgets = c.widgets
 	c.widgets = widgets.NewExpanded(c.ShortID(), c.ShortName())
-	c.widgets.Render()
+	c.widgets.Render(0, 0)
 	c.widgets = curWidgets
 }
 

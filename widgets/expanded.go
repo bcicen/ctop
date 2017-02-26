@@ -33,10 +33,18 @@ func NewInfo(id, name string) *ui.Table {
 	return p
 }
 
-func (w *Expanded) Reset() {
+func (w *Expanded) Buffer() ui.Buffer {
+	return ui.NewBuffer()
 }
 
-func (w *Expanded) Render() {
+func (w *Expanded) Reset()               {}
+func (w *Expanded) SetY(_ int)           {}
+func (w *Expanded) SetWidth(_ int)       {}
+func (w *Expanded) Highlight()           {}
+func (w *Expanded) UnHighlight()         {}
+func (w *Expanded) SetStatus(val string) {}
+
+func (w *Expanded) Render(_, _ int) {
 	ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
 	ui.Handle("/timer/1s", func(ui.Event) {
 		ui.Render(w.Info, w.Cpu, w.Mem, w.Net)
@@ -45,23 +53,6 @@ func (w *Expanded) Render() {
 		ui.StopLoop()
 	})
 	ui.Loop()
-}
-
-func (w *Expanded) Row() *ui.Row {
-	return ui.NewRow(
-		ui.NewCol(2, 0, w.Cpu),
-		ui.NewCol(2, 0, w.Mem),
-		ui.NewCol(2, 0, w.Net),
-	)
-}
-
-func (w *Expanded) Highlight() {
-}
-
-func (w *Expanded) UnHighlight() {
-}
-
-func (w *Expanded) SetStatus(val string) {
 }
 
 func (w *Expanded) SetCPU(val int) {
