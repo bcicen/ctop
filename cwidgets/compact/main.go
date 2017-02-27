@@ -5,11 +5,8 @@ import (
 	"strconv"
 
 	"github.com/bcicen/ctop/cwidgets"
-	"github.com/bcicen/ctop/logging"
 	ui "github.com/gizak/termui"
 )
-
-var log = logging.Init()
 
 const (
 	mark        = string('\u25C9')
@@ -20,11 +17,11 @@ const (
 
 type Compact struct {
 	Status *ui.Par
-	Cid    *ui.Par
-	Net    *ui.Par
 	Name   *ui.Par
+	Cid    *ui.Par
 	Cpu    *ui.Gauge
 	Memory *ui.Gauge
+	Net    *ui.Par
 	X, Y   int
 	Width  int
 	Height int
@@ -33,8 +30,11 @@ type Compact struct {
 func NewCompact(id, name, status string) *Compact {
 	row := &Compact{
 		Status: slimPar(mark),
-		Cid:    slimPar(id),
 		Name:   slimPar(name),
+		Cid:    slimPar(id),
+		Cpu:    slimGauge(),
+		Memory: slimGauge(),
+		Net:    slimPar("-"),
 		Height: 1,
 	}
 	row.Reset()
@@ -44,9 +44,11 @@ func NewCompact(id, name, status string) *Compact {
 
 // Set gauges, counters to default unread values
 func (row *Compact) Reset() {
-	row.Net = slimPar("-")
-	row.Cpu = slimGauge()
-	row.Memory = slimGauge()
+	row.Cpu.Percent = 0
+	row.Cpu.Label = "-"
+	row.Memory.Percent = 0
+	row.Memory.Label = "-"
+	row.Net.Text = "-"
 }
 
 func (row *Compact) all() []ui.GridBufferer {
@@ -88,7 +90,6 @@ func (row *Compact) SetWidth(width int) {
 		x += autoWidth + colSpacing
 	}
 	row.Width = width
-	log.Info("resized row width")
 }
 
 func (row *Compact) Buffer() ui.Buffer {
