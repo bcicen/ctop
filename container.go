@@ -19,8 +19,9 @@ type Container struct {
 
 func NewContainer(id, name string) *Container {
 	c := &Container{
-		id:   id,
-		name: name,
+		id:      id,
+		name:    name,
+		metrics: metrics.NewMetrics(),
 	}
 	c.widgets = compact.NewCompact(c.ShortID(), c.ShortName(), c.state)
 	return c

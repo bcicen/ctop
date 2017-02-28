@@ -17,6 +17,15 @@ type Metrics struct {
 	MemUsage   int64
 }
 
+func NewMetrics() Metrics {
+	return Metrics{
+		CPUUtil:  -1,
+		NetTx:    -1,
+		NetRx:    -1,
+		MemUsage: -1,
+	}
+}
+
 type Collector interface {
 	Stream() chan Metrics
 	Running() bool
