@@ -9,6 +9,13 @@ import (
 
 type sortMethod func(c1, c2 *Container) bool
 
+var stateMap = map[string]int{
+	"running": 3,
+	"paused":  2,
+	"exited":  1,
+	"created": 0,
+}
+
 var idSorter = func(c1, c2 *Container) bool { return c1.id < c2.id }
 var nameSorter = func(c1, c2 *Container) bool { return c1.name < c2.name }
 
@@ -50,16 +57,7 @@ var Sorters = map[string]sortMethod{
 		if c1.state == c2.state {
 			return nameSorter(c1, c2)
 		}
-		if c1.state == "running" {
-			return true
-		}
-		if c2.state == "running" {
-			return false
-		}
-		if c2.state == "paused" {
-			return false
-		}
-		return true
+		return stateMap[c1.state] > stateMap[c2.state]
 	},
 }
 
