@@ -126,6 +126,9 @@ func (row *Compact) SetStatus(val string) {
 	case "paused":
 		row.Status.Text = fmt.Sprintf("%s%s", vBar, vBar)
 		row.Status.TextFgColor = ui.ColorDefault
+	case "created":
+		row.Status.Text = mark
+		row.Status.TextFgColor = ui.ColorDefault
 	default:
 		row.Status.Text = mark
 		row.Status.TextFgColor = ui.ColorRed

@@ -14,7 +14,7 @@ var params = []*Param{
 	},
 	&Param{
 		Key:   "sortField",
-		Val:   "id",
+		Val:   "state",
 		Label: "Container Sort Field",
 	},
 }
