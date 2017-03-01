@@ -122,6 +122,15 @@ func (g *Grid) redrawRows() {
 	ui.Render(cGrid)
 }
 
+// Log current container and widget state
+func (g *Grid) dumpContainer() {
+	c, _ := g.cSource.Get(g.cursorID)
+	msg := fmt.Sprintf("logging state for container: %s\n", c.ShortID())
+	msg += fmt.Sprintf("id = %s\nname = %s\nstate = %s\n", c.id, c.name, c.state)
+	msg += inspect(&c.metrics)
+	log.Infof(msg)
+}
+
 func (g *Grid) ExpandView() {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
@@ -142,6 +151,7 @@ func (g *Grid) ExpandView() {
 	ui.Loop()
 
 	container.widgets = curWidgets
+	container.widgets.Reset()
 }
 
 func logEvent(e ui.Event) {
@@ -177,6 +187,9 @@ func Display(g *Grid) bool {
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
 		g.redrawRows()
+	})
+	ui.Handle("/sys/kbd/D", func(ui.Event) {
+		g.dumpContainer()
 	})
 	ui.Handle("/sys/kbd/f", func(ui.Event) {
 		menu = FilterMenu
