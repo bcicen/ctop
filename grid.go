@@ -131,28 +131,28 @@ func (g *Grid) dumpContainer() {
 	log.Infof(msg)
 }
 
-func (g *Grid) ExpandView() {
-	ui.Clear()
-	ui.DefaultEvtStream.ResetHandlers()
-	defer ui.DefaultEvtStream.ResetHandlers()
+//func (g *Grid) ExpandView() {
+//ui.Clear()
+//ui.DefaultEvtStream.ResetHandlers()
+//defer ui.DefaultEvtStream.ResetHandlers()
 
-	container, _ := g.cSource.Get(g.cursorID)
-	// copy current widgets to restore on exit view
-	curWidgets := container.widgets
-	container.Expand()
+//container, _ := g.cSource.Get(g.cursorID)
+//// copy current widgets to restore on exit view
+//curWidgets := container.widgets
+//container.Expand()
 
-	ui.Render(container.widgets)
-	ui.Handle("/timer/1s", func(ui.Event) {
-		ui.Render(container.widgets)
-	})
-	ui.Handle("/sys/kbd/", func(ui.Event) {
-		ui.StopLoop()
-	})
-	ui.Loop()
+//ui.Render(container.widgets)
+//ui.Handle("/timer/1s", func(ui.Event) {
+//ui.Render(container.widgets)
+//})
+//ui.Handle("/sys/kbd/", func(ui.Event) {
+//ui.StopLoop()
+//})
+//ui.Loop()
 
-	container.widgets = curWidgets
-	container.widgets.Reset()
-}
+//container.widgets = curWidgets
+//container.widgets.Reset()
+//}
 
 func logEvent(e ui.Event) {
 	var s string
@@ -165,7 +165,6 @@ func logEvent(e ui.Event) {
 
 func Display(g *Grid) bool {
 	var menu func()
-	var expand bool
 
 	cGrid.SetWidth(ui.TermWidth())
 	ui.DefaultEvtStream.Hook(logEvent)
@@ -180,7 +179,6 @@ func Display(g *Grid) bool {
 		g.cursorDown()
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		expand = true
 		ui.StopLoop()
 	})
 
@@ -229,10 +227,6 @@ func Display(g *Grid) bool {
 	ui.Loop()
 	if menu != nil {
 		menu()
-		return false
-	}
-	if expand {
-		g.ExpandView()
 		return false
 	}
 	return true

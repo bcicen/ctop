@@ -5,7 +5,6 @@ import (
 
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
-	"github.com/bcicen/ctop/cwidgets/expanded"
 	"github.com/bcicen/ctop/metrics"
 )
 
@@ -33,10 +32,6 @@ func (c *Container) ShortID() string {
 
 func (c *Container) ShortName() string {
 	return strings.Replace(c.name, "/", "", 1) // use primary container name
-}
-
-func (c *Container) Expand() {
-	c.widgets = expanded.NewExpanded(c.ShortID(), c.name)
 }
 
 func (c *Container) SetState(s string) {
