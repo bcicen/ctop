@@ -7,7 +7,7 @@ import (
 
 type ExpandedMem struct {
 	*ui.BarChart
-	hist IntHist
+	hist *IntHist
 }
 
 func NewExpandedMem() *ExpandedMem {
@@ -23,9 +23,9 @@ func NewExpandedMem() *ExpandedMem {
 	mem.X = 0
 	mem.Y = 14
 	mem.TextColor = ui.ColorDefault
-	mem.Data = mem.hist.data
+	mem.Data = mem.hist.Data
 	mem.BarColor = ui.ColorGreen
-	mem.DataLabels = mem.hist.labels
+	mem.DataLabels = mem.hist.Labels
 	mem.NumFmt = cwidgets.ByteFormatInt
 	return mem
 }

@@ -16,8 +16,8 @@ func NewExpandedCpu() *ExpandedCpu {
 	cpu.Width = 50
 	cpu.X = 0
 	cpu.Y = 4
-	cpu.Data = cpu.hist.data
-	cpu.DataLabels = cpu.hist.labels
+	cpu.Data = cpu.hist.Data
+	cpu.DataLabels = cpu.hist.Labels
 	cpu.AxesColor = ui.ColorDefault
 	cpu.LineColor = ui.ColorGreen
 	return cpu

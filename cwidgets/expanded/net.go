@@ -10,8 +10,8 @@ import (
 
 type ExpandedNet struct {
 	*ui.Sparklines
-	rxHist DiffHist
-	txHist DiffHist
+	rxHist *DiffHist
+	txHist *DiffHist
 }
 
 func NewExpandedNet() *ExpandedNet {
@@ -25,14 +25,14 @@ func NewExpandedNet() *ExpandedNet {
 	rx := ui.NewSparkline()
 	rx.Title = "RX"
 	rx.Height = 1
-	rx.Data = net.rxHist.data
+	rx.Data = net.rxHist.Data
 	rx.TitleColor = ui.ColorDefault
 	rx.LineColor = ui.ColorGreen
 
 	tx := ui.NewSparkline()
 	tx.Title = "TX"
 	tx.Height = 1
-	tx.Data = net.txHist.data
+	tx.Data = net.txHist.Data
 	tx.TitleColor = ui.ColorDefault
 	tx.LineColor = ui.ColorYellow
 
@@ -44,10 +44,10 @@ func (w *ExpandedNet) Update(rx int64, tx int64) {
 	var rate string
 
 	w.rxHist.Append(int(rx))
-	rate = strings.ToLower(cwidgets.ByteFormatInt(w.rxHist.Last()))
+	rate = strings.ToLower(cwidgets.ByteFormatInt(w.rxHist.Val))
 	w.Lines[0].Title = fmt.Sprintf("RX [%s/s]", rate)
 
 	w.txHist.Append(int(tx))
-	rate = strings.ToLower(cwidgets.ByteFormatInt(w.txHist.Last()))
+	rate = strings.ToLower(cwidgets.ByteFormatInt(w.txHist.Val))
 	w.Lines[1].Title = fmt.Sprintf("TX [%s/s]", rate)
 }
