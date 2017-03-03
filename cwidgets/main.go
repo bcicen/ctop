@@ -8,7 +8,6 @@ import (
 var log = logging.Init()
 
 type ContainerWidgets interface {
-	Reset()
 	Buffer() ui.Buffer
 	Highlight()
 	UnHighlight()

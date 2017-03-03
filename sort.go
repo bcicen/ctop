@@ -16,32 +16,32 @@ var stateMap = map[string]int{
 	"created": 0,
 }
 
-var idSorter = func(c1, c2 *Container) bool { return c1.id < c2.id }
-var nameSorter = func(c1, c2 *Container) bool { return c1.name < c2.name }
+var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
+var nameSorter = func(c1, c2 *Container) bool { return c1.Name < c2.Name }
 
 var Sorters = map[string]sortMethod{
 	"id":   idSorter,
 	"name": nameSorter,
 	"cpu": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
-		if c1.metrics.CPUUtil == c2.metrics.CPUUtil {
+		if c1.CPUUtil == c2.CPUUtil {
 			return nameSorter(c1, c2)
 		}
-		return c1.metrics.CPUUtil > c2.metrics.CPUUtil
+		return c1.CPUUtil > c2.CPUUtil
 	},
 	"mem": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
-		if c1.metrics.MemUsage == c2.metrics.MemUsage {
+		if c1.MemUsage == c2.MemUsage {
 			return nameSorter(c1, c2)
 		}
-		return c1.metrics.MemUsage > c2.metrics.MemUsage
+		return c1.MemUsage > c2.MemUsage
 	},
 	"mem %": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
-		if c1.metrics.MemPercent == c2.metrics.MemPercent {
+		if c1.MemPercent == c2.MemPercent {
 			return nameSorter(c1, c2)
 		}
-		return c1.metrics.MemPercent > c2.metrics.MemPercent
+		return c1.MemPercent > c2.MemPercent
 	},
 	"net": func(c1, c2 *Container) bool {
 		sum1 := sumNet(c1)
@@ -54,10 +54,10 @@ var Sorters = map[string]sortMethod{
 	},
 	"state": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
-		if c1.state == c2.state {
+		if c1.State == c2.State {
 			return nameSorter(c1, c2)
 		}
-		return stateMap[c1.state] > stateMap[c2.state]
+		return stateMap[c1.State] > stateMap[c2.State]
 	},
 }
 
@@ -86,11 +86,11 @@ func (a Containers) Filter() (filtered []*Container) {
 
 	for _, c := range a {
 		// Apply name filter
-		if re.FindAllString(c.name, 1) == nil {
+		if re.FindAllString(c.Name, 1) == nil {
 			continue
 		}
 		// Apply state filter
-		if !config.GetSwitchVal("allContainers") && c.state != "running" {
+		if !config.GetSwitchVal("allContainers") && c.State != "running" {
 			continue
 		}
 		filtered = append(filtered, c)
@@ -99,4 +99,4 @@ func (a Containers) Filter() (filtered []*Container) {
 	return filtered
 }
 
-func sumNet(c *Container) int64 { return c.metrics.NetRx + c.metrics.NetTx }
+func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }

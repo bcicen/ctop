@@ -14,30 +14,12 @@ func calcWidth(width, items int) int {
 }
 
 func slimHeaderPar(s string) *ui.Par {
-	p := slimPar(s)
+	p := ui.NewPar(s)
 	p.Y = 2
 	p.Height = 2
-	return p
-}
-
-func slimPar(s string) *ui.Par {
-	p := ui.NewPar(s)
-	p.Border = false
-	p.Height = 1
 	p.Width = 20
-	p.TextFgColor = ui.ColorWhite
+	p.Border = false
 	return p
-}
-
-func slimGauge() *ui.Gauge {
-	g := ui.NewGauge()
-	g.Height = 1
-	g.Border = false
-	g.Percent = 0
-	g.PaddingBottom = 0
-	g.BarColor = ui.ColorGreen
-	g.Label = "-"
-	return g
 }
 
 func centerParText(p *ui.Par) {

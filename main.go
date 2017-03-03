@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/logging"
 	ui "github.com/gizak/termui"
@@ -9,6 +12,13 @@ import (
 var log *logging.CTopLogger
 
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			ui.Clear()
+			fmt.Printf("panic: %s", r)
+			os.Exit(1)
+		}
+	}()
 	config.Init()
 	log = logging.Init()
 	if config.GetSwitchVal("loggingEnabled") {

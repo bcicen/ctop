@@ -1,13 +1,12 @@
 package compact
 
 import (
-	"github.com/bcicen/ctop/cwidgets"
 	ui "github.com/gizak/termui"
 )
 
 type CompactGrid struct {
 	ui.GridBufferer
-	Rows     []cwidgets.ContainerWidgets
+	Rows     []*Compact // rows to render
 	X, Y     int
 	Width    int
 	Height   int
@@ -21,31 +20,37 @@ func NewCompactGrid() *CompactGrid {
 	}
 }
 
-func (c *CompactGrid) Align() {
+func (cg *CompactGrid) Align() {
 	// Update y recursively
-	c.header.SetY(c.Y)
-	y := c.Y + 1
-	for n, r := range c.Rows {
+	cg.header.SetY(cg.Y)
+	y := cg.Y + 1
+	for n, r := range cg.Rows {
 		r.SetY(y + n)
 	}
 	// Update width recursively
-	c.header.SetWidth(c.Width)
-	for _, r := range c.Rows {
-		r.SetWidth(c.Width)
+	cg.header.SetWidth(cg.Width)
+	for _, r := range cg.Rows {
+		r.SetWidth(cg.Width)
 	}
 }
 
-func (c *CompactGrid) Clear()         { c.Rows = []cwidgets.ContainerWidgets{} }
-func (c *CompactGrid) GetHeight() int { return len(c.Rows) }
-func (c *CompactGrid) SetX(x int)     { c.X = x }
-func (c *CompactGrid) SetY(y int)     { c.Y = y }
-func (c *CompactGrid) SetWidth(w int) { c.Width = w }
+func (cg *CompactGrid) Clear()         { cg.Rows = []*Compact{} }
+func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) }
+func (cg *CompactGrid) SetX(x int)     { cg.X = x }
+func (cg *CompactGrid) SetY(y int)     { cg.Y = y }
+func (cg *CompactGrid) SetWidth(w int) { cg.Width = w }
 
-func (c *CompactGrid) Buffer() ui.Buffer {
+func (cg *CompactGrid) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
-	buf.Merge(c.header.Buffer())
-	for _, r := range c.Rows {
+	buf.Merge(cg.header.Buffer())
+	for _, r := range cg.Rows {
 		buf.Merge(r.Buffer())
 	}
 	return buf
+}
+
+func (cg *CompactGrid) AddRows(rows ...*Compact) {
+	for _, r := range rows {
+		cg.Rows = append(cg.Rows, r)
+	}
 }

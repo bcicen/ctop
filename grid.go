@@ -35,15 +35,15 @@ func NewGrid() *Grid {
 // Set an initial cursor position, if possible
 func (g *Grid) cursorReset() {
 	if len(g.containers) > 0 {
-		g.cursorID = g.containers[0].id
-		g.containers[0].widgets.Highlight()
+		g.cursorID = g.containers[0].Id
+		g.containers[0].Widgets.Highlight()
 	}
 }
 
 // Return current cursor index
 func (g *Grid) cursorIdx() int {
 	for n, c := range g.containers {
-		if c.id == g.cursorID {
+		if c.Id == g.cursorID {
 			return n
 		}
 	}
@@ -59,9 +59,9 @@ func (g *Grid) cursorUp() {
 	active := g.containers[idx]
 	next := g.containers[idx-1]
 
-	active.widgets.UnHighlight()
-	g.cursorID = next.id
-	next.widgets.Highlight()
+	active.Widgets.UnHighlight()
+	g.cursorID = next.Id
+	next.Widgets.Highlight()
 
 	ui.Render(cGrid)
 }
@@ -78,9 +78,9 @@ func (g *Grid) cursorDown() {
 	active := g.containers[idx]
 	next := g.containers[idx+1]
 
-	active.widgets.UnHighlight()
-	g.cursorID = next.id
-	next.widgets.Highlight()
+	active.Widgets.UnHighlight()
+	g.cursorID = next.Id
+	next.Widgets.Highlight()
 	ui.Render(cGrid)
 }
 
@@ -93,7 +93,6 @@ func (g *Grid) redrawRows() {
 	if config.GetSwitchVal("enableHeader") {
 		g.header.SetCount(len(g.containers))
 		g.header.SetFilter(config.GetVal("filterStr"))
-		g.header.Render()
 		y += g.header.Height()
 	}
 	cGrid.SetY(y)
@@ -104,8 +103,8 @@ func (g *Grid) redrawRows() {
 		if n >= max {
 			break
 		}
-		cGrid.Rows = append(cGrid.Rows, c.widgets)
-		if c.id == g.cursorID {
+		cGrid.AddRows(c.Widgets)
+		if c.Id == g.cursorID {
 			cursorVisible = true
 		}
 	}
@@ -125,9 +124,9 @@ func (g *Grid) redrawRows() {
 // Log current container and widget state
 func (g *Grid) dumpContainer() {
 	c, _ := g.cSource.Get(g.cursorID)
-	msg := fmt.Sprintf("logging state for container: %s\n", c.ShortID())
-	msg += fmt.Sprintf("id = %s\nname = %s\nstate = %s\n", c.id, c.name, c.state)
-	msg += inspect(&c.metrics)
+	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
+	msg += fmt.Sprintf("Id = %s\nname = %s\nstate = %s\n", c.Id, c.Name, c.State)
+	msg += inspect(&c.Metrics)
 	log.Infof(msg)
 }
 

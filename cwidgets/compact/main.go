@@ -5,50 +5,53 @@ import (
 	"strconv"
 
 	"github.com/bcicen/ctop/cwidgets"
+	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/metrics"
 	ui "github.com/gizak/termui"
 )
 
+var log = logging.Init()
+
 const (
-	mark        = string('\u25C9')
-	vBar        = string('\u25AE')
-	colSpacing  = 1
-	statusWidth = 3
+	colSpacing = 1
 )
 
 type Compact struct {
-	Status *ui.Par
-	Name   *ui.Par
-	Cid    *ui.Par
-	Cpu    *ui.Gauge
-	Memory *ui.Gauge
-	Net    *ui.Par
+	Status *Status
+	Name   *TextCol
+	Cid    *TextCol
+	Cpu    *GaugeCol
+	Memory *GaugeCol
+	Net    *TextCol
 	X, Y   int
 	Width  int
 	Height int
 }
 
-func NewCompact(id, name, status string) *Compact {
+func NewCompact(id, name string) *Compact {
 	row := &Compact{
-		Status: slimPar(mark),
-		Name:   slimPar(name),
-		Cid:    slimPar(id),
-		Cpu:    slimGauge(),
-		Memory: slimGauge(),
-		Net:    slimPar("-"),
+		Status: NewStatus(),
+		Name:   NewTextCol(name),
+		Cid:    NewTextCol(id),
+		Cpu:    NewGaugeCol(),
+		Memory: NewGaugeCol(),
+		Net:    NewTextCol("-"),
 		Height: 1,
 	}
-	row.Reset()
-	row.SetStatus(status)
 	return row
+}
+
+func (row *Compact) SetMetrics(m metrics.Metrics) {
+	row.SetCPU(m.CPUUtil)
+	row.SetNet(m.NetRx, m.NetTx)
+	row.SetMem(m.MemUsage, m.MemLimit, m.MemPercent)
 }
 
 // Set gauges, counters to default unread values
 func (row *Compact) Reset() {
-	row.Cpu.Percent = 0
-	row.Cpu.Label = "-"
-	row.Memory.Percent = 0
-	row.Memory.Label = "-"
-	row.Net.Text = "-"
+	row.Cpu.Reset()
+	row.Memory.Reset()
+	row.Net.Reset()
 }
 
 func (row *Compact) all() []ui.GridBufferer {
@@ -115,24 +118,9 @@ func (row *Compact) UnHighlight() {
 	row.Name.TextBgColor = ui.ColorDefault
 }
 
-func (row *Compact) SetStatus(val string) {
-	switch val {
-	case "running":
-		row.Status.Text = mark
-		row.Status.TextFgColor = ui.ColorGreen
-	case "exited":
-		row.Status.Text = mark
-		row.Status.TextFgColor = ui.ColorRed
-	case "paused":
-		row.Status.Text = fmt.Sprintf("%s%s", vBar, vBar)
-		row.Status.TextFgColor = ui.ColorDefault
-	case "created":
-		row.Status.Text = mark
-		row.Status.TextFgColor = ui.ColorDefault
-	default:
-		row.Status.Text = mark
-		row.Status.TextFgColor = ui.ColorRed
-	}
+func (row *Compact) SetNet(rx int64, tx int64) {
+	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(rx), cwidgets.ByteFormat(tx))
+	row.Net.Set(label)
 }
 
 func (row *Compact) SetCPU(val int) {
@@ -143,10 +131,6 @@ func (row *Compact) SetCPU(val int) {
 		row.Cpu.BarColor = ui.ColorBlack
 	}
 	row.Cpu.Percent = val
-}
-
-func (row *Compact) SetNet(rx int64, tx int64) {
-	row.Net.Text = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(rx), cwidgets.ByteFormat(tx))
 }
 
 func (row *Compact) SetMem(val int64, limit int64, percent int) {

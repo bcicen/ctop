@@ -2,6 +2,7 @@ package main
 
 import (
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,7 +21,6 @@ type ContainerSource interface {
 type DockerContainerSource struct {
 	client       *docker.Client
 	containers   Containers
-	collectors   map[string]metrics.Collector
 	needsRefresh map[string]int // container IDs requiring refresh
 }
 
@@ -32,7 +32,6 @@ func NewDockerContainerSource() *DockerContainerSource {
 	}
 	cm := &DockerContainerSource{
 		client:       client,
-		collectors:   make(map[string]metrics.Collector),
 		needsRefresh: make(map[string]int),
 	}
 	cm.refreshAll()
@@ -73,27 +72,16 @@ func (cm *DockerContainerSource) refresh(id string) {
 	c, ok := cm.Get(id)
 	// append container struct for new containers
 	if !ok {
-		c = NewContainer(id, insp.Name)
+		// create collector
+		collector := metrics.NewDocker(cm.client, id)
+		// create container
+		c = NewContainer(shortID(id), shortName(insp.Name), collector)
 		lock.Lock()
 		cm.containers = append(cm.containers, c)
 		lock.Unlock()
-		// create collector
-		if _, ok := cm.collectors[id]; ok == false {
-			cm.collectors[id] = metrics.NewDocker(cm.client, id)
-		}
 	}
 
 	c.SetState(insp.State.Status)
-
-	// start collector if needed
-	if c.state == "running" && !cm.collectors[c.id].Running() {
-		cm.collectors[c.id].Start()
-		c.Read(cm.collectors[c.id].Stream())
-	}
-	// stop collector if needed
-	if c.state != "running" && cm.collectors[c.id].Running() {
-		cm.collectors[c.id].Stop()
-	}
 }
 
 func (cm *DockerContainerSource) inspect(id string) *docker.Container {
@@ -140,7 +128,7 @@ func (cm *DockerContainerSource) Loop() {
 // Get a single container, by ID
 func (cm *DockerContainerSource) Get(id string) (*Container, bool) {
 	for _, c := range cm.containers {
-		if c.id == id {
+		if c.Id == id {
 			return c, true
 		}
 	}
@@ -150,7 +138,7 @@ func (cm *DockerContainerSource) Get(id string) (*Container, bool) {
 // Remove containers by ID
 func (cm *DockerContainerSource) delByID(id string) {
 	for n, c := range cm.containers {
-		if c.id == id {
+		if c.Id == id {
 			cm.del(n)
 			return
 		}
@@ -171,4 +159,14 @@ func (cm *DockerContainerSource) del(idx ...int) {
 func (cm *DockerContainerSource) All() []*Container {
 	sort.Sort(cm.containers)
 	return cm.containers
+}
+
+// truncate container id
+func shortID(id string) string {
+	return id[:12]
+}
+
+// use primary container name
+func shortName(name string) string {
+	return strings.Replace(name, "/", "", 1)
 }

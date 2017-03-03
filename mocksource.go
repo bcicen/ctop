@@ -13,13 +13,10 @@ import (
 
 type MockContainerSource struct {
 	containers Containers
-	collectors map[string]metrics.Collector
 }
 
 func NewMockContainerSource() *MockContainerSource {
-	cs := &MockContainerSource{
-		collectors: make(map[string]metrics.Collector),
-	}
+	cs := &MockContainerSource{}
 	cs.Init()
 	go cs.Loop()
 	return cs
@@ -27,15 +24,15 @@ func NewMockContainerSource() *MockContainerSource {
 
 // Create Mock containers
 func (cs *MockContainerSource) Init() {
-	total := 10
+	total := 40
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < total; i++ {
-		c := NewContainer(makeID(), makeName())
+		collector := metrics.NewMock()
+		c := NewContainer(makeID(), makeName(), collector)
 		lock.Lock()
 		cs.containers = append(cs.containers, c)
 		lock.Unlock()
-		cs.collectors[c.id] = metrics.NewMock()
 
 		c.SetState(makeState())
 	}
@@ -45,26 +42,10 @@ func (cs *MockContainerSource) Init() {
 func (cs *MockContainerSource) Loop() {
 	iter := 0
 	for {
-		for _, c := range cs.containers {
-			// Change state for random container
-			if iter%5 == 0 {
-				randC := cs.containers[rand.Intn(len(cs.containers))]
-				randC.SetState(makeState())
-			}
-
-			isCollecting := cs.collectors[c.id].Running()
-			//log.Infof("id=%s state=%s collector=%t", c.id, c.state, isCollecting)
-
-			// start collector if needed
-			if c.state == "running" && !isCollecting {
-				cs.collectors[c.id].Start()
-				c.Read(cs.collectors[c.id].Stream())
-			}
-			// stop collector if needed
-			if c.state != "running" && isCollecting {
-				cs.collectors[c.id].Stop()
-			}
-
+		// Change state for random container
+		if iter%5 == 0 {
+			randC := cs.containers[rand.Intn(len(cs.containers))]
+			randC.SetState(makeState())
 		}
 		iter++
 		time.Sleep(3 * time.Second)
@@ -74,7 +55,7 @@ func (cs *MockContainerSource) Loop() {
 // Get a single container, by ID
 func (cs *MockContainerSource) Get(id string) (*Container, bool) {
 	for _, c := range cs.containers {
-		if c.id == id {
+		if c.Id == id {
 			return c, true
 		}
 	}
@@ -84,7 +65,7 @@ func (cs *MockContainerSource) Get(id string) (*Container, bool) {
 // Remove containers by ID
 func (cs *MockContainerSource) delByID(id string) {
 	for n, c := range cs.containers {
-		if c.id == id {
+		if c.Id == id {
 			cs.del(n)
 			return
 		}
@@ -112,7 +93,7 @@ func makeID() string {
 	if err != nil {
 		panic(err)
 	}
-	return strings.Replace(u.String(), "-", "", -1)
+	return strings.Replace(u.String(), "-", "", -1)[:12]
 }
 
 func makeName() string {

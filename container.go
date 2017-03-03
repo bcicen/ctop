@@ -1,61 +1,69 @@
 package main
 
 import (
-	"strings"
-
-	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/metrics"
 )
 
+// Metrics and metadata representing a container
 type Container struct {
-	id      string
-	name    string
-	state   string
-	metrics metrics.Metrics
-	widgets cwidgets.ContainerWidgets
+	metrics.Metrics
+	Id        string
+	Name      string
+	State     string
+	Meta      map[string]string
+	Updates   chan [2]string
+	Widgets   *compact.Compact
+	collector metrics.Collector
 }
 
-func NewContainer(id, name string) *Container {
-	c := &Container{
-		id:      id,
-		name:    name,
-		metrics: metrics.NewMetrics(),
+func NewContainer(id, name string, collector metrics.Collector) *Container {
+	return &Container{
+		Metrics:   metrics.NewMetrics(),
+		Id:        id,
+		Name:      name,
+		Meta:      make(map[string]string),
+		Updates:   make(chan [2]string),
+		Widgets:   compact.NewCompact(id, name),
+		collector: collector,
 	}
-	c.widgets = compact.NewCompact(c.ShortID(), c.ShortName(), c.state)
-	return c
 }
 
-func (c *Container) ShortID() string {
-	return c.id[:12]
+func (c *Container) GetMeta(k string) string {
+	if v, ok := c.Meta[k]; ok {
+		return v
+	}
+	return ""
 }
 
-func (c *Container) ShortName() string {
-	return strings.Replace(c.name, "/", "", 1) // use primary container name
+func (c *Container) SetMeta(k, v string) {
+	c.Meta[k] = v
+	c.Updates <- [2]string{k, v}
 }
 
 func (c *Container) SetState(s string) {
-	c.state = s
-	c.widgets.SetStatus(s)
-}
-
-// Set metrics to zero state, clear widget gauges
-func (c *Container) reset() {
-	c.metrics = metrics.Metrics{}
-	c.widgets.Reset()
+	c.State = s
+	c.Widgets.Status.Set(s)
+	// start collector, if needed
+	if c.State == "running" && !c.collector.Running() {
+		c.collector.Start()
+		c.Read(c.collector.Stream())
+	}
+	// stop collector, if needed
+	if c.State != "running" && c.collector.Running() {
+		c.collector.Stop()
+	}
 }
 
 // Read metric stream, updating widgets
 func (c *Container) Read(stream chan metrics.Metrics) {
 	go func() {
 		for metrics := range stream {
-			c.metrics = metrics
-			c.widgets.SetCPU(metrics.CPUUtil)
-			c.widgets.SetMem(metrics.MemUsage, metrics.MemLimit, metrics.MemPercent)
-			c.widgets.SetNet(metrics.NetRx, metrics.NetTx)
+			c.Metrics = metrics
+			c.Widgets.SetMetrics(metrics)
 		}
-		log.Infof("reader stopped for container: %s", c.id)
-		c.reset()
+		log.Infof("reader stopped for container: %s", c.Id)
+		c.Widgets.Reset()
 	}()
-	log.Infof("reader started for container: %s", c.id)
+	log.Infof("reader started for container: %s", c.Id)
 }
