@@ -24,6 +24,16 @@ func NewTextCol(s string) *TextCol {
 	return &TextCol{p}
 }
 
+func (w *TextCol) Highlight() {
+	w.TextFgColor = ui.ThemeAttr("par.text.bg")
+	w.TextBgColor = ui.ThemeAttr("par.text.fg")
+}
+
+func (w *TextCol) UnHighlight() {
+	w.TextFgColor = ui.ThemeAttr("par.text.fg")
+	w.TextBgColor = ui.ThemeAttr("par.text.bg")
+}
+
 func (w *TextCol) Reset() {
 	w.Text = "-"
 }

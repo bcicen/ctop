@@ -108,16 +108,6 @@ func (row *Compact) Buffer() ui.Buffer {
 	return buf
 }
 
-func (row *Compact) Highlight() {
-	row.Name.TextFgColor = ui.ColorDefault
-	row.Name.TextBgColor = ui.ColorWhite
-}
-
-func (row *Compact) UnHighlight() {
-	row.Name.TextFgColor = ui.ColorWhite
-	row.Name.TextBgColor = ui.ColorDefault
-}
-
 func (row *Compact) SetNet(rx int64, tx int64) {
 	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(rx), cwidgets.ByteFormat(tx))
 	row.Net.Set(label)

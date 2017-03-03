@@ -36,7 +36,7 @@ func NewGrid() *Grid {
 func (g *Grid) cursorReset() {
 	if len(g.containers) > 0 {
 		g.cursorID = g.containers[0].Id
-		g.containers[0].Widgets.Highlight()
+		g.containers[0].Widgets.Name.Highlight()
 	}
 }
 
@@ -59,9 +59,9 @@ func (g *Grid) cursorUp() {
 	active := g.containers[idx]
 	next := g.containers[idx-1]
 
-	active.Widgets.UnHighlight()
+	active.Widgets.Name.UnHighlight()
 	g.cursorID = next.Id
-	next.Widgets.Highlight()
+	next.Widgets.Name.Highlight()
 
 	ui.Render(cGrid)
 }
@@ -78,9 +78,9 @@ func (g *Grid) cursorDown() {
 	active := g.containers[idx]
 	next := g.containers[idx+1]
 
-	active.Widgets.UnHighlight()
+	active.Widgets.Name.UnHighlight()
 	g.cursorID = next.Id
-	next.Widgets.Highlight()
+	next.Widgets.Name.Highlight()
 	ui.Render(cGrid)
 }
 
