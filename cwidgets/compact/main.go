@@ -28,10 +28,14 @@ type Compact struct {
 	Height int
 }
 
-func NewCompact(id, name string) *Compact {
+func NewCompact(id string) *Compact {
+	// truncate container id
+	if len(id) > 12 {
+		id = id[:12]
+	}
 	row := &Compact{
 		Status: NewStatus(),
-		Name:   NewTextCol(name),
+		Name:   NewTextCol("-"),
 		Cid:    NewTextCol(id),
 		Cpu:    NewGaugeCol(),
 		Memory: NewGaugeCol(),
@@ -40,6 +44,14 @@ func NewCompact(id, name string) *Compact {
 	}
 	return row
 }
+
+//func (row *Compact) ToggleExpand() {
+//if row.Height == 1 {
+//row.Height = 4
+//} else {
+//row.Height = 1
+//}
+//}
 
 func (row *Compact) SetMetrics(m metrics.Metrics) {
 	row.SetCPU(m.CPUUtil)
@@ -114,7 +126,7 @@ func (row *Compact) SetNet(rx int64, tx int64) {
 }
 
 func (row *Compact) SetCPU(val int) {
-	row.Cpu.BarColor = cwidgets.ColorScale(val)
+	row.Cpu.BarColor = colorScale(val)
 	row.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
 	if val < 5 {
 		val = 5

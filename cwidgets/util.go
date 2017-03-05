@@ -3,8 +3,6 @@ package cwidgets
 import (
 	"fmt"
 	"strconv"
-
-	ui "github.com/gizak/termui"
 )
 
 const (
@@ -47,14 +45,4 @@ func getPrecision(f float64) int {
 		return 1
 	}
 	return 2 // default precision
-}
-
-func ColorScale(n int) ui.Attribute {
-	if n > 70 {
-		return ui.ColorRed
-	}
-	if n > 30 {
-		return ui.ColorYellow
-	}
-	return ui.ColorGreen
 }

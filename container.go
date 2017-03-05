@@ -17,14 +17,13 @@ type Container struct {
 	collector metrics.Collector
 }
 
-func NewContainer(id, name string, collector metrics.Collector) *Container {
+func NewContainer(id string, collector metrics.Collector) *Container {
 	return &Container{
 		Metrics:   metrics.NewMetrics(),
 		Id:        id,
-		Name:      name,
 		Meta:      make(map[string]string),
 		Updates:   make(chan [2]string),
-		Widgets:   compact.NewCompact(id, name),
+		Widgets:   compact.NewCompact(id),
 		collector: collector,
 	}
 }
@@ -39,6 +38,11 @@ func (c *Container) GetMeta(k string) string {
 func (c *Container) SetMeta(k, v string) {
 	c.Meta[k] = v
 	c.Updates <- [2]string{k, v}
+}
+
+func (c *Container) SetName(n string) {
+	c.Name = n
+	c.Widgets.Name.Set(n)
 }
 
 func (c *Container) SetState(s string) {

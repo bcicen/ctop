@@ -29,10 +29,9 @@ func (cs *MockContainerSource) Init() {
 
 	for i := 0; i < total; i++ {
 		collector := metrics.NewMock()
-		c := NewContainer(makeID(), makeName(), collector)
-		lock.Lock()
+		c := NewContainer(makeID(), collector)
+		c.SetName(makeName())
 		cs.containers = append(cs.containers, c)
-		lock.Unlock()
 
 		c.SetState(makeState())
 	}
@@ -74,8 +73,6 @@ func (cs *MockContainerSource) delByID(id string) {
 
 // Remove one or more containers by index
 func (cs *MockContainerSource) del(idx ...int) {
-	lock.Lock()
-	defer lock.Unlock()
 	for _, i := range idx {
 		cs.containers = append(cs.containers[:i], cs.containers[i+1:]...)
 	}

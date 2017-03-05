@@ -23,11 +23,9 @@ type Grid struct {
 }
 
 func NewGrid() *Grid {
-	cs := NewDockerContainerSource()
 	g := &Grid{
-		cSource:    cs,
-		containers: cs.All(),
-		header:     widgets.NewCTopHeader(),
+		cSource: NewDockerContainerSource(),
+		header:  widgets.NewCTopHeader(),
 	}
 	return g
 }
@@ -169,6 +167,7 @@ func Display(g *Grid) bool {
 	ui.DefaultEvtStream.Hook(logEvent)
 
 	// initial draw
+	g.containers = g.cSource.All()
 	g.redrawRows()
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
@@ -178,7 +177,9 @@ func Display(g *Grid) bool {
 		g.cursorDown()
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		ui.StopLoop()
+		//c := g.containers[g.cursorIdx()]
+		//c.Widgets.ToggleExpand()
+		g.redrawRows()
 	})
 
 	ui.Handle("/sys/kbd/a", func(ui.Event) {

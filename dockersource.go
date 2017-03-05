@@ -3,15 +3,11 @@ package main
 import (
 	"sort"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/metrics"
 	"github.com/fsouza/go-dockerclient"
 )
-
-var lock = sync.RWMutex{}
 
 type ContainerSource interface {
 	All() []*Container
@@ -20,8 +16,8 @@ type ContainerSource interface {
 
 type DockerContainerSource struct {
 	client       *docker.Client
-	containers   Containers
-	needsRefresh map[string]int // container IDs requiring refresh
+	containers   map[string]*Container
+	needsRefresh chan string // container IDs requiring refresh
 }
 
 func NewDockerContainerSource() *DockerContainerSource {
@@ -32,7 +28,8 @@ func NewDockerContainerSource() *DockerContainerSource {
 	}
 	cm := &DockerContainerSource{
 		client:       client,
-		needsRefresh: make(map[string]int),
+		containers:   make(map[string]*Container),
+		needsRefresh: make(chan string, 60),
 	}
 	cm.refreshAll()
 	go cm.Loop()
@@ -53,7 +50,7 @@ func (cm *DockerContainerSource) watchEvents() {
 		switch e.Action {
 		case "start", "die", "pause", "unpause":
 			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-			cm.needsRefresh[e.ID] = 1
+			cm.needsRefresh <- e.ID
 		case "destroy":
 			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
 			cm.delByID(e.ID)
@@ -61,26 +58,14 @@ func (cm *DockerContainerSource) watchEvents() {
 	}
 }
 
-func (cm *DockerContainerSource) refresh(id string) {
-	insp := cm.inspect(id)
+func (cm *DockerContainerSource) refresh(c *Container) {
+	insp := cm.inspect(c.Id)
 	// remove container if no longer exists
 	if insp == nil {
-		cm.delByID(id)
+		cm.delByID(c.Id)
 		return
 	}
-
-	c, ok := cm.Get(id)
-	// append container struct for new containers
-	if !ok {
-		// create collector
-		collector := metrics.NewDocker(cm.client, id)
-		// create container
-		c = NewContainer(shortID(id), shortName(insp.Name), collector)
-		lock.Lock()
-		cm.containers = append(cm.containers, c)
-		lock.Unlock()
-	}
-
+	c.SetName(shortName(insp.Name))
 	c.SetState(insp.State.Status)
 }
 
@@ -102,68 +87,55 @@ func (cm *DockerContainerSource) refreshAll() {
 		panic(err)
 	}
 
-	for _, c := range allContainers {
-		cm.needsRefresh[c.ID] = 1
+	for _, i := range allContainers {
+		c := cm.MustGet(i.ID)
+		c.SetName(shortName(i.Names[0]))
+		c.SetState(i.State)
+		cm.needsRefresh <- c.Id
 	}
 }
 
 func (cm *DockerContainerSource) Loop() {
-	for {
-		switch {
-		case len(cm.needsRefresh) > 0:
-			processed := []string{}
-			for id, _ := range cm.needsRefresh {
-				cm.refresh(id)
-				processed = append(processed, id)
-			}
-			for _, id := range processed {
-				delete(cm.needsRefresh, id)
-			}
-		default:
-			time.Sleep(3 * time.Second)
-		}
+	for id := range cm.needsRefresh {
+		c := cm.MustGet(id)
+		cm.refresh(c)
 	}
+}
+
+// Get a single container, creating one anew if not existing
+func (cm *DockerContainerSource) MustGet(id string) *Container {
+	c, ok := cm.Get(id)
+	// append container struct for new containers
+	if !ok {
+		// create collector
+		collector := metrics.NewDocker(cm.client, id)
+		// create container
+		c = NewContainer(id, collector)
+		cm.containers[id] = c
+	}
+	return c
 }
 
 // Get a single container, by ID
 func (cm *DockerContainerSource) Get(id string) (*Container, bool) {
-	for _, c := range cm.containers {
-		if c.Id == id {
-			return c, true
-		}
-	}
-	return nil, false
+	c, ok := cm.containers[id]
+	return c, ok
 }
 
 // Remove containers by ID
 func (cm *DockerContainerSource) delByID(id string) {
-	for n, c := range cm.containers {
-		if c.Id == id {
-			cm.del(n)
-			return
-		}
-	}
-}
-
-// Remove one or more containers by index
-func (cm *DockerContainerSource) del(idx ...int) {
-	lock.Lock()
-	defer lock.Unlock()
-	for _, i := range idx {
-		cm.containers = append(cm.containers[:i], cm.containers[i+1:]...)
-	}
-	log.Infof("removed %d dead containers", len(idx))
+	delete(cm.containers, id)
+	log.Infof("removed dead container: %s", id)
 }
 
 // Return array of all containers, sorted by field
 func (cm *DockerContainerSource) All() []*Container {
-	sort.Sort(cm.containers)
-	return cm.containers
-}
-
-// truncate container id
-func shortID(id string) string {
-	return id[:12]
+	var containers Containers
+	for _, c := range cm.containers {
+		containers = append(containers, c)
+	}
+	sort.Sort(containers)
+	return containers
 }
 
 // use primary container name

@@ -24,8 +24,9 @@ func (cg *CompactGrid) Align() {
 	// Update y recursively
 	cg.header.SetY(cg.Y)
 	y := cg.Y + 1
-	for n, r := range cg.Rows {
-		r.SetY(y + n)
+	for _, r := range cg.Rows {
+		r.SetY(y)
+		y += r.Height
 	}
 	// Update width recursively
 	cg.header.SetWidth(cg.Width)
