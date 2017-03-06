@@ -1,20 +1,12 @@
 package compact
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/metrics"
 	ui "github.com/gizak/termui"
 )
 
 var log = logging.Init()
-
-const (
-	colSpacing = 1
-)
 
 type Compact struct {
 	Status *Status
@@ -66,21 +58,7 @@ func (row *Compact) Reset() {
 	row.Net.Reset()
 }
 
-func (row *Compact) all() []ui.GridBufferer {
-	return []ui.GridBufferer{
-		row.Status,
-		row.Name,
-		row.Cid,
-		row.Cpu,
-		row.Memory,
-		row.Net,
-	}
-}
-
 func (row *Compact) SetY(y int) {
-	if y == row.Y {
-		return
-	}
 	for _, col := range row.all() {
 		col.SetY(y)
 	}
@@ -88,12 +66,10 @@ func (row *Compact) SetY(y int) {
 }
 
 func (row *Compact) SetWidth(width int) {
-	if row.Width == width {
-		return
-	}
 	x := 1
 	autoWidth := calcWidth(width, 5)
 	for n, col := range row.all() {
+		// set status column to static width
 		if n == 0 {
 			col.SetX(x)
 			col.SetWidth(statusWidth)
@@ -120,28 +96,13 @@ func (row *Compact) Buffer() ui.Buffer {
 	return buf
 }
 
-func (row *Compact) SetNet(rx int64, tx int64) {
-	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(rx), cwidgets.ByteFormat(tx))
-	row.Net.Set(label)
-}
-
-func (row *Compact) SetCPU(val int) {
-	row.Cpu.BarColor = colorScale(val)
-	row.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))
-	if val < 5 {
-		val = 5
-		row.Cpu.BarColor = ui.ColorBlack
+func (row *Compact) all() []ui.GridBufferer {
+	return []ui.GridBufferer{
+		row.Status,
+		row.Name,
+		row.Cid,
+		row.Cpu,
+		row.Memory,
+		row.Net,
 	}
-	row.Cpu.Percent = val
-}
-
-func (row *Compact) SetMem(val int64, limit int64, percent int) {
-	row.Memory.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(val), cwidgets.ByteFormat(limit))
-	if percent < 5 {
-		percent = 5
-		row.Memory.BarColor = ui.ColorBlack
-	} else {
-		row.Memory.BarColor = ui.ColorGreen
-	}
-	row.Memory.Percent = percent
 }

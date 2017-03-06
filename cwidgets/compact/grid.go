@@ -21,17 +21,30 @@ func NewCompactGrid() *CompactGrid {
 }
 
 func (cg *CompactGrid) Align() {
-	// Update y recursively
-	cg.header.SetY(cg.Y)
+	// update header y pos
+	if cg.header.Y != cg.Y {
+		cg.header.SetY(cg.Y)
+	}
+
+	// update row y pos recursively
 	y := cg.Y + 1
 	for _, r := range cg.Rows {
-		r.SetY(y)
+		if r.Y != y {
+			r.SetY(y)
+		}
 		y += r.Height
 	}
-	// Update width recursively
-	cg.header.SetWidth(cg.Width)
+
+	// update header width
+	if cg.header.Width != cg.Width {
+		cg.header.SetWidth(cg.Width)
+	}
+
+	// update row width recursively
 	for _, r := range cg.Rows {
-		r.SetWidth(cg.Width)
+		if r.Width != cg.Width {
+			r.SetWidth(cg.Width)
+		}
 	}
 }
 

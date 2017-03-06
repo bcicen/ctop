@@ -7,19 +7,12 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+const colSpacing = 1
+
 // Calculate per-column width, given total width and number of items
 func calcWidth(width, items int) int {
 	spacing := colSpacing * items
 	return (width - statusWidth - spacing) / items
-}
-
-func slimHeaderPar(s string) *ui.Par {
-	p := ui.NewPar(s)
-	p.Y = 2
-	p.Height = 2
-	p.Width = 20
-	p.Border = false
-	return p
 }
 
 func centerParText(p *ui.Par) {
