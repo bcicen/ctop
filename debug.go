@@ -18,6 +18,14 @@ func logEvent(e ui.Event) {
 	log.Debugf("new event: %s", s)
 }
 
+// log container, metrics, and widget state
+func dumpContainer(c *Container) {
+	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
+	msg += fmt.Sprintf("Id = %s\nname = %s\nstate = %s\n", c.Id, c.Name, c.State)
+	msg += inspect(&c.Metrics)
+	log.Infof(msg)
+}
+
 func inspect(i interface{}) (s string) {
 	val := reflect.ValueOf(i)
 	elem := val.Type().Elem()

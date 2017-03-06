@@ -48,14 +48,6 @@ func RedrawRows() {
 	ui.Render(cGrid)
 }
 
-// Log current container and widget state
-func dumpContainer(c *Container) {
-	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
-	msg += fmt.Sprintf("Id = %s\nname = %s\nstate = %s\n", c.Id, c.Name, c.State)
-	msg += inspect(&c.Metrics)
-	log.Infof(msg)
-}
-
 //func (g *Grid) ExpandView() {
 //ui.Clear()
 //ui.DefaultEvtStream.ResetHandlers()
