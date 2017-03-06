@@ -52,12 +52,18 @@ func ExpandView(c *Container) {
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	expandWidgets := expanded.NewExpanded(c.Id)
-	c.SetUpdater(expandWidgets)
+	ex := expanded.NewExpanded(c.Id)
+	c.SetUpdater(ex)
 
-	ui.Render(expandWidgets)
+	ex.Align()
+	ui.Render(ex)
 	ui.Handle("/timer/1s", func(ui.Event) {
-		ui.Render(expandWidgets)
+		ui.Render(ex)
+	})
+	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		ex.SetWidth(ui.TermWidth())
+		ex.Align()
+		log.Infof("resize: width=%v max-rows=%v", ex.Width, maxRows())
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()

@@ -66,6 +66,8 @@ func (cm *DockerContainerSource) refresh(c *Container) {
 		return
 	}
 	c.SetMeta("name", shortName(insp.Name))
+	c.SetMeta("image", insp.Config.Image)
+	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetState(insp.State.Status)
 }
 

@@ -13,11 +13,11 @@ type ExpandedMem struct {
 func NewExpandedMem() *ExpandedMem {
 	mem := &ExpandedMem{
 		ui.NewBarChart(),
-		NewIntHist(8),
+		NewIntHist(10),
 	}
 	mem.BorderLabel = "MEM"
 	mem.Height = 10
-	mem.Width = 50
+	mem.Width = colWidth[0]
 	mem.BarWidth = 5
 	mem.BarGap = 1
 	mem.X = 0

@@ -13,9 +13,9 @@ func NewExpandedCpu() *ExpandedCpu {
 	cpu := &ExpandedCpu{ui.NewLineChart(), NewFloatHist(60)}
 	cpu.BorderLabel = "CPU"
 	cpu.Height = 10
-	cpu.Width = 50
+	cpu.Width = colWidth[0]
 	cpu.X = 0
-	cpu.Y = 4
+	cpu.Y = 6
 	cpu.Data = cpu.hist.Data
 	cpu.DataLabels = cpu.hist.Labels
 	cpu.AxesColor = ui.ColorDefault

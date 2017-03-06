@@ -18,7 +18,7 @@ func NewExpandedNet() *ExpandedNet {
 	net := &ExpandedNet{ui.NewSparklines(), NewDiffHist(50), NewDiffHist(50)}
 	net.BorderLabel = "NET"
 	net.Height = 6
-	net.Width = 50
+	net.Width = colWidth[0]
 	net.X = 0
 	net.Y = 24
 
