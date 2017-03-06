@@ -32,6 +32,7 @@ func NewCompact(id string) *Compact {
 		Cpu:    NewGaugeCol(),
 		Memory: NewGaugeCol(),
 		Net:    NewTextCol("-"),
+		X:      1,
 		Height: 1,
 	}
 	return row
@@ -58,7 +59,18 @@ func (row *Compact) Reset() {
 	row.Net.Reset()
 }
 
+func (row *Compact) GetHeight() int {
+	return row.Height
+}
+
+func (row *Compact) SetX(x int) {
+	row.X = x
+}
+
 func (row *Compact) SetY(y int) {
+	if y == row.Y {
+		return
+	}
 	for _, col := range row.all() {
 		col.SetY(y)
 	}
@@ -66,7 +78,10 @@ func (row *Compact) SetY(y int) {
 }
 
 func (row *Compact) SetWidth(width int) {
-	x := 1
+	if width == row.Width {
+		return
+	}
+	x := row.X
 	autoWidth := calcWidth(width, 5)
 	for n, col := range row.all() {
 		// set status column to static width
