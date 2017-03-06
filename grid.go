@@ -9,7 +9,10 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var cGrid = compact.NewCompactGrid()
+var (
+	cGrid  = compact.NewCompactGrid()
+	header = widgets.NewCTopHeader()
+)
 
 func maxRows() int {
 	return ui.TermHeight() - 2 - cGrid.Y
@@ -19,13 +22,12 @@ type Grid struct {
 	cursorID   string // id of currently selected container
 	cSource    ContainerSource
 	containers Containers // sorted slice of containers
-	header     *widgets.CTopHeader
 }
 
 func NewGrid() *Grid {
 	g := &Grid{
-		cSource: NewDockerContainerSource(),
-		header:  widgets.NewCTopHeader(),
+		//cSource: NewDockerContainerSource(),
+		cSource: NewMockContainerSource(),
 	}
 	return g
 }
@@ -89,15 +91,15 @@ func (g *Grid) redrawRows() {
 	// build layout
 	y := 1
 	if config.GetSwitchVal("enableHeader") {
-		g.header.SetCount(len(g.containers))
-		g.header.SetFilter(config.GetVal("filterStr"))
-		y += g.header.Height()
+		header.SetCount(len(g.containers))
+		header.SetFilter(config.GetVal("filterStr"))
+		y += header.Height()
 	}
 	cGrid.SetY(y)
 
 	var cursorVisible bool
 	max := maxRows()
-	for n, c := range g.containers.Filter() {
+	for n, c := range g.containers {
 		if n >= max {
 			break
 		}
@@ -113,10 +115,14 @@ func (g *Grid) redrawRows() {
 
 	ui.Clear()
 	if config.GetSwitchVal("enableHeader") {
-		g.header.Render()
+		header.Render()
 	}
 	cGrid.Align()
 	ui.Render(cGrid)
+}
+
+func (g *Grid) refreshContainers() {
+	g.containers = g.cSource.All().Filter()
 }
 
 // Log current container and widget state
@@ -158,7 +164,8 @@ func Display(g *Grid) bool {
 	ui.DefaultEvtStream.Hook(logEvent)
 
 	// initial draw
-	g.containers = g.cSource.All()
+	header.Align()
+	g.refreshContainers()
 	g.redrawRows()
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
@@ -175,6 +182,7 @@ func Display(g *Grid) bool {
 
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
+		g.refreshContainers()
 		g.redrawRows()
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
@@ -204,12 +212,12 @@ func Display(g *Grid) bool {
 	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		g.containers = g.cSource.All() // refresh containers for current sort order
+		g.refreshContainers()
 		g.redrawRows()
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
-		g.header.Align()
+		header.Align()
 		cGrid.SetWidth(ui.TermWidth())
 		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, maxRows())
 		g.redrawRows()
@@ -217,6 +225,7 @@ func Display(g *Grid) bool {
 
 	ui.Loop()
 	if menu != nil {
+		ui.Clear()
 		menu()
 		return false
 	}

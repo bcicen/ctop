@@ -20,13 +20,15 @@ type Menu struct {
 }
 
 func NewMenu() *Menu {
-	return &Menu{
+	m := &Menu{
 		Block:       *ui.NewBlock(),
 		TextFgColor: ui.ThemeAttr("par.text.fg"),
 		TextBgColor: ui.ThemeAttr("par.text.bg"),
 		cursorPos:   0,
 		padding:     Padding{4, 2},
 	}
+	m.X = 1
+	return m
 }
 
 // Append Item to Menu
@@ -119,7 +121,7 @@ func (m *Menu) NavigationHandlers() {
 
 // Set width and height based on menu items
 func (m *Menu) calcSize() {
-	m.Width = 8 // minimum width
+	m.Width = 7 // minimum width
 
 	items := m.items
 	for _, i := range m.items {

@@ -17,7 +17,7 @@ type MockContainerSource struct {
 
 func NewMockContainerSource() *MockContainerSource {
 	cs := &MockContainerSource{}
-	cs.Init()
+	go cs.Init()
 	go cs.Loop()
 	return cs
 }
@@ -28,12 +28,12 @@ func (cs *MockContainerSource) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < total; i++ {
+		time.Sleep(2 * time.Second)
 		collector := metrics.NewMock()
 		c := NewContainer(makeID(), collector)
 		c.SetName(makeName())
-		cs.containers = append(cs.containers, c)
-
 		c.SetState(makeState())
+		cs.containers = append(cs.containers, c)
 	}
 
 }
@@ -42,7 +42,7 @@ func (cs *MockContainerSource) Loop() {
 	iter := 0
 	for {
 		// Change state for random container
-		if iter%5 == 0 {
+		if iter%5 == 0 && len(cs.containers) > 0 {
 			randC := cs.containers[rand.Intn(len(cs.containers))]
 			randC.SetState(makeState())
 		}
@@ -61,6 +61,12 @@ func (cs *MockContainerSource) Get(id string) (*Container, bool) {
 	return nil, false
 }
 
+// Return array of all containers, sorted by field
+func (cs *MockContainerSource) All() Containers {
+	sort.Sort(cs.containers)
+	return cs.containers
+}
+
 // Remove containers by ID
 func (cs *MockContainerSource) delByID(id string) {
 	for n, c := range cs.containers {
@@ -77,12 +83,6 @@ func (cs *MockContainerSource) del(idx ...int) {
 		cs.containers = append(cs.containers[:i], cs.containers[i+1:]...)
 	}
 	log.Infof("removed %d dead containers", len(idx))
-}
-
-// Return array of all containers, sorted by field
-func (cs *MockContainerSource) All() []*Container {
-	sort.Sort(cs.containers)
-	return cs.containers
 }
 
 func makeID() string {

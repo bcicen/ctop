@@ -10,7 +10,7 @@ import (
 )
 
 type ContainerSource interface {
-	All() []*Container
+	All() Containers
 	Get(string) (*Container, bool)
 }
 
@@ -129,8 +129,7 @@ func (cm *DockerContainerSource) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *DockerContainerSource) All() []*Container {
-	var containers Containers
+func (cm *DockerContainerSource) All() (containers Containers) {
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
