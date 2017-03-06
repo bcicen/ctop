@@ -13,21 +13,22 @@ type CompactHeader struct {
 
 func NewCompactHeader() *CompactHeader {
 	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX"}
-	header := &CompactHeader{Height: 2}
+	ch := &CompactHeader{}
+	ch.Height = 2
 	for _, f := range fields {
-		header.pars = append(header.pars, headerPar(f))
+		ch.addFieldPar(f)
 	}
-	return header
+	return ch
 }
 
-func (c *CompactHeader) GetHeight() int {
-	return c.Height
+func (ch *CompactHeader) GetHeight() int {
+	return ch.Height
 }
 
-func (c *CompactHeader) SetWidth(w int) {
-	x := c.X
+func (ch *CompactHeader) SetWidth(w int) {
+	x := ch.X
 	autoWidth := calcWidth(w, 5)
-	for n, col := range c.pars {
+	for n, col := range ch.pars {
 		// set status column to static width
 		if n == 0 {
 			col.SetX(x)
@@ -39,33 +40,31 @@ func (c *CompactHeader) SetWidth(w int) {
 		col.SetWidth(autoWidth)
 		x += autoWidth + colSpacing
 	}
-	c.Width = w
+	ch.Width = w
 }
 
-func (c *CompactHeader) SetX(x int) {
-	c.X = x
+func (ch *CompactHeader) SetX(x int) {
+	ch.X = x
 }
 
-func (c *CompactHeader) SetY(y int) {
-	for _, p := range c.pars {
+func (ch *CompactHeader) SetY(y int) {
+	for _, p := range ch.pars {
 		p.SetY(y)
 	}
-	c.Y = y
+	ch.Y = y
 }
 
-func (c *CompactHeader) Buffer() ui.Buffer {
+func (ch *CompactHeader) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
-	for _, p := range c.pars {
+	for _, p := range ch.pars {
 		buf.Merge(p.Buffer())
 	}
 	return buf
 }
 
-func headerPar(s string) *ui.Par {
+func (ch *CompactHeader) addFieldPar(s string) {
 	p := ui.NewPar(s)
-	p.Y = 2
-	p.Height = 2
-	p.Width = 20
+	p.Height = ch.Height
 	p.Border = false
-	return p
+	ch.pars = append(ch.pars, p)
 }
