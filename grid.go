@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/cwidgets/expanded"
 	ui "github.com/gizak/termui"
 )
 
@@ -46,31 +47,29 @@ func RedrawRows() {
 	ui.Render(cGrid)
 }
 
-//func (g *Grid) ExpandView() {
-//ui.Clear()
-//ui.DefaultEvtStream.ResetHandlers()
-//defer ui.DefaultEvtStream.ResetHandlers()
+func ExpandView(c *Container) {
+	ui.Clear()
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
 
-//container, _ := g.cSource.Get(g.cursorID)
-//// copy current widgets to restore on exit view
-//curWidgets := container.widgets
-//container.Expand()
+	expandWidgets := expanded.NewExpanded(c.Id)
+	c.SetUpdater(expandWidgets)
 
-//ui.Render(container.widgets)
-//ui.Handle("/timer/1s", func(ui.Event) {
-//ui.Render(container.widgets)
-//})
-//ui.Handle("/sys/kbd/", func(ui.Event) {
-//ui.StopLoop()
-//})
-//ui.Loop()
+	ui.Render(expandWidgets)
+	ui.Handle("/timer/1s", func(ui.Event) {
+		ui.Render(expandWidgets)
+	})
+	ui.Handle("/sys/kbd/", func(ui.Event) {
+		ui.StopLoop()
+	})
+	ui.Loop()
 
-//container.widgets = curWidgets
-//container.widgets.Reset()
-//}
+	c.SetUpdater(c.Widgets)
+}
 
 func Display() bool {
 	var menu func()
+	var expand bool
 
 	cGrid.SetWidth(ui.TermWidth())
 	ui.DefaultEvtStream.Hook(logEvent)
@@ -87,9 +86,8 @@ func Display() bool {
 		cursor.Down()
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		//c := g.containers[g.cursorIdx()]
-		//c.Widgets.ToggleExpand()
-		RedrawRows()
+		expand = true
+		ui.StopLoop()
 	})
 
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
@@ -139,6 +137,10 @@ func Display() bool {
 	if menu != nil {
 		ui.Clear()
 		menu()
+		return false
+	}
+	if expand {
+		ExpandView(cursor.Selected())
 		return false
 	}
 	return true
