@@ -9,14 +9,14 @@ import (
 var (
 	log       = logging.Init()
 	sizeError = termSizeError()
-	colWidth  = [2]int{60, 0} // left,right column width
+	colWidth  = [2]int{65, 0} // left,right column width
 )
 
 type Expanded struct {
 	Info  *Info
-	Net   *ExpandedNet
-	Cpu   *ExpandedCpu
-	Mem   *ExpandedMem
+	Net   *Net
+	Cpu   *Cpu
+	Mem   *Mem
 	Width int
 }
 
@@ -26,9 +26,9 @@ func NewExpanded(id string) *Expanded {
 	}
 	return &Expanded{
 		Info:  NewInfo(id),
-		Net:   NewExpandedNet(),
-		Cpu:   NewExpandedCpu(),
-		Mem:   NewExpandedMem(),
+		Net:   NewNet(),
+		Cpu:   NewCpu(),
+		Mem:   NewMem(),
 		Width: ui.TermWidth(),
 	}
 }
@@ -56,6 +56,7 @@ func (e *Expanded) Align() {
 	if e.Width > colWidth[0] {
 		colWidth[1] = e.Width - (colWidth[0] + 1)
 	}
+	e.Mem.Align()
 	log.Debugf("align: width=%v left-col=%v right-col=%v", e.Width, colWidth[0], colWidth[1])
 }
 

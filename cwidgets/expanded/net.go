@@ -8,14 +8,14 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-type ExpandedNet struct {
+type Net struct {
 	*ui.Sparklines
 	rxHist *DiffHist
 	txHist *DiffHist
 }
 
-func NewExpandedNet() *ExpandedNet {
-	net := &ExpandedNet{ui.NewSparklines(), NewDiffHist(50), NewDiffHist(50)}
+func NewNet() *Net {
+	net := &Net{ui.NewSparklines(), NewDiffHist(60), NewDiffHist(60)}
 	net.BorderLabel = "NET"
 	net.Height = 6
 	net.Width = colWidth[0]
@@ -40,7 +40,7 @@ func NewExpandedNet() *ExpandedNet {
 	return net
 }
 
-func (w *ExpandedNet) Update(rx int64, tx int64) {
+func (w *Net) Update(rx int64, tx int64) {
 	var rate string
 
 	w.rxHist.Append(int(rx))

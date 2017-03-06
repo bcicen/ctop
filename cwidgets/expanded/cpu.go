@@ -4,25 +4,31 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-type ExpandedCpu struct {
+type Cpu struct {
 	*ui.LineChart
 	hist FloatHist
 }
 
-func NewExpandedCpu() *ExpandedCpu {
-	cpu := &ExpandedCpu{ui.NewLineChart(), NewFloatHist(60)}
+func NewCpu() *Cpu {
+	cpu := &Cpu{ui.NewLineChart(), NewFloatHist(55)}
+	cpu.Mode = "dot"
 	cpu.BorderLabel = "CPU"
-	cpu.Height = 10
+	cpu.Height = 12
 	cpu.Width = colWidth[0]
 	cpu.X = 0
-	cpu.Y = 6
-	cpu.Data = cpu.hist.Data
 	cpu.DataLabels = cpu.hist.Labels
 	cpu.AxesColor = ui.ColorDefault
 	cpu.LineColor = ui.ColorGreen
+
+	// hack to force the default minY scale to 0
+	tmpData := []float64{20}
+	cpu.Data = tmpData
+	_ = cpu.Buffer()
+
+	cpu.Data = cpu.hist.Data
 	return cpu
 }
 
-func (w *ExpandedCpu) Update(val int) {
+func (w *Cpu) Update(val int) {
 	w.hist.Append(float64(val))
 }
