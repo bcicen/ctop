@@ -28,7 +28,7 @@ func (cs *MockContainerSource) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < total; i++ {
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 		collector := metrics.NewMock()
 		c := NewContainer(makeID(), collector)
 		c.SetName(makeName())

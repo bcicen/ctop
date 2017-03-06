@@ -67,6 +67,7 @@ func (c *Container) Read(stream chan metrics.Metrics) {
 			c.Widgets.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
+		c.Metrics = metrics.NewMetrics()
 		c.Widgets.Reset()
 	}()
 	log.Infof("reader started for container: %s", c.Id)
