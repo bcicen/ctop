@@ -21,7 +21,9 @@ func logEvent(e ui.Event) {
 // log container, metrics, and widget state
 func dumpContainer(c *Container) {
 	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
-	msg += fmt.Sprintf("Id = %s\nname = %s\nstate = %s\n", c.Id, c.Name, c.State)
+	for k, v := range c.Meta {
+		msg += fmt.Sprintf("Meta.%s = %s\n", k, v)
+	}
 	msg += inspect(&c.Metrics)
 	log.Infof(msg)
 }

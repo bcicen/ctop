@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/bcicen/ctop/config"
 	ui "github.com/gizak/termui"
 )

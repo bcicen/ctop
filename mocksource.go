@@ -31,7 +31,7 @@ func (cs *MockContainerSource) Init() {
 		time.Sleep(1 * time.Second)
 		collector := metrics.NewMock()
 		c := NewContainer(makeID(), collector)
-		c.SetName(makeName())
+		c.SetMeta("name", makeName())
 		c.SetState(makeState())
 		cs.containers = append(cs.containers, c)
 	}

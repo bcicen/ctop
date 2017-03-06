@@ -65,7 +65,7 @@ func (cm *DockerContainerSource) refresh(c *Container) {
 		cm.delByID(c.Id)
 		return
 	}
-	c.SetName(shortName(insp.Name))
+	c.SetMeta("name", shortName(insp.Name))
 	c.SetState(insp.State.Status)
 }
 
@@ -89,7 +89,7 @@ func (cm *DockerContainerSource) refreshAll() {
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
-		c.SetName(shortName(i.Names[0]))
+		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
 	}

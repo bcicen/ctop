@@ -14,10 +14,11 @@ var stateMap = map[string]int{
 	"paused":  2,
 	"exited":  1,
 	"created": 0,
+	"":        0,
 }
 
 var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
-var nameSorter = func(c1, c2 *Container) bool { return c1.Name < c2.Name }
+var nameSorter = func(c1, c2 *Container) bool { return c1.GetMeta("name") < c2.GetMeta("name") }
 
 var Sorters = map[string]sortMethod{
 	"id":   idSorter,
@@ -54,10 +55,12 @@ var Sorters = map[string]sortMethod{
 	},
 	"state": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
-		if c1.State == c2.State {
+		c1state := c1.GetMeta("state")
+		c2state := c2.GetMeta("state")
+		if c1state == c2state {
 			return nameSorter(c1, c2)
 		}
-		return stateMap[c1.State] > stateMap[c2.State]
+		return stateMap[c1state] > stateMap[c2state]
 	},
 }
 
@@ -86,11 +89,11 @@ func (a Containers) Filter() (filtered []*Container) {
 
 	for _, c := range a {
 		// Apply name filter
-		if re.FindAllString(c.Name, 1) == nil {
+		if re.FindAllString(c.GetMeta("name"), 1) == nil {
 			continue
 		}
 		// Apply state filter
-		if !config.GetSwitchVal("allContainers") && c.State != "running" {
+		if !config.GetSwitchVal("allContainers") && c.GetMeta("state") != "running" {
 			continue
 		}
 		filtered = append(filtered, c)

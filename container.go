@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/metrics"
 )
@@ -9,23 +10,34 @@ import (
 type Container struct {
 	metrics.Metrics
 	Id        string
-	Name      string
-	State     string
 	Meta      map[string]string
-	Updates   chan [2]string
 	Widgets   *compact.Compact
+	updater   cwidgets.WidgetUpdater
 	collector metrics.Collector
 }
 
 func NewContainer(id string, collector metrics.Collector) *Container {
+	widgets := compact.NewCompact(id)
 	return &Container{
 		Metrics:   metrics.NewMetrics(),
 		Id:        id,
 		Meta:      make(map[string]string),
-		Updates:   make(chan [2]string),
-		Widgets:   compact.NewCompact(id),
+		Widgets:   widgets,
+		updater:   widgets,
 		collector: collector,
 	}
+}
+
+func (c *Container) SetUpdater(u cwidgets.WidgetUpdater) {
+	c.updater = u
+	for k, v := range c.Meta {
+		c.updater.SetMeta(k, v)
+	}
+}
+
+func (c *Container) SetMeta(k, v string) {
+	c.Meta[k] = v
+	c.updater.SetMeta(k, v)
 }
 
 func (c *Container) GetMeta(k string) string {
@@ -35,26 +47,15 @@ func (c *Container) GetMeta(k string) string {
 	return ""
 }
 
-func (c *Container) SetMeta(k, v string) {
-	c.Meta[k] = v
-	c.Updates <- [2]string{k, v}
-}
-
-func (c *Container) SetName(n string) {
-	c.Name = n
-	c.Widgets.Name.Set(n)
-}
-
 func (c *Container) SetState(s string) {
-	c.State = s
-	c.Widgets.Status.Set(s)
+	c.SetMeta("state", s)
 	// start collector, if needed
-	if c.State == "running" && !c.collector.Running() {
+	if s == "running" && !c.collector.Running() {
 		c.collector.Start()
 		c.Read(c.collector.Stream())
 	}
 	// stop collector, if needed
-	if c.State != "running" && c.collector.Running() {
+	if s != "running" && c.collector.Running() {
 		c.collector.Stop()
 	}
 }
@@ -64,7 +65,7 @@ func (c *Container) Read(stream chan metrics.Metrics) {
 	go func() {
 		for metrics := range stream {
 			c.Metrics = metrics
-			c.Widgets.SetMetrics(metrics)
+			c.updater.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
 		c.Metrics = metrics.NewMetrics()

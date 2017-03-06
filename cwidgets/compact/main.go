@@ -46,6 +46,15 @@ func NewCompact(id string) *Compact {
 //}
 //}
 
+func (row *Compact) SetMeta(k, v string) {
+	switch k {
+	case "name":
+		row.Name.Set(v)
+	case "state":
+		row.Status.Set(v)
+	}
+}
+
 func (row *Compact) SetMetrics(m metrics.Metrics) {
 	row.SetCPU(m.CPUUtil)
 	row.SetNet(m.NetRx, m.NetTx)
