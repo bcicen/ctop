@@ -12,6 +12,9 @@ import (
 )
 
 var (
+	build   = ""
+	version = "dev-build"
+
 	log    *logging.CTopLogger
 	cursor *GridCursor
 	cGrid  = compact.NewCompactGrid()
