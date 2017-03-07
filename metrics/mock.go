@@ -1,3 +1,5 @@
+// +build !release
+
 package metrics
 
 import (
@@ -45,14 +47,13 @@ func (c *Mock) run() {
 	defer close(c.stream)
 
 	for {
-		c.CPUUtil += rand.Intn(10)
+		c.CPUUtil += rand.Intn(2)
 		if c.CPUUtil > 100 {
 			c.CPUUtil = 0
 		}
-		c.CPUUtil += rand.Intn(2)
 		c.NetTx += rand.Int63n(600)
 		c.NetRx += rand.Int63n(600)
-		c.MemUsage += rand.Int63n(c.MemLimit / 16)
+		c.MemUsage += rand.Int63n(c.MemLimit / 32)
 		if c.MemUsage > c.MemLimit {
 			c.MemUsage = 0
 		}

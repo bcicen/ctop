@@ -1,3 +1,5 @@
+// +build !release
+
 package main
 
 import (
@@ -24,11 +26,11 @@ func NewMockContainerSource() *MockContainerSource {
 
 // Create Mock containers
 func (cs *MockContainerSource) Init() {
-	total := 40
+	total := 20
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < total; i++ {
-		time.Sleep(1 * time.Second)
+		//time.Sleep(1 * time.Second)
 		collector := metrics.NewMock()
 		c := NewContainer(makeID(), collector)
 		c.SetMeta("name", makeName())
@@ -95,6 +97,10 @@ func makeID() string {
 
 func makeName() string {
 	n, err := codename.Get(codename.Sanitized)
+	nsp := strings.Split(n, "-")
+	if len(nsp) > 2 {
+		n = strings.Join(nsp[:2], "-")
+	}
 	if err != nil {
 		panic(err)
 	}
