@@ -17,8 +17,6 @@ func NewCpu() *Cpu {
 	cpu.Width = colWidth[0]
 	cpu.X = 0
 	cpu.DataLabels = cpu.hist.Labels
-	cpu.AxesColor = ui.ColorDefault
-	cpu.LineColor = ui.ColorGreen
 
 	// hack to force the default minY scale to 0
 	tmpData := []float64{20}

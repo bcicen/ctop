@@ -22,11 +22,13 @@ type Menu struct {
 func NewMenu() *Menu {
 	m := &Menu{
 		Block:       *ui.NewBlock(),
-		TextFgColor: ui.ThemeAttr("par.text.fg"),
-		TextBgColor: ui.ThemeAttr("par.text.bg"),
+		TextFgColor: ui.ThemeAttr("menu.text.fg"),
+		TextBgColor: ui.ThemeAttr("menu.text.bg"),
 		cursorPos:   0,
 		padding:     Padding{4, 2},
 	}
+	m.BorderFg = ui.ThemeAttr("menu.border.fg")
+	m.BorderLabelFg = ui.ThemeAttr("menu.label.fg")
 	m.X = 1
 	return m
 }
@@ -86,7 +88,7 @@ func (m *Menu) Buffer() ui.Buffer {
 		for _, ch := range item.Text() {
 			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.cursorPos {
-				cell = ui.Cell{Ch: ch, Fg: m.TextBgColor, Bg: m.TextFgColor}
+				cell = ui.Cell{Ch: ch, Fg: ui.ColorBlack, Bg: m.TextFgColor}
 			} else {
 				cell = ui.Cell{Ch: ch, Fg: m.TextFgColor, Bg: m.TextBgColor}
 			}

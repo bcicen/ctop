@@ -17,7 +17,7 @@ func NewTextCol(s string) *TextCol {
 }
 
 func (w *TextCol) Highlight() {
-	w.TextFgColor = ui.ThemeAttr("par.text.bg")
+	w.TextFgColor = ui.ColorBlack
 	w.TextBgColor = ui.ThemeAttr("par.text.fg")
 }
 

@@ -26,6 +26,7 @@ func main() {
 	defer panicExit()
 
 	// init ui
+	ui.ColorMap = ColorMap // override default colormap
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}

@@ -23,9 +23,7 @@ func HelpMenu() {
 	defer ui.DefaultEvtStream.ResetHandlers()
 
 	m := menu.NewMenu()
-	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Help"
-	m.BorderFg = ui.ColorCyan
 	m.AddItems(helpDialog...)
 	ui.Render(m)
 	ui.Handle("/sys/kbd/", func(ui.Event) {
@@ -39,9 +37,7 @@ func FilterMenu() {
 	defer ui.DefaultEvtStream.ResetHandlers()
 
 	i := widgets.NewInput()
-	i.TextFgColor = ui.ColorWhite
 	i.BorderLabel = "Filter"
-	i.BorderFg = ui.ColorCyan
 	i.SetY(ui.TermHeight() - i.Height)
 	ui.Render(i)
 
@@ -72,9 +68,7 @@ func SortMenu() {
 	m := menu.NewMenu()
 	m.Selectable = true
 	m.SortItems = true
-	m.TextFgColor = ui.ColorWhite
 	m.BorderLabel = "Sort Field"
-	m.BorderFg = ui.ColorCyan
 
 	for _, field := range SortFields() {
 		m.AddItems(menu.Item{field, ""})

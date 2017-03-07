@@ -28,10 +28,12 @@ func NewInput() *Input {
 		Block:       *ui.NewBlock(),
 		Label:       "input",
 		MaxLen:      20,
-		TextFgColor: ui.ThemeAttr("par.text.fg"),
-		TextBgColor: ui.ThemeAttr("par.text.bg"),
+		TextFgColor: ui.ThemeAttr("menu.text.fg"),
+		TextBgColor: ui.ThemeAttr("menu.text.bg"),
 		padding:     Padding{4, 2},
 	}
+	i.BorderFg = ui.ThemeAttr("menu.border.fg")
+	i.BorderLabelFg = ui.ThemeAttr("menu.label.fg")
 	i.calcSize()
 	return i
 }

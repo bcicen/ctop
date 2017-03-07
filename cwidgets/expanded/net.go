@@ -26,14 +26,12 @@ func NewNet() *Net {
 	rx.Title = "RX"
 	rx.Height = 1
 	rx.Data = net.rxHist.Data
-	rx.TitleColor = ui.ColorDefault
 	rx.LineColor = ui.ColorGreen
 
 	tx := ui.NewSparkline()
 	tx.Title = "TX"
 	tx.Height = 1
 	tx.Data = net.txHist.Data
-	tx.TitleColor = ui.ColorDefault
 	tx.LineColor = ui.ColorYellow
 
 	net.Lines = []ui.Sparkline{rx, tx}

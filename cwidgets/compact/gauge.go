@@ -14,7 +14,6 @@ func NewGaugeCol() *GaugeCol {
 	g.Border = false
 	g.Percent = 0
 	g.PaddingBottom = 0
-	g.BarColor = ui.ColorGreen
 	g.Label = "-"
 	return &GaugeCol{g}
 }

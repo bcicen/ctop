@@ -57,7 +57,6 @@ func newMemLabel() *ui.Par {
 	p.Border = false
 	p.Height = 1
 	p.Width = 20
-	p.TextFgColor = ui.ColorDefault
 	return p
 }
 
@@ -67,9 +66,6 @@ func newMemChart() *ui.MBarChart {
 	mbar.Border = false
 	mbar.BarGap = 1
 	mbar.BarWidth = 6
-	mbar.TextColor = ui.ColorDefault
-
-	mbar.BarColor[0] = ui.ColorGreen
 
 	mbar.BarColor[1] = ui.ColorBlack
 	mbar.NumColor[1] = ui.ColorBlack

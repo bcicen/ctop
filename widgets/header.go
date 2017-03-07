@@ -41,7 +41,7 @@ func headerBgBordered() *ui.Par {
 	bg := ui.NewPar("")
 	bg.X = 1
 	bg.Height = 3
-	bg.Bg = ui.ColorWhite
+	bg.Bg = ui.ThemeAttr("header.bg")
 	return bg
 }
 
@@ -50,7 +50,7 @@ func headerBg() *ui.Par {
 	bg.X = 1
 	bg.Height = 1
 	bg.Border = false
-	bg.Bg = ui.ColorWhite
+	bg.Bg = ui.ThemeAttr("header.bg")
 	return bg
 }
 
@@ -77,8 +77,8 @@ func headerPar(x int, s string) *ui.Par {
 	p.Border = false
 	p.Height = 1
 	p.Width = 20
-	p.TextFgColor = ui.ColorDefault
-	p.TextBgColor = ui.ColorWhite
-	p.Bg = ui.ColorWhite
+	p.Bg = ui.ThemeAttr("header.bg")
+	p.TextFgColor = ui.ThemeAttr("header.fg")
+	p.TextBgColor = ui.ThemeAttr("header.bg")
 	return p
 }
