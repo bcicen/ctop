@@ -34,7 +34,10 @@ ctop
 
 Key | Action
 --- | ---
+a | Toggle display of all (running and non-running) containers
+f | Filter displayed containers
+H | Toggle cTop header
 h | Open help dialog
 s | Select container sort field
 r | Reverse container sort order
-q |  Quit ctop
+q | Quit cTop
