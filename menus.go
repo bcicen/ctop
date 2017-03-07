@@ -18,6 +18,7 @@ var helpDialog = []menu.Item{
 }
 
 func HelpMenu() {
+	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
@@ -43,6 +44,18 @@ func FilterMenu() {
 	i.BorderFg = ui.ColorCyan
 	i.SetY(ui.TermHeight() - i.Height)
 	ui.Render(i)
+
+	// refresh container rows on input
+	stream := i.Stream()
+	go func() {
+		for s := range stream {
+			config.Update("filterStr", s)
+			cursor.RefreshContainers()
+			RedrawRows()
+			ui.Render(i)
+		}
+	}()
+
 	i.InputHandlers()
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		config.Update("filterStr", i.Data)
@@ -52,6 +65,7 @@ func FilterMenu() {
 }
 
 func SortMenu() {
+	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 

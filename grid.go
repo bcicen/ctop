@@ -141,7 +141,6 @@ func Display() bool {
 
 	ui.Loop()
 	if menu != nil {
-		ui.Clear()
 		menu()
 		return false
 	}

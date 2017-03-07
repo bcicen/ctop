@@ -19,6 +19,7 @@ type Input struct {
 	MaxLen      int
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
+	stream      chan string // stream text as it changes
 	padding     Padding
 }
 
@@ -55,12 +56,18 @@ func (i *Input) Buffer() ui.Buffer {
 	return buf
 }
 
+func (i *Input) Stream() chan string {
+	i.stream = make(chan string)
+	return i.stream
+}
+
 func (i *Input) KeyPress(e ui.Event) {
 	ch := strings.Replace(e.Path, "/sys/kbd/", "", -1)
 	if ch == "C-8" {
 		idx := len(i.Data) - 1
 		if idx > -1 {
 			i.Data = i.Data[0:idx]
+			i.stream <- i.Data
 		}
 		ui.Render(i)
 		return
@@ -70,6 +77,7 @@ func (i *Input) KeyPress(e ui.Event) {
 	}
 	if strings.Index(input_chars, ch) > -1 {
 		i.Data += ch
+		i.stream <- i.Data
 		ui.Render(i)
 	}
 }
