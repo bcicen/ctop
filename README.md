@@ -1,4 +1,4 @@
-<p align="center"><img src="https://i.imgur.com/rJRxwZH.png" alt="cTop"/></p>
+<p align="center"><img width="40%" src="/_docs/img/logo.png" alt="cTop"/></p>
 #
 
 Top-like interface for container metrics
