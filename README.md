@@ -1,19 +1,36 @@
 # ctop
 
-**NOTE** *This project, while largely usable, is a work in progress! This message will be removed upon initial stable release*
-
 Top-like interface for container metrics
 
-## Quickstart
+## Install
 
-To build and run ctop:
+Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your platform:
+
+#### Linux
+
 ```bash
-git clone https://github.com/bcicen/ctop.git
-cd ctop
-go build && ./ctop
+wget https://github.com/bcicen/ctop/releases/download/v0.1/ctop-0.1-linux-amd64 -O ctop
+sudo mv ctop /usr/local/bin/
+sudo chmod +x /usr/local/bin/ctop
 ```
 
-## Keybindings
+#### OS X
+
+```bash
+curl -Lo ctop https://github.com/bcicen/ctop/releases/download/v0.1/ctop-0.1-darwin-amd64
+sudo mv ctop /usr/local/bin/
+sudo chmod +x /usr/local/bin/ctop
+```
+
+## Usage
+
+cTop requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
+```bash
+export DOCKER_HOST=tcp://127.0.0.1:4243
+ctop
+```
+
+### Keybindings
 
 Key | Action
 --- | ---
