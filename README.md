@@ -18,7 +18,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-wget https://github.com/bcicen/ctop/releases/download/v0.1/ctop-0.1-linux-amd64 -O ctop
+wget https://github.com/bcicen/ctop/releases/download/v0.3/ctop-0.3-linux-amd64 -O ctop
 sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
 ```
@@ -26,7 +26,7 @@ sudo chmod +x /usr/local/bin/ctop
 #### OS X
 
 ```bash
-curl -Lo ctop https://github.com/bcicen/ctop/releases/download/v0.1/ctop-0.1-darwin-amd64
+curl -Lo ctop https://github.com/bcicen/ctop/releases/download/v0.3/ctop-0.3-darwin-amd64
 sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
 ```
