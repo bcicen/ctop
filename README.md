@@ -2,6 +2,12 @@
 
 Top-like interface for container metrics
 
+ctop provides a concise and condensed overview of real-time metrics for multiple containers:
+![compact][compact]
+
+as well as an expanded view for examining a specific container:
+![expanded][expanded]
+
 ## Install
 
 Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your platform:
@@ -41,3 +47,6 @@ h | Open help dialog
 s | Select container sort field
 r | Reverse container sort order
 q | Quit cTop
+
+[compact]: http://i.imgur.com/uDUq33N.gif "cTop"
+[expanded]: http://i.imgur.com/nYjQMhd.gif "cTop"
