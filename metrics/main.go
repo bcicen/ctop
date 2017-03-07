@@ -19,10 +19,11 @@ type Metrics struct {
 
 func NewMetrics() Metrics {
 	return Metrics{
-		CPUUtil:  -1,
-		NetTx:    -1,
-		NetRx:    -1,
-		MemUsage: -1,
+		CPUUtil:    -1,
+		NetTx:      -1,
+		NetRx:      -1,
+		MemUsage:   -1,
+		MemPercent: -1,
 	}
 }
 
