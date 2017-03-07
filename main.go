@@ -22,21 +22,25 @@ func main() {
 	defer func() {
 		if r := recover(); r != nil {
 			ui.Clear()
-			fmt.Printf("panic: %s", r)
+			fmt.Printf("panic: %s\n", r)
 			os.Exit(1)
 		}
 	}()
 
 	config.Init()
+
+	// init logger
 	log = logging.Init()
 	if config.GetSwitchVal("loggingEnabled") {
 		logging.StartServer()
 	}
-	cursor = NewGridCursor()
+
+	// init ui, grid
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
 	defer ui.Close()
+	cursor = NewGridCursor()
 
 	for {
 		exit := Display()

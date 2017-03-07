@@ -19,7 +19,7 @@ var switches = []*Switch{
 	},
 	&Switch{
 		Key:   "loggingEnabled",
-		Val:   true,
+		Val:   false,
 		Label: "Enable Logging Server",
 	},
 }
