@@ -6,7 +6,9 @@ ctop provides a concise and condensed overview of real-time metrics for multiple
 ![compact][compact]
 
 as well as an expanded view for examining a specific container:
-![expanded][expanded]
+<p align="center">
+  <img src="http://i.imgur.com/nYjQMhd.gif" alt="cTop"/>
+</p>
 
 ## Install
 
@@ -49,4 +51,3 @@ r | Reverse container sort order
 q | Quit cTop
 
 [compact]: http://i.imgur.com/uDUq33N.gif "cTop"
-[expanded]: http://i.imgur.com/nYjQMhd.gif "cTop"
