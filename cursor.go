@@ -16,13 +16,24 @@ func NewGridCursor() *GridCursor {
 	}
 }
 
-func (gc *GridCursor) Len() int             { return len(gc.containers) }
+func (gc *GridCursor) Len() int             { return len(gc.Filtered()) }
 func (gc *GridCursor) Selected() *Container { return gc.containers[gc.Idx()] }
+
+// Return Containers filtered by display bool
+func (gc *GridCursor) Filtered() Containers {
+	var filtered Containers
+	for _, c := range gc.containers {
+		if c.display {
+			filtered = append(filtered, c)
+		}
+	}
+	return filtered
+}
 
 // Refresh containers from source
 func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
-	gc.containers = gc.cSource.All().Filter()
+	gc.containers = gc.cSource.All()
 	if oldLen != gc.Len() {
 		lenChanged = true
 	}

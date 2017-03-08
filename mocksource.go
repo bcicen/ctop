@@ -66,6 +66,7 @@ func (cs *MockContainerSource) Get(id string) (*Container, bool) {
 // Return array of all containers, sorted by field
 func (cs *MockContainerSource) All() Containers {
 	sort.Sort(cs.containers)
+	cs.containers.Filter()
 	return cs.containers
 }
 

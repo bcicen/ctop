@@ -14,6 +14,7 @@ type Container struct {
 	Widgets   *compact.Compact
 	updater   cwidgets.WidgetUpdater
 	collector metrics.Collector
+	display   bool // display this container in compact view
 }
 
 func NewContainer(id string, collector metrics.Collector) *Container {

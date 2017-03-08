@@ -83,23 +83,21 @@ func (a Containers) Less(i, j int) bool {
 	return f(a[i], a[j])
 }
 
-func (a Containers) Filter() (filtered []*Container) {
+func (a Containers) Filter() {
 	filter := config.GetVal("filterStr")
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
 	for _, c := range a {
+		c.display = true
 		// Apply name filter
 		if re.FindAllString(c.GetMeta("name"), 1) == nil {
-			continue
+			c.display = false
 		}
 		// Apply state filter
 		if !config.GetSwitchVal("allContainers") && c.GetMeta("state") != "running" {
-			continue
+			c.display = false
 		}
-		filtered = append(filtered, c)
 	}
-
-	return filtered
 }
 
 func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }

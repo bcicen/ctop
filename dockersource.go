@@ -136,6 +136,7 @@ func (cm *DockerContainerSource) All() (containers Containers) {
 		containers = append(containers, c)
 	}
 	sort.Sort(containers)
+	containers.Filter()
 	return containers
 }
 

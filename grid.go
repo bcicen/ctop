@@ -25,7 +25,7 @@ func RedrawRows(clr bool) {
 
 	var cursorVisible bool
 	max := maxRows()
-	for n, c := range cursor.containers {
+	for n, c := range cursor.Filtered() {
 		if n >= max {
 			break
 		}
