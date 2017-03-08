@@ -4,7 +4,7 @@
 Top-like interface for container metrics
 
 ctop provides a concise and condensed overview of real-time metrics for multiple containers:
-<p align="center"><img width="80%" src="_docs/img/grid.gif" alt="cTop"/></p>
+<p align="center"><img src="_docs/img/grid.gif" alt="cTop"/></p>
 
 as well as an [expanded view][expanded_view] for inspect a specific container.
 
