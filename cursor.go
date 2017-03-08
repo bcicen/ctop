@@ -6,6 +6,7 @@ import (
 
 type GridCursor struct {
 	selectedID string // id of currently selected container
+	filtered   Containers
 	containers Containers
 	cSource    ContainerSource
 }
@@ -16,24 +17,13 @@ func NewGridCursor() *GridCursor {
 	}
 }
 
-func (gc *GridCursor) Len() int             { return len(gc.Filtered()) }
+func (gc *GridCursor) Len() int             { return len(gc.filtered) }
 func (gc *GridCursor) Selected() *Container { return gc.containers[gc.Idx()] }
-
-// Return Containers filtered by display bool
-func (gc *GridCursor) Filtered() Containers {
-	var filtered Containers
-	for _, c := range gc.containers {
-		if c.display {
-			filtered = append(filtered, c)
-		}
-	}
-	return filtered
-}
 
 // Refresh containers from source
 func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
-	gc.containers = gc.cSource.All()
+	gc.setContainers(gc.cSource.All())
 	if oldLen != gc.Len() {
 		lenChanged = true
 	}
@@ -43,8 +33,22 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	return lenChanged
 }
 
+func (gc *GridCursor) setContainers(c Containers) {
+	gc.containers = c
+	// Containers filtered by display bool
+	gc.filtered = Containers{}
+	for _, c := range gc.containers {
+		if c.display {
+			gc.filtered = append(gc.filtered, c)
+		}
+	}
+}
+
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
+	for _, c := range gc.containers {
+		c.Widgets.Name.UnHighlight()
+	}
 	if gc.Len() > 0 {
 		gc.selectedID = gc.containers[0].Id
 		gc.containers[0].Widgets.Name.Highlight()
