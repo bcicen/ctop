@@ -7,7 +7,7 @@ ctop provides a concise and condensed overview of real-time metrics for multiple
 ![compact][compact]
 
 as well as an expanded view for examining a specific container:
-<p align="center"><img width="80%" src="http://i.imgur.com/nYjQMhd.gif" alt="cTop"/></p>
+<p align="center"><img width="80%" src="_docs/img/grid.gif" alt="cTop"/></p>
 
 ## Install
 
