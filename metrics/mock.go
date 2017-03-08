@@ -10,14 +10,16 @@ import (
 // Mock collector
 type Mock struct {
 	Metrics
-	stream  chan Metrics
-	done    bool
-	running bool
+	stream     chan Metrics
+	done       bool
+	running    bool
+	aggression int64
 }
 
-func NewMock() *Mock {
+func NewMock(a int64) *Mock {
 	c := &Mock{
-		Metrics: Metrics{},
+		Metrics:    Metrics{},
+		aggression: a,
 	}
 	c.MemLimit = 2147483648
 	return c
@@ -47,13 +49,14 @@ func (c *Mock) run() {
 	defer close(c.stream)
 
 	for {
-		c.CPUUtil += rand.Intn(2)
-		if c.CPUUtil > 100 {
+		c.CPUUtil += rand.Intn(2) * int(c.aggression)
+		if c.CPUUtil >= 100 {
 			c.CPUUtil = 0
 		}
-		c.NetTx += rand.Int63n(600)
-		c.NetRx += rand.Int63n(600)
-		c.MemUsage += rand.Int63n(c.MemLimit / 32)
+
+		c.NetTx += rand.Int63n(60) * c.aggression
+		c.NetRx += rand.Int63n(60) * c.aggression
+		c.MemUsage += rand.Int63n(c.MemLimit/16) * c.aggression
 		if c.MemUsage > c.MemLimit {
 			c.MemUsage = 0
 		}

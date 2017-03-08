@@ -26,18 +26,26 @@ func NewMockContainerSource() *MockContainerSource {
 
 // Create Mock containers
 func (cs *MockContainerSource) Init() {
-	total := 20
 	rand.Seed(int64(time.Now().Nanosecond()))
 
-	for i := 0; i < total; i++ {
-		//time.Sleep(1 * time.Second)
-		collector := metrics.NewMock()
-		c := NewContainer(makeID(), collector)
-		c.SetMeta("name", makeName())
-		c.SetState(makeState())
-		cs.containers = append(cs.containers, c)
+	for i := 0; i < 4; i++ {
+		time.Sleep(500 * time.Millisecond)
+		cs.makeContainer(3)
 	}
 
+	for i := 0; i < 16; i++ {
+		time.Sleep(500 * time.Millisecond)
+		cs.makeContainer(1)
+	}
+
+}
+
+func (cs *MockContainerSource) makeContainer(aggression int64) {
+	collector := metrics.NewMock(aggression)
+	c := NewContainer(makeID(), collector)
+	c.SetMeta("name", makeName())
+	c.SetState(makeState())
+	cs.containers = append(cs.containers, c)
 }
 
 func (cs *MockContainerSource) Loop() {
