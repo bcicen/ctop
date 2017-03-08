@@ -29,12 +29,10 @@ func (cs *MockContainerSource) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < 4; i++ {
-		time.Sleep(500 * time.Millisecond)
 		cs.makeContainer(3)
 	}
 
 	for i := 0; i < 16; i++ {
-		time.Sleep(500 * time.Millisecond)
 		cs.makeContainer(1)
 	}
 

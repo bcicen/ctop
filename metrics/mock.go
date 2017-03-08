@@ -56,7 +56,7 @@ func (c *Mock) run() {
 
 		c.NetTx += rand.Int63n(60) * c.aggression
 		c.NetRx += rand.Int63n(60) * c.aggression
-		c.MemUsage += rand.Int63n(c.MemLimit/16) * c.aggression
+		c.MemUsage += rand.Int63n(c.MemLimit/512) * c.aggression
 		if c.MemUsage > c.MemLimit {
 			c.MemUsage = 0
 		}
