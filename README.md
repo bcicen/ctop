@@ -4,10 +4,9 @@
 Top-like interface for container metrics
 
 ctop provides a concise and condensed overview of real-time metrics for multiple containers:
-![compact][compact]
-
-as well as an expanded view for examining a specific container:
 <p align="center"><img width="80%" src="_docs/img/grid.gif" alt="cTop"/></p>
+
+as well as an [expanded view][expanded_view] for inspect a specific container.
 
 ## Install
 
@@ -49,4 +48,4 @@ s | Select container sort field
 r | Reverse container sort order
 q | Quit cTop
 
-[compact]: http://i.imgur.com/uDUq33N.gif "cTop"
+[expanded_view]: _docs/expanded.md
