@@ -20,8 +20,11 @@ func NewCompactGrid() *CompactGrid {
 }
 
 func (cg *CompactGrid) Align() {
-	// update row ypos, width recursively
 	y := cg.Y
+	if cg.Offset >= len(cg.Rows) {
+		cg.Offset = 0
+	}
+	// update row ypos, width recursively
 	for _, r := range cg.pageRows() {
 		r.SetY(y)
 		y += r.GetHeight()
@@ -30,7 +33,7 @@ func (cg *CompactGrid) Align() {
 }
 
 func (cg *CompactGrid) Clear()         { cg.Rows = []ui.GridBufferer{} }
-func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) }
+func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) + header.Height }
 func (cg *CompactGrid) SetX(x int)     { cg.X = x }
 func (cg *CompactGrid) SetY(y int)     { cg.Y = y }
 func (cg *CompactGrid) SetWidth(w int) { cg.Width = w }
