@@ -19,20 +19,8 @@ func RedrawRows(clr bool) {
 	}
 	cGrid.SetY(y)
 
-	var cursorVisible bool
-	max := cGrid.MaxRows()
-	for n, c := range cursor.filtered {
-		if n >= max {
-			break
-		}
+	for _, c := range cursor.filtered {
 		cGrid.AddRows(c.Widgets)
-		if c.Id == cursor.selectedID {
-			cursorVisible = true
-		}
-	}
-
-	if !cursorVisible {
-		cursor.Reset()
 	}
 
 	if clr {
@@ -136,6 +124,7 @@ func Display() bool {
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		header.Align()
+		cursor.ScrollPage()
 		cGrid.SetWidth(ui.TermWidth())
 		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, cGrid.MaxRows())
 		RedrawRows(true)

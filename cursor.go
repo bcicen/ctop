@@ -7,7 +7,6 @@ import (
 type GridCursor struct {
 	selectedID string // id of currently selected container
 	filtered   Containers
-	containers Containers
 	cSource    ContainerSource
 }
 
@@ -18,14 +17,30 @@ func NewGridCursor() *GridCursor {
 }
 
 func (gc *GridCursor) Len() int             { return len(gc.filtered) }
-func (gc *GridCursor) Selected() *Container { return gc.containers[gc.Idx()] }
+func (gc *GridCursor) Selected() *Container { return gc.filtered[gc.Idx()] }
 
 // Refresh containers from source
 func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
-	gc.setContainers(gc.cSource.All())
+
+	// Containers filtered by display bool
+	gc.filtered = Containers{}
+	var cursorVisible bool
+	for _, c := range gc.cSource.All() {
+		if c.display {
+			if c.Id == gc.selectedID {
+				cursorVisible = true
+			}
+			gc.filtered = append(gc.filtered, c)
+		}
+	}
+
 	if oldLen != gc.Len() {
 		lenChanged = true
+	}
+
+	if !cursorVisible {
+		gc.Reset()
 	}
 	if gc.selectedID == "" {
 		gc.Reset()
@@ -33,68 +48,78 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	return lenChanged
 }
 
-func (gc *GridCursor) setContainers(c Containers) {
-	gc.containers = c
-	// Containers filtered by display bool
-	gc.filtered = Containers{}
-	for _, c := range gc.containers {
-		if c.display {
-			gc.filtered = append(gc.filtered, c)
-		}
-	}
-}
-
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
-	for _, c := range gc.containers {
+	for _, c := range gc.cSource.All() {
 		c.Widgets.Name.UnHighlight()
 	}
 	if gc.Len() > 0 {
-		gc.selectedID = gc.containers[0].Id
-		gc.containers[0].Widgets.Name.Highlight()
+		gc.selectedID = gc.filtered[0].Id
+		gc.filtered[0].Widgets.Name.Highlight()
 	}
 }
 
 // Return current cursor index
 func (gc *GridCursor) Idx() int {
-	for n, c := range gc.containers {
+	for n, c := range gc.filtered {
 		if c.Id == gc.selectedID {
 			return n
 		}
 	}
+	gc.Reset()
 	return 0
+}
+
+func (gc *GridCursor) ScrollPage() {
+	// skip scroll if no need to page
+	if gc.Len() < cGrid.MaxRows() {
+		cGrid.Offset = 0
+		return
+	}
+
+	idx := gc.Idx()
+
+	// page down
+	if idx >= cGrid.Offset+cGrid.MaxRows() {
+		cGrid.Offset++
+		cGrid.Align()
+	}
+	// page up
+	if idx < cGrid.Offset {
+		cGrid.Offset--
+		cGrid.Align()
+	}
+
 }
 
 func (gc *GridCursor) Up() {
 	idx := gc.Idx()
-	// decrement if possible
-	if idx <= 0 {
+	if idx <= 0 { // already at top
 		return
 	}
-	active := gc.containers[idx]
-	next := gc.containers[idx-1]
+	active := gc.filtered[idx]
+	next := gc.filtered[idx-1]
 
 	active.Widgets.Name.UnHighlight()
 	gc.selectedID = next.Id
 	next.Widgets.Name.Highlight()
 
+	gc.ScrollPage()
 	ui.Render(cGrid)
 }
 
 func (gc *GridCursor) Down() {
 	idx := gc.Idx()
-	// increment if possible
-	if idx >= (gc.Len() - 1) {
+	if idx >= gc.Len()-1 { // already at bottom
 		return
 	}
-	//if idx >= maxRows()-1 {
-	//return
-	//}
-	active := gc.containers[idx]
-	next := gc.containers[idx+1]
+	active := gc.filtered[idx]
+	next := gc.filtered[idx+1]
 
 	active.Widgets.Name.UnHighlight()
 	gc.selectedID = next.Id
 	next.Widgets.Name.Highlight()
+
+	gc.ScrollPage()
 	ui.Render(cGrid)
 }
