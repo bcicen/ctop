@@ -6,7 +6,9 @@ Top-like interface for container metrics
 ctop provides a concise and condensed overview of real-time metrics for multiple containers:
 <p align="center"><img src="_docs/img/grid.gif" alt="cTop"/></p>
 
-as well as an [expanded view][expanded_view] for inspect a specific container.
+as well as an [expanded view][expanded_view] for inspecting a specific container.
+
+ctop currently comes with built-in support for Docker; connectors for other container and cluster systems are planned for future releases.
 
 ## Install
 
