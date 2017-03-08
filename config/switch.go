@@ -15,7 +15,7 @@ var switches = []*Switch{
 	&Switch{
 		Key:   "enableHeader",
 		Val:   true,
-		Label: "Enable cTop Status Line",
+		Label: "Enable Status Header",
 	},
 	&Switch{
 		Key:   "loggingEnabled",

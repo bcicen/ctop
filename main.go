@@ -83,7 +83,7 @@ func panicExit() {
 	}
 }
 
-var helpMsg = `cTop - container metric viewer
+var helpMsg = `ctop - container metric viewer
 
 usage: ctop [options]
 
@@ -97,5 +97,5 @@ func printHelp() {
 }
 
 func printVersion() {
-	fmt.Printf("cTop version %v, build %v\n", version, build)
+	fmt.Printf("ctop version %v, build %v\n", version, build)
 }
