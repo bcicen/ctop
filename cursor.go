@@ -87,9 +87,9 @@ func (gc *GridCursor) Down() {
 	if idx >= (gc.Len() - 1) {
 		return
 	}
-	if idx >= maxRows()-1 {
-		return
-	}
+	//if idx >= maxRows()-1 {
+	//return
+	//}
 	active := gc.containers[idx]
 	next := gc.containers[idx+1]
 

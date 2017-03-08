@@ -38,6 +38,7 @@ func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) }
 func (cg *CompactGrid) SetX(x int)     { cg.X = x }
 func (cg *CompactGrid) SetY(y int)     { cg.Y = y }
 func (cg *CompactGrid) SetWidth(w int) { cg.Width = w }
+func (cg *CompactGrid) MaxRows() int   { return ui.TermHeight() - header.Height - cg.Y }
 
 func (cg *CompactGrid) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()

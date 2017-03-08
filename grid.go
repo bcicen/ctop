@@ -6,10 +6,6 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-func maxRows() int {
-	return ui.TermHeight() - 2 - cGrid.Y
-}
-
 func RedrawRows(clr bool) {
 	// reinit body rows
 	cGrid.Clear()
@@ -24,7 +20,7 @@ func RedrawRows(clr bool) {
 	cGrid.SetY(y)
 
 	var cursorVisible bool
-	max := maxRows()
+	max := cGrid.MaxRows()
 	for n, c := range cursor.filtered {
 		if n >= max {
 			break
@@ -66,7 +62,7 @@ func ExpandView(c *Container) {
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		ex.SetWidth(ui.TermWidth())
 		ex.Align()
-		log.Infof("resize: width=%v max-rows=%v", ex.Width, maxRows())
+		log.Infof("resize: width=%v max-rows=%v", ex.Width, cGrid.MaxRows())
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
@@ -141,7 +137,7 @@ func Display() bool {
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		header.Align()
 		cGrid.SetWidth(ui.TermWidth())
-		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, maxRows())
+		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, cGrid.MaxRows())
 		RedrawRows(true)
 	})
 
