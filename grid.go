@@ -10,7 +10,7 @@ func maxRows() int {
 	return ui.TermHeight() - 2 - cGrid.Y
 }
 
-func RedrawRows() {
+func RedrawRows(clr bool) {
 	// reinit body rows
 	cGrid.Clear()
 
@@ -39,7 +39,10 @@ func RedrawRows() {
 		cursor.Reset()
 	}
 
-	ui.Clear()
+	if clr {
+		ui.Clear()
+		log.Debugf("screen cleared")
+	}
 	if config.GetSwitchVal("enableHeader") {
 		header.Render()
 	}
@@ -73,6 +76,11 @@ func ExpandView(c *Container) {
 	c.SetUpdater(c.Widgets)
 }
 
+func RefreshDisplay() {
+	needsClear := cursor.RefreshContainers()
+	RedrawRows(needsClear)
+}
+
 func Display() bool {
 	var menu func()
 	var expand bool
@@ -83,7 +91,7 @@ func Display() bool {
 	// initial draw
 	header.Align()
 	cursor.RefreshContainers()
-	RedrawRows()
+	RedrawRows(true)
 
 	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
 		cursor.Up()
@@ -98,8 +106,7 @@ func Display() bool {
 
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
-		cursor.RefreshContainers()
-		RedrawRows()
+		RefreshDisplay()
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
 		dumpContainer(cursor.Selected())
@@ -114,7 +121,7 @@ func Display() bool {
 	})
 	ui.Handle("/sys/kbd/H", func(ui.Event) {
 		config.Toggle("enableHeader")
-		RedrawRows()
+		RedrawRows(true)
 	})
 	ui.Handle("/sys/kbd/q", func(ui.Event) {
 		ui.StopLoop()
@@ -128,15 +135,14 @@ func Display() bool {
 	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
-		cursor.RefreshContainers()
-		RedrawRows()
+		RefreshDisplay()
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		header.Align()
 		cGrid.SetWidth(ui.TermWidth())
 		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, maxRows())
-		RedrawRows()
+		RedrawRows(true)
 	})
 
 	ui.Loop()

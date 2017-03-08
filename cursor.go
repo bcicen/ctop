@@ -19,11 +19,17 @@ func NewGridCursor() *GridCursor {
 func (gc *GridCursor) Len() int             { return len(gc.containers) }
 func (gc *GridCursor) Selected() *Container { return gc.containers[gc.Idx()] }
 
-func (gc *GridCursor) RefreshContainers() {
+// Refresh containers from source
+func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
+	oldLen := gc.Len()
 	gc.containers = gc.cSource.All().Filter()
+	if oldLen != gc.Len() {
+		lenChanged = true
+	}
 	if gc.selectedID == "" {
 		gc.Reset()
 	}
+	return lenChanged
 }
 
 // Set an initial cursor position, if possible

@@ -46,8 +46,7 @@ func FilterMenu() {
 	go func() {
 		for s := range stream {
 			config.Update("filterStr", s)
-			cursor.RefreshContainers()
-			RedrawRows()
+			RefreshDisplay()
 			ui.Render(i)
 		}
 	}()
