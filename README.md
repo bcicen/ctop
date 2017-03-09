@@ -3,12 +3,12 @@
 
 Top-like interface for container metrics
 
-ctop provides a concise and condensed overview of real-time metrics for multiple containers:
+`ctop` provides a concise and condensed overview of real-time metrics for multiple containers:
 <p align="center"><img src="_docs/img/grid.gif" alt="ctop"/></p>
 
 as well as an [expanded view][expanded_view] for inspecting a specific container.
 
-ctop currently comes with built-in support for Docker; connectors for other container and cluster systems are planned for future releases.
+`ctop` currently comes with built-in support for Docker; connectors for other container and cluster systems are planned for future releases.
 
 ## Install
 
@@ -30,9 +30,11 @@ sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
 ```
 
+`ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop/)
+
 ## Usage
 
-ctop requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
+`ctop` requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
 ```bash
 export DOCKER_HOST=tcp://127.0.0.1:4243
 ctop
