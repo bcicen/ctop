@@ -77,16 +77,15 @@ func Display() bool {
 	cursor.RefreshContainers()
 	RedrawRows(true)
 
-	ui.Handle("/sys/kbd/<up>", func(ui.Event) {
-		cursor.Up()
-	})
-	ui.Handle("/sys/kbd/<down>", func(ui.Event) {
-		cursor.Down()
-	})
+	ui.Handle("/sys/kbd/<up>", func(ui.Event) { cursor.Up() })
+	ui.Handle("/sys/kbd/<down>", func(ui.Event) { cursor.Down() })
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		expand = true
 		ui.StopLoop()
 	})
+
+	ui.Handle("/sys/kbd/q", func(ui.Event) { ui.StopLoop() })
+	ui.Handle("/sys/kbd/C-c", func(ui.Event) { ui.StopLoop() })
 
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
@@ -106,9 +105,6 @@ func Display() bool {
 	ui.Handle("/sys/kbd/H", func(ui.Event) {
 		config.Toggle("enableHeader")
 		RedrawRows(true)
-	})
-	ui.Handle("/sys/kbd/q", func(ui.Event) {
-		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/r", func(e ui.Event) {
 		config.Toggle("sortReversed")
