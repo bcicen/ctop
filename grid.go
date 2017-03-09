@@ -28,7 +28,7 @@ func RedrawRows(clr bool) {
 		log.Debugf("screen cleared")
 	}
 	if config.GetSwitchVal("enableHeader") {
-		header.Render()
+		ui.Render(header)
 	}
 	cGrid.Align()
 	ui.Render(cGrid)

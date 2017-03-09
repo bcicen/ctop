@@ -23,10 +23,14 @@ func NewCTopHeader() *CTopHeader {
 	}
 }
 
-func (c *CTopHeader) Render() {
+func (c *CTopHeader) Buffer() ui.Buffer {
+	buf := ui.NewBuffer()
 	c.Time.Text = timeStr()
-	ui.Render(c.bg)
-	ui.Render(c.Time, c.Count, c.Filter)
+	buf.Merge(c.bg.Buffer())
+	buf.Merge(c.Time.Buffer())
+	buf.Merge(c.Count.Buffer())
+	buf.Merge(c.Filter.Buffer())
+	return buf
 }
 
 func (c *CTopHeader) Align() {
