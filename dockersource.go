@@ -31,8 +31,8 @@ func NewDockerContainerSource() *DockerContainerSource {
 		containers:   make(map[string]*Container),
 		needsRefresh: make(chan string, 60),
 	}
-	cm.refreshAll()
 	go cm.Loop()
+	cm.refreshAll()
 	go cm.watchEvents()
 	return cm
 }
