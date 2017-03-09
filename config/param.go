@@ -3,11 +3,6 @@ package config
 // defaults
 var params = []*Param{
 	&Param{
-		Key:   "dockerHost",
-		Val:   getEnv("DOCKER_HOST", "unix:///var/run/docker.sock"),
-		Label: "Docker API URL",
-	},
-	&Param{
 		Key:   "filterStr",
 		Val:   "",
 		Label: "Container Name or ID Filter",

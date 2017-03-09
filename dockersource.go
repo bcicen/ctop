@@ -4,7 +4,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/metrics"
 	"github.com/fsouza/go-dockerclient"
 )
@@ -22,7 +21,7 @@ type DockerContainerSource struct {
 
 func NewDockerContainerSource() *DockerContainerSource {
 	// init docker client
-	client, err := docker.NewClient(config.GetVal("dockerHost"))
+	client, err := docker.NewClientFromEnv()
 	if err != nil {
 		panic(err)
 	}
