@@ -1,0 +1,24 @@
+baseurl = "https://bcicen.github.io/ctop"
+languageCode = "en-us"
+title = "ctop"
+theme = "hugo-creative-theme"
+googleAnalytics = "UA-93338213-1"
+
+[params]
+
+	name = "Bradley Cicenas"
+	description = "Commandline monitoring for containers"
+
+	# The path must be relative to the static folder
+	favicon = "favicon.ico"
+
+	# Navigation
+	[params.navigation]
+		brand = "ctop"
+
+	# Hero section
+	[params.hero]
+		# To change the background of the hero section, replace the 'header.jpg' at './static/img' with your own.
+		slogan     = ""
+		subtitle   = "concise commandline monitoring for containers"
+		buttonText = "get ctop"

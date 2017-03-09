@@ -1,0 +1,18 @@
+name = "Creative"
+license = "Apache License 2.0"
+licenselink = "//github.com/digitalcraftsman/hugo-creative-theme/blob/master/LICENSE"
+description = "A one page HTML theme for creatives."
+homepage = "//github.com/digitalcraftsman/hugo-creative-theme"
+tags = ["creative", "portfolio"]
+features = ["responsive", "portfolio", "substitutable strings"]
+min_version = 0.14
+
+[author]
+  name = "digitalcraftsman"
+  homepage = "//github.com/digitalcraftsman"
+
+# If porting an existing theme
+[original]
+  name = "David Miller"
+  homepage = "//www.ironsummitmedia.com/"
+  repo = "//github.com/IronSummitMedia/startbootstrap-creative"

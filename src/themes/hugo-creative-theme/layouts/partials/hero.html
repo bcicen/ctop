@@ -1,0 +1,21 @@
+{{ "<!-- HEADER -->" | safeHTML }}
+<header>
+    <div class="header-content">
+        <div class="header-content-inner">
+          <img class="logo" src="img/logo.png"\>
+            {{ with .Site.Params.hero.slogan }}
+                <h1>{{ . | markdownify  }}</h1>
+            {{ end }}
+            {{ if and .Site.Params.hero.slogan .Site.Params.hero.subtitle }}
+                <hr>
+            {{ end }}
+            {{ with .Site.Params.hero.subtitle }}
+                <h3 class="subtitle">{{ . | markdownify }}</h3>
+            {{ end }}
+            <img class="screencap" src="img/grid.gif"\><br>
+            {{ with .Site.Params.hero.buttonText }}
+                <a href="https://github.com/bcicen/ctop" class="btn btn-primary btn-xl page-scroll">{{ . }}</a>
+            {{ end }}
+        </div>
+    </div>
+</header>

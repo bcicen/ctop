@@ -1,0 +1,42 @@
+{{ "<!-- CONTACT -->" | safeHTML }}
+<section id="contact">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 text-center">
+                {{ with .Site.Params.contact.headline }}
+                    <h2 class="section-heading">{{ . }}</h2>
+                {{ end }}
+                {{ if and .Site.Params.contact.headline .Site.Params.contact.description }}
+                    <hr class="primary">
+                {{ end }}
+                {{ with .Site.Params.contact.description }}
+                    <p>{{ . | markdownify }}</p>
+                {{ end }}
+            </div>
+            {{ if .Site.Params.contact.phone }}
+                <div class="
+                {{ if .Site.Params.contact.email }}
+                    col-lg-4
+                {{ else }}
+                    col-lg-8
+                {{ end }}
+                col-lg-offset-2 text-center">
+                    <i class="fa fa-phone fa-3x wow bounceIn"></i>
+                    <p>{{ .Site.Params.contact.phone }}</p>
+                </div>
+            {{ end }}
+            {{ if .Site.Params.contact.email }}
+                <div class="
+                {{ if .Site.Params.contact.phone }}
+                    col-lg-4
+                {{ else }}
+                    col-lg-8 col-lg-offset-2
+                {{ end }}
+                 text-center">
+                    <i class="fa fa-envelope-o fa-3x wow bounceIn" data-wow-delay=".1s"></i>
+                    <p><a href="mailto:{{ .Site.Params.contact.email }}">{{ .Site.Params.contact.email }}</a></p>
+                </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
