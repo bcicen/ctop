@@ -132,7 +132,10 @@ func Display() bool {
 		return false
 	}
 	if expand {
-		ExpandView(cursor.Selected())
+		c := cursor.Selected()
+		if c != nil {
+			ExpandView(c)
+		}
 		return false
 	}
 	return true

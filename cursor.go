@@ -16,8 +16,15 @@ func NewGridCursor() *GridCursor {
 	}
 }
 
-func (gc *GridCursor) Len() int             { return len(gc.filtered) }
-func (gc *GridCursor) Selected() *Container { return gc.filtered[gc.Idx()] }
+func (gc *GridCursor) Len() int { return len(gc.filtered) }
+
+func (gc *GridCursor) Selected() *Container {
+	idx := gc.Idx()
+	if idx < gc.Len() {
+		return gc.filtered[idx]
+	}
+	return nil
+}
 
 // Refresh containers from source
 func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
