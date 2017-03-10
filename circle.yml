@@ -1,0 +1,24 @@
+machine:
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker info
+    - |
+      if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+        docker build -t quay.io/vektorlab/ctop:latest .
+      else
+        docker build -t quay.io/vektorlab/ctop:${CIRCLE_BRANCH} .
+      fi
+
+test:
+  override:
+    - docker run -t --entrypoint /bin/sh quay.io/vektorlab/ctop:latest -v
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS quay.io
+      - docker push quay.io/vektorlab/ctop:latest
