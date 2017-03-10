@@ -30,6 +30,11 @@ sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
 ```
 
+or run via Docker:
+```bash
+docker run -ti -v /var/run/docker.sock:/var/run/docker.sock quay.io/vektorlab/ctop:latest
+```
+
 `ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop/)
 
 ## Usage
