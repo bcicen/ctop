@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
@@ -22,8 +23,26 @@ var (
 )
 
 func main() {
-	readArgs()
 	defer panicExit()
+
+	// parse command line arguments
+	var versionFlag = flag.Bool("v", false, "output version information and exit")
+	var helpFlag = flag.Bool("h", false, "display this help dialog")
+	var filterFlag = flag.String("f", "", "filter containers")
+	var activeOnlyFlag = flag.Bool("a", false, "show active containers only")
+	var sortFieldFlag = flag.String("s", "", "select container sort field")
+	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
+	flag.Parse()
+
+	if *versionFlag == true {
+		printVersion()
+		os.Exit(0)
+	}
+
+	if *helpFlag == true {
+		printHelp()
+		os.Exit(0)
+	}
 
 	// init ui
 	ui.ColorMap = ColorMap // override default colormap
@@ -34,6 +53,23 @@ func main() {
 
 	// init global config
 	config.Init()
+
+	// override default config values with command line flags
+	if *filterFlag != "" {
+		config.Update("filterStr", *filterFlag)
+	}
+
+	if *activeOnlyFlag == true {
+		config.Toggle("allContainers")
+	}
+
+	if *sortFieldFlag != "" {
+		config.Update("sortField", *sortFieldFlag)
+	}
+
+	if *reverseSortFlag == true {
+		config.Toggle("sortReversed")
+	}
 
 	// init logger
 	log = logging.Init()
@@ -56,25 +92,6 @@ func main() {
 	}
 }
 
-func readArgs() {
-	if len(os.Args) < 2 {
-		return
-	}
-	for _, arg := range os.Args[1:] {
-		switch arg {
-		case "-v", "version":
-			printVersion()
-			os.Exit(0)
-		case "-h", "help":
-			printHelp()
-			os.Exit(0)
-		default:
-			fmt.Printf("invalid option or argument: \"%s\"\n", arg)
-			os.Exit(1)
-		}
-	}
-}
-
 func panicExit() {
 	if r := recover(); r != nil {
 		ui.Clear()
@@ -88,12 +105,11 @@ var helpMsg = `ctop - container metric viewer
 usage: ctop [options]
 
 options:
- -h display this help dialog
- -v output version information and exit
 `
 
 func printHelp() {
 	fmt.Println(helpMsg)
+	flag.PrintDefaults()
 }
 
 func printVersion() {
