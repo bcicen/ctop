@@ -1,13 +1,9 @@
-FROM debian:jessie
+FROM quay.io/vektorcloud/glibc:latest
 
-RUN BUILD_PACKAGES="curl wget" && \
-    apt-get update && \
-    apt-get install -y $BUILD_PACKAGES && \
-    wget $(curl -s https://api.github.com/repos/bcicen/ctop/releases/latest | \
-           grep 'browser_' | cut -d\" -f4 |grep 'linux-amd64') \
-      -O /usr/local/bin/ctop && \
-    chmod +x /usr/local/bin/ctop &&
-    AUTO_ADDED_PACKAGES=`apt-mark showauto` && \
-    apt-get remove --purge -y $BUILD_PACKAGES $AUTO_ADDED_PACKAGES
+ENV CTOP_VERSION 0.4
+ENV CTOP_URL https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64
 
-CMD ["ctop"]
+RUN wget -q $CTOP_URL -O /ctop && \
+    chmod +x /ctop
+
+ENTRYPOINT ["/ctop"]
