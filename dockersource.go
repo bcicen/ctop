@@ -3,6 +3,7 @@ package main
 import (
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/bcicen/ctop/metrics"
 	"github.com/fsouza/go-dockerclient"
@@ -17,6 +18,7 @@ type DockerContainerSource struct {
 	client       *docker.Client
 	containers   map[string]*Container
 	needsRefresh chan string // container IDs requiring refresh
+	lock         sync.RWMutex
 }
 
 func NewDockerContainerSource() *DockerContainerSource {
@@ -29,6 +31,7 @@ func NewDockerContainerSource() *DockerContainerSource {
 		client:       client,
 		containers:   make(map[string]*Container),
 		needsRefresh: make(chan string, 60),
+		lock:         sync.RWMutex{},
 	}
 	go cm.Loop()
 	cm.refreshAll()
@@ -112,28 +115,36 @@ func (cm *DockerContainerSource) MustGet(id string) *Container {
 		collector := metrics.NewDocker(cm.client, id)
 		// create container
 		c = NewContainer(id, collector)
+		cm.lock.Lock()
 		cm.containers[id] = c
+		cm.lock.Unlock()
 	}
 	return c
 }
 
 // Get a single container, by ID
 func (cm *DockerContainerSource) Get(id string) (*Container, bool) {
+	cm.lock.Lock()
 	c, ok := cm.containers[id]
+	cm.lock.Unlock()
 	return c, ok
 }
 
 // Remove containers by ID
 func (cm *DockerContainerSource) delByID(id string) {
+	cm.lock.Lock()
 	delete(cm.containers, id)
+	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)
 }
 
 // Return array of all containers, sorted by field
 func (cm *DockerContainerSource) All() (containers Containers) {
+	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
+	cm.lock.Unlock()
 	sort.Sort(containers)
 	containers.Filter()
 	return containers
