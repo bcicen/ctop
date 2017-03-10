@@ -16,7 +16,7 @@ func NewInfo(id string) *Info {
 	p.Height = 4
 	p.Width = colWidth[0]
 	p.FgColor = ui.ThemeAttr("par.text.fg")
-	p.Seperator = false
+	p.Separator = false
 	i := &Info{p, make(map[string]string)}
 	i.Set("id", id)
 	return i
