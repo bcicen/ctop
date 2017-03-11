@@ -37,6 +37,15 @@ docker run -ti -v /var/run/docker.sock:/var/run/docker.sock quay.io/vektorlab/ct
 
 `ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop/)
 
+#### Build
+
+```
+go get -u github.com/kardianos/govendor
+go get -u github.com/bcicen/ctop
+govendor sync
+go build -o ctop
+```
+
 ## Usage
 
 `ctop` requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
