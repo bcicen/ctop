@@ -15,6 +15,8 @@ type Compact struct {
 	Cpu    *GaugeCol
 	Memory *GaugeCol
 	Net    *TextCol
+	IO     *TextCol
+	Pids   *TextCol
 	X, Y   int
 	Width  int
 	Height int
@@ -32,6 +34,8 @@ func NewCompact(id string) *Compact {
 		Cpu:    NewGaugeCol(),
 		Memory: NewGaugeCol(),
 		Net:    NewTextCol("-"),
+		IO:     NewTextCol("-"),
+		Pids:   NewTextCol("-"),
 		X:      1,
 		Height: 1,
 	}
@@ -59,6 +63,8 @@ func (row *Compact) SetMetrics(m metrics.Metrics) {
 	row.SetCPU(m.CPUUtil)
 	row.SetNet(m.NetRx, m.NetTx)
 	row.SetMem(m.MemUsage, m.MemLimit, m.MemPercent)
+	row.SetIO(m.IOBytesRead, m.IOBytesWrite)
+	row.SetPids(m.Pids)
 }
 
 // Set gauges, counters to default unread values
@@ -66,6 +72,8 @@ func (row *Compact) Reset() {
 	row.Cpu.Reset()
 	row.Memory.Reset()
 	row.Net.Reset()
+	row.IO.Reset()
+	row.Pids.Reset()
 }
 
 func (row *Compact) GetHeight() int {
@@ -91,7 +99,7 @@ func (row *Compact) SetWidth(width int) {
 		return
 	}
 	x := row.X
-	autoWidth := calcWidth(width, 5)
+	autoWidth := calcWidth(width, 7)
 	for n, col := range row.all() {
 		// set status column to static width
 		if n == 0 {
@@ -116,7 +124,8 @@ func (row *Compact) Buffer() ui.Buffer {
 	buf.Merge(row.Cpu.Buffer())
 	buf.Merge(row.Memory.Buffer())
 	buf.Merge(row.Net.Buffer())
-
+	buf.Merge(row.IO.Buffer())
+	buf.Merge(row.Pids.Buffer())
 	return buf
 }
 
@@ -128,5 +137,7 @@ func (row *Compact) all() []ui.GridBufferer {
 		row.Cpu,
 		row.Memory,
 		row.Net,
+		row.IO,
+		row.Pids,
 	}
 }

@@ -17,6 +17,7 @@ type Expanded struct {
 	Net   *Net
 	Cpu   *Cpu
 	Mem   *Mem
+	IO    *IO
 	Width int
 }
 
@@ -29,6 +30,7 @@ func NewExpanded(id string) *Expanded {
 		Net:   NewNet(),
 		Cpu:   NewCpu(),
 		Mem:   NewMem(),
+		IO:    NewIO(),
 		Width: ui.TermWidth(),
 	}
 }
@@ -45,6 +47,7 @@ func (e *Expanded) SetMetrics(m metrics.Metrics) {
 	e.Cpu.Update(m.CPUUtil)
 	e.Net.Update(m.NetRx, m.NetTx)
 	e.Mem.Update(int(m.MemUsage), int(m.MemLimit))
+	e.IO.Update(m.IOBytesRead, m.IOBytesWrite)
 }
 
 func (e *Expanded) Align() {
@@ -74,6 +77,7 @@ func (e *Expanded) Buffer() ui.Buffer {
 	buf.Merge(e.Cpu.Buffer())
 	buf.Merge(e.Mem.Buffer())
 	buf.Merge(e.Net.Buffer())
+	buf.Merge(e.IO.Buffer())
 	return buf
 }
 
@@ -83,6 +87,7 @@ func (e *Expanded) all() []ui.GridBufferer {
 		e.Cpu,
 		e.Mem,
 		e.Net,
+		e.IO,
 	}
 }
 
