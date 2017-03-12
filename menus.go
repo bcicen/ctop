@@ -39,6 +39,7 @@ func FilterMenu() {
 	i := widgets.NewInput()
 	i.BorderLabel = "Filter"
 	i.SetY(ui.TermHeight() - i.Height)
+	i.Data = config.GetVal("filterStr")
 	ui.Render(i)
 
 	// refresh container rows on input
@@ -52,6 +53,10 @@ func FilterMenu() {
 	}()
 
 	i.InputHandlers()
+	ui.Handle("/sys/kbd/<escape>", func(ui.Event) {
+		config.Update("filterStr", "")
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		config.Update("filterStr", i.Data)
 		ui.StopLoop()
