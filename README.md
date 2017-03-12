@@ -39,11 +39,13 @@ docker run -ti -v /var/run/docker.sock:/var/run/docker.sock quay.io/vektorlab/ct
 
 ## Building
 
-To build `ctop` from source ensure you have a recent version of [glide](http://glide.sh/) installed. 
+To build `ctop` from source, ensure you have a recent version of [glide](http://glide.sh/) installed and run:
 
 ```bash
-cd $GOPATH/src/github.com/bcicen/ctop
-glide install
+git clone https://github.com/bcicen/ctop.git $GOPATH/src/github.com/bcicen/ctop && \
+cd $GOPATH/src/github.com/bcicen/ctop && \
+glide install && \
+go build
 ```
 
 ## Usage
