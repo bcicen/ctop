@@ -13,6 +13,16 @@ func (row *Compact) SetNet(rx int64, tx int64) {
 	row.Net.Set(label)
 }
 
+func (row *Compact) SetIO(read int64, write int64) {
+	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(read), cwidgets.ByteFormat(write))
+	row.IO.Set(label)
+}
+
+func (row *Compact) SetPids(val int) {
+	label := fmt.Sprintf("%s", strconv.Itoa(val))
+	row.Pids.Set(label)
+}
+
 func (row *Compact) SetCPU(val int) {
 	row.Cpu.BarColor = colorScale(val)
 	row.Cpu.Label = fmt.Sprintf("%s%%", strconv.Itoa(val))

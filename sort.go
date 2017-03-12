@@ -53,6 +53,15 @@ var Sorters = map[string]sortMethod{
 		}
 		return sum1 > sum2
 	},
+	"io": func(c1, c2 *Container) bool {
+		sum1 := sumIO(c1)
+		sum2 := sumIO(c2)
+		// Use secondary sort method if equal values
+		if sum1 == sum2 {
+			return nameSorter(c1, c2)
+		}
+		return sum1 > sum2
+	},
 	"state": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
 		c1state := c1.GetMeta("state")
@@ -101,3 +110,5 @@ func (a Containers) Filter() {
 }
 
 func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }
+
+func sumIO(c *Container) int64 { return c.IOBytesRead + c.IOBytesWrite }

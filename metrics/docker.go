@@ -46,6 +46,7 @@ func (c *Docker) Start() {
 			c.ReadCPU(s)
 			c.ReadMem(s)
 			c.ReadNet(s)
+			c.ReadIO(s)
 			c.stream <- c.Metrics
 		}
 		log.Infof("collector stopped for container: %s", c.id)
@@ -79,6 +80,7 @@ func (c *Docker) ReadCPU(stats *api.Stats) {
 	c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
 	c.lastCpu = total
 	c.lastSysCpu = system
+	c.Pids = int(stats.PidsStats.Current)
 }
 
 func (c *Docker) ReadMem(stats *api.Stats) {
@@ -94,4 +96,17 @@ func (c *Docker) ReadNet(stats *api.Stats) {
 		tx += int64(network.TxBytes)
 	}
 	c.NetRx, c.NetTx = rx, tx
+}
+
+func (c *Docker) ReadIO(stats *api.Stats) {
+	var read, write int64
+	for _, blk := range stats.BlkioStats.IOServiceBytesRecursive {
+		if blk.Op == "Read" {
+			read = int64(blk.Value)
+		}
+		if blk.Op == "Write" {
+			write = int64(blk.Value)
+		}
+	}
+	c.IOBytesRead, c.IOBytesWrite = read, write
 }
