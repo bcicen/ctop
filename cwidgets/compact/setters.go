@@ -30,6 +30,9 @@ func (row *Compact) SetCPU(val int) {
 		val = 5
 		row.Cpu.BarColor = ui.ThemeAttr("gauge.bar.bg")
 	}
+	if val > 100 {
+		val = 100
+	}
 	row.Cpu.Percent = val
 }
 
