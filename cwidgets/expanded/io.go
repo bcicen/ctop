@@ -10,7 +10,7 @@ import (
 
 type IO struct {
 	*ui.Sparklines
-	readHist *DiffHist
+	readHist  *DiffHist
 	writeHist *DiffHist
 }
 
@@ -23,13 +23,13 @@ func NewIO() *IO {
 	io.Y = 24
 
 	read := ui.NewSparkline()
-	read.Title = "read"
+	read.Title = "READ"
 	read.Height = 1
 	read.Data = io.readHist.Data
 	read.LineColor = ui.ColorGreen
 
 	write := ui.NewSparkline()
-	write.Title = "write"
+	write.Title = "WRITE"
 	write.Height = 1
 	write.Data = io.writeHist.Data
 	write.LineColor = ui.ColorYellow
