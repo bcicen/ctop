@@ -37,6 +37,15 @@ docker run -ti -v /var/run/docker.sock:/var/run/docker.sock quay.io/vektorlab/ct
 
 `ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop/)
 
+## Building
+
+To build `ctop` from source ensure you have a recent version of [glide](http://glide.sh/) installed. 
+
+```bash
+cd $GOPATH/src/github.com/bcicen/ctop
+glide install
+```
+
 ## Usage
 
 `ctop` requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
