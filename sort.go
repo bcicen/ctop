@@ -53,6 +53,13 @@ var Sorters = map[string]sortMethod{
 		}
 		return sum1 > sum2
 	},
+	"pids": func(c1, c2 *Container) bool {
+		// Use secondary sort method if equal values
+		if c1.Pids == c2.Pids {
+			return nameSorter(c1, c2)
+		}
+		return c1.Pids > c2.Pids
+	},
 	"io": func(c1, c2 *Container) bool {
 		sum1 := sumIO(c1)
 		sum2 := sumIO(c2)
