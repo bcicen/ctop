@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	input_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_."
+	input_chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_."
 )
 
 type Padding [2]int // x,y padding
