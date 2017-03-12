@@ -18,6 +18,7 @@ type Expanded struct {
 	Cpu   *Cpu
 	Mem   *Mem
 	IO    *IO
+	X, Y  int
 	Width int
 }
 
@@ -35,13 +36,24 @@ func NewExpanded(id string) *Expanded {
 	}
 }
 
-func (e *Expanded) SetWidth(w int) {
-	e.Width = w
+func (e *Expanded) Up() {
+	if e.Y < 0 {
+		e.Y++
+		e.Align()
+		ui.Render(e)
+	}
 }
 
-func (e *Expanded) SetMeta(k, v string) {
-	e.Info.Set(k, v)
+func (e *Expanded) Down() {
+	if e.Y > (ui.TermHeight() - e.GetHeight()) {
+		e.Y--
+		e.Align()
+		ui.Render(e)
+	}
 }
+
+func (e *Expanded) SetWidth(w int)      { e.Width = w }
+func (e *Expanded) SetMeta(k, v string) { e.Info.Set(k, v) }
 
 func (e *Expanded) SetMetrics(m metrics.Metrics) {
 	e.Cpu.Update(m.CPUUtil)
@@ -50,12 +62,28 @@ func (e *Expanded) SetMetrics(m metrics.Metrics) {
 	e.IO.Update(m.IOBytesRead, m.IOBytesWrite)
 }
 
+// Return total column height
+func (e *Expanded) GetHeight() (h int) {
+	h += e.Info.Height
+	h += e.Net.Height
+	h += e.Cpu.Height
+	h += e.Mem.Height
+	h += e.IO.Height
+	return h
+}
+
 func (e *Expanded) Align() {
-	y := 0
+	// reset offset if needed
+	if e.GetHeight() <= ui.TermHeight() {
+		e.Y = 0
+	}
+
+	y := e.Y
 	for _, i := range e.all() {
 		i.SetY(y)
 		y += i.GetHeight()
 	}
+
 	if e.Width > colWidth[0] {
 		colWidth[1] = e.Width - (colWidth[0] + 1)
 	}

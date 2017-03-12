@@ -44,6 +44,8 @@ func ExpandView(c *Container) {
 
 	ex.Align()
 	ui.Render(ex)
+	ui.Handle("/sys/kbd/<up>", func(ui.Event) { ex.Up() })
+	ui.Handle("/sys/kbd/<down>", func(ui.Event) { ex.Down() })
 	ui.Handle("/timer/1s", func(ui.Event) {
 		ui.Render(ex)
 	})
