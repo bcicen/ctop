@@ -99,13 +99,12 @@ func (row *Compact) SetWidth(width int) {
 		return
 	}
 	x := row.X
-	autoWidth := calcWidth(width, 7)
+	autoWidth := calcWidth(width)
 	for n, col := range row.all() {
-		// set status column to static width
-		if n == 0 {
+		if colWidths[n] != 0 {
 			col.SetX(x)
-			col.SetWidth(statusWidth)
-			x += statusWidth
+			col.SetWidth(colWidths[n])
+			x += colWidths[n]
 			continue
 		}
 		col.SetX(x)

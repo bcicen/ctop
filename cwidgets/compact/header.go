@@ -12,7 +12,7 @@ type CompactHeader struct {
 }
 
 func NewCompactHeader() *CompactHeader {
-	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX", "IO R/W", "Pids"}
+	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX", "IO R/W", "PIDS"}
 	ch := &CompactHeader{}
 	ch.Height = 2
 	for _, f := range fields {
@@ -27,13 +27,13 @@ func (ch *CompactHeader) GetHeight() int {
 
 func (ch *CompactHeader) SetWidth(w int) {
 	x := ch.X
-	autoWidth := calcWidth(w, 7)
+	autoWidth := calcWidth(w)
 	for n, col := range ch.pars {
-		// set status column to static width
-		if n == 0 {
+		// set column to static width
+		if colWidths[n] != 0 {
 			col.SetX(x)
-			col.SetWidth(statusWidth)
-			x += statusWidth
+			col.SetWidth(colWidths[n])
+			x += colWidths[n]
 			continue
 		}
 		col.SetX(x)
