@@ -1,0 +1,85 @@
+hash: c13011881e895378f374b68596a59a0ea6def372b4f5239b2d8aa342eaa46a4b
+updated: 2017-03-12T09:53:35.212073637+07:00
+imports:
+- name: github.com/Azure/go-ansiterm
+  version: fa152c58bc15761d0200cb75fe958b89a9d4888e
+  subpackages:
+  - winterm
+- name: github.com/docker/docker
+  version: ce07fb6b0f1b8765b92022e45f96bd4349812e06
+  subpackages:
+  - api/types
+  - api/types/blkiodev
+  - api/types/container
+  - api/types/filters
+  - api/types/mount
+  - api/types/network
+  - api/types/registry
+  - api/types/strslice
+  - api/types/swarm
+  - api/types/versions
+  - opts
+  - pkg/archive
+  - pkg/fileutils
+  - pkg/homedir
+  - pkg/idtools
+  - pkg/ioutils
+  - pkg/jsonlog
+  - pkg/jsonmessage
+  - pkg/longpath
+  - pkg/pools
+  - pkg/promise
+  - pkg/stdcopy
+  - pkg/system
+  - pkg/term
+  - pkg/term/windows
+- name: github.com/docker/go-connections
+  version: a2afab9802043837035592f1c24827fb70766de9
+  subpackages:
+  - nat
+- name: github.com/docker/go-units
+  version: 0dadbb0345b35ec7ef35e228dabb8de89a65bf52
+- name: github.com/fsouza/go-dockerclient
+  version: 318513eb1ab27495afbc67f671ba1080513d8aa0
+- name: github.com/gizak/termui
+  version: ea10e6ccee219e572ffad0ac1909f1a17f6db7d6
+  repo: https://github.com/bcicen/termui
+  vcs: git
+- name: github.com/hashicorp/go-cleanhttp
+  version: 3573b8b52aa7b37b9358d966a898feb387f62437
+- name: github.com/jgautheron/codename-generator
+  version: 16d037c7cc3c9b552fe4af9828b7338d752dbaf9
+- name: github.com/maruel/panicparse
+  version: 25bcac0d793cf4109483505a0d66e066a3a90a80
+  subpackages:
+  - stack
+- name: github.com/mattn/go-runewidth
+  version: 14207d285c6c197daabb5c9793d63e7af9ab2d50
+- name: github.com/Microsoft/go-winio
+  version: fff283ad5116362ca252298cfc9b95828956d85d
+- name: github.com/mitchellh/go-wordwrap
+  version: ad45545899c7b13c020ea92b2072220eefad42b8
+- name: github.com/nsf/termbox-go
+  version: 91bae1bb5fa9ee504905ecbe7043fa30e92feaa3
+- name: github.com/nu7hatch/gouuid
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/op/go-logging
+  version: b2cb9fa56473e98db8caba80237377e83fe44db5
+- name: github.com/opencontainers/runc
+  version: 31980a53ae7887b2c8f8715d13c3eb486c27b6cf
+  subpackages:
+  - libcontainer/system
+  - libcontainer/user
+- name: github.com/Sirupsen/logrus
+  version: 1deb2db2a6fff8a35532079061b903c3a25eed52
+- name: golang.org/x/net
+  version: a6577fac2d73be281a500b310739095313165611
+  subpackages:
+  - context
+  - context/ctxhttp
+- name: golang.org/x/sys
+  version: 99f16d856c9836c42d24e7ab64ea72916925fa97
+  subpackages:
+  - unix
+  - windows
+testImports: []

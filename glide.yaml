@@ -1,0 +1,11 @@
+package: github.com/bcicen/ctop
+import:
+- package: github.com/fsouza/go-dockerclient
+- package: github.com/gizak/termui
+  version: barchart-numfmt
+  repo: https://github.com/bcicen/termui
+  vcs: git
+- package: github.com/jgautheron/codename-generator
+- package: github.com/nu7hatch/gouuid
+- package: github.com/op/go-logging
+  version: ^1.0.0
