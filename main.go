@@ -47,13 +47,6 @@ func main() {
 		os.Exit(0)
 	}
 
-	// init ui
-	ui.ColorMap = ColorMap // override default colormap
-	if err := ui.Init(); err != nil {
-		panic(err)
-	}
-	defer ui.Close()
-
 	// override default config values with command line flags
 	if *filterFlag != "" {
 		config.Update("filterStr", *filterFlag)
@@ -64,6 +57,7 @@ func main() {
 	}
 
 	if *sortFieldFlag != "" {
+		validSort(*sortFieldFlag)
 		config.Update("sortField", *sortFieldFlag)
 	}
 
@@ -77,6 +71,13 @@ func main() {
 		logging.StartServer()
 	}
 
+	// init ui
+	ui.ColorMap = ColorMap // override default colormap
+	if err := ui.Init(); err != nil {
+		panic(err)
+	}
+	defer ui.Close()
+
 	// init grid, cursor, header
 	cursor = NewGridCursor()
 	cGrid = compact.NewCompactGrid()
@@ -89,6 +90,14 @@ func main() {
 			log.Exit()
 			return
 		}
+	}
+}
+
+// ensure a given sort field is valid
+func validSort(s string) {
+	if _, ok := Sorters[s]; !ok {
+		fmt.Printf("invalid sort field: %s\n", s)
+		os.Exit(1)
 	}
 }
 
