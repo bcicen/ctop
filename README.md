@@ -56,6 +56,17 @@ export DOCKER_HOST=tcp://127.0.0.1:4243
 ctop
 ```
 
+### Options
+
+Option | Description
+--- | ---
+-a	| show active containers only
+-f <string> | set an initial filter string
+-h	| display help dialog
+-r	| reverse container sort order
+-s  | select initial container sort field
+-v	| output version information and exit
+
 ### Keybindings
 
 Key | Action
