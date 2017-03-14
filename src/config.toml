@@ -1,4 +1,4 @@
-baseurl = "https://bcicen.github.io/ctop"
+baseurl = "http://ctop.sh"
 languageCode = "en-us"
 title = "ctop"
 theme = "hugo-creative-theme"
