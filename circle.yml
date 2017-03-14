@@ -1,15 +1,18 @@
 machine:
   services:
     - docker
+  environment:
+    VERSION: $(cat VERSION)
+    IMAGE_NAME: quay.io/vektorlab/ctop
 
 dependencies:
   override:
     - docker info
     - |
       if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-        docker build -t quay.io/vektorlab/ctop:latest .
+        docker build --build-arg CTOP_VERSION=${VERSION} -t ${IMAGE_NAME}:latest .
       else
-        docker build -t quay.io/vektorlab/ctop:${CIRCLE_BRANCH} .
+        docker build --build-arg CTOP_VERSION=${VERSION} -t ${IMAGE_NAME}:${CIRCLE_BRANCH} .
       fi
 
 test:
@@ -20,5 +23,6 @@ deployment:
   hub:
     branch: master
     commands:
+      - docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${VERSION}
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - docker push quay.io/vektorlab/ctop:latest
+      - docker push ${IMAGE_NAME}

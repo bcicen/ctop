@@ -1,7 +1,10 @@
 FROM quay.io/vektorcloud/glibc:latest
 
-RUN ctop_url=$(wget -q -O - https://api.github.com/repos/bcicen/ctop/releases/latest | grep 'browser_' | cut -d\" -f4 |grep 'linux-amd64') && \
-    wget -q $ctop_url -O /ctop && \
+ARG CTOP_VERSION=0.4.1
+ENV CTOP_URL https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64
+
+RUN echo $CTOP_URL && \
+    wget -q $CTOP_URL -O /ctop && \
     chmod +x /ctop
 
 ENTRYPOINT ["/ctop"]

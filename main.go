@@ -25,6 +25,9 @@ var (
 func main() {
 	defer panicExit()
 
+	// init global config
+	config.Init()
+
 	// parse command line arguments
 	var versionFlag = flag.Bool("v", false, "output version information and exit")
 	var helpFlag = flag.Bool("h", false, "display this help dialog")
@@ -50,9 +53,6 @@ func main() {
 		panic(err)
 	}
 	defer ui.Close()
-
-	// init global config
-	config.Init()
 
 	// override default config values with command line flags
 	if *filterFlag != "" {
