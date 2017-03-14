@@ -100,25 +100,18 @@ func (m *Menu) Buffer() ui.Buffer {
 	return buf
 }
 
-func (m *Menu) Up(ui.Event) {
+func (m *Menu) Up() {
 	if m.cursorPos > 0 {
 		m.cursorPos--
 		ui.Render(m)
 	}
 }
 
-func (m *Menu) Down(ui.Event) {
+func (m *Menu) Down() {
 	if m.cursorPos < (len(m.items) - 1) {
 		m.cursorPos++
 		ui.Render(m)
 	}
-}
-
-// Setup some default handlers for menu navigation
-func (m *Menu) NavigationHandlers() {
-	ui.Handle("/sys/kbd/<up>", m.Up)
-	ui.Handle("/sys/kbd/<down>", m.Down)
-	ui.Handle("/sys/kbd/q", func(ui.Event) { ui.StopLoop() })
 }
 
 // Set width and height based on menu items

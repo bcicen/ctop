@@ -81,11 +81,15 @@ func SortMenu() {
 	// set cursor position to current sort field
 	m.SetCursor(config.GetVal("sortField"))
 
-	ui.Render(m)
-	m.NavigationHandlers()
+	HandleKeys("up", m.Up)
+	HandleKeys("down", m.Down)
+	HandleKeys("exit", ui.StopLoop)
+
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		config.Update("sortField", m.SelectedItem().Val)
 		ui.StopLoop()
 	})
+
+	ui.Render(m)
 	ui.Loop()
 }

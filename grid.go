@@ -44,21 +44,19 @@ func ExpandView(c *Container) {
 
 	ex.Align()
 	ui.Render(ex)
-	ui.Handle("/sys/kbd/<up>", func(ui.Event) { ex.Up() })
-	ui.Handle("/sys/kbd/<down>", func(ui.Event) { ex.Down() })
-	ui.Handle("/timer/1s", func(ui.Event) {
-		ui.Render(ex)
-	})
+
+	HandleKeys("up", ex.Up)
+	HandleKeys("down", ex.Down)
+	ui.Handle("/sys/kbd/", func(ui.Event) { ui.StopLoop() })
+
+	ui.Handle("/timer/1s", func(ui.Event) { ui.Render(ex) })
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		ex.SetWidth(ui.TermWidth())
 		ex.Align()
 		log.Infof("resize: width=%v max-rows=%v", ex.Width, cGrid.MaxRows())
 	})
-	ui.Handle("/sys/kbd/", func(ui.Event) {
-		ui.StopLoop()
-	})
-	ui.Loop()
 
+	ui.Loop()
 	c.SetUpdater(c.Widgets)
 }
 
@@ -79,16 +77,18 @@ func Display() bool {
 	cursor.RefreshContainers()
 	RedrawRows(true)
 
-	ui.Handle("/sys/kbd/<up>", func(ui.Event) { cursor.Up() })
-	ui.Handle("/sys/kbd/<down>", func(ui.Event) { cursor.Down() })
+	HandleKeys("up", cursor.Up)
+	HandleKeys("down", cursor.Down)
+	HandleKeys("exit", ui.StopLoop)
+	HandleKeys("help", func() {
+		menu = HelpMenu
+		ui.StopLoop()
+	})
+
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		expand = true
 		ui.StopLoop()
 	})
-
-	ui.Handle("/sys/kbd/q", func(ui.Event) { ui.StopLoop() })
-	ui.Handle("/sys/kbd/C-c", func(ui.Event) { ui.StopLoop() })
-
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
 		RefreshDisplay()
@@ -98,10 +98,6 @@ func Display() bool {
 	})
 	ui.Handle("/sys/kbd/f", func(ui.Event) {
 		menu = FilterMenu
-		ui.StopLoop()
-	})
-	ui.Handle("/sys/kbd/h", func(ui.Event) {
-		menu = HelpMenu
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/H", func(ui.Event) {
