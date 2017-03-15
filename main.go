@@ -35,6 +35,7 @@ func main() {
 	var activeOnlyFlag = flag.Bool("a", false, "show active containers only")
 	var sortFieldFlag = flag.String("s", "", "select container sort field")
 	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
+	var invertFlag = flag.Bool("i", false, "invert default colors")
 	flag.Parse()
 
 	if *versionFlag == true {
@@ -72,6 +73,9 @@ func main() {
 	}
 
 	// init ui
+	if *invertFlag == true {
+		InvertColorMap()
+	}
 	ui.ColorMap = ColorMap // override default colormap
 	if err := ui.Init(); err != nil {
 		panic(err)

@@ -4,7 +4,7 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var header = NewCompactHeader()
+var header *CompactHeader
 
 type CompactGrid struct {
 	ui.GridBufferer
@@ -16,6 +16,7 @@ type CompactGrid struct {
 }
 
 func NewCompactGrid() *CompactGrid {
+	header = NewCompactHeader() // init column header
 	return &CompactGrid{}
 }
 

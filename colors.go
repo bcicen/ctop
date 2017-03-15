@@ -1,6 +1,10 @@
 package main
 
-import ui "github.com/gizak/termui"
+import (
+	"regexp"
+
+	ui "github.com/gizak/termui"
+)
 
 /*
 Valid colors:
@@ -38,6 +42,17 @@ var ColorMap = map[string]ui.Attribute{
 	"mbarchart.text.fg":  ui.ColorWhite,
 	"par.text.fg":        ui.ColorWhite,
 	"par.text.bg":        ui.ColorDefault,
+	"par.text.hi":        ui.ColorBlack,
 	"sparkline.line.fg":  ui.ColorGreen,
 	"sparkline.title.fg": ui.ColorWhite,
+}
+
+func InvertColorMap() {
+	re := regexp.MustCompile(".*.fg")
+	for k, _ := range ColorMap {
+		if re.FindAllString(k, 1) != nil {
+			ColorMap[k] = ui.ColorBlack
+		}
+	}
+	ColorMap["par.text.hi"] = ui.ColorWhite
 }
