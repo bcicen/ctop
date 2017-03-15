@@ -25,6 +25,10 @@ sudo chmod +x /usr/local/bin/ctop
 #### OS X
 
 ```bash
+brew install slackcat
+```
+or
+```bash
 curl -Lo ctop https://github.com/bcicen/ctop/releases/download/v0.5/ctop-0.5-darwin-amd64
 sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
