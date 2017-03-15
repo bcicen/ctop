@@ -38,12 +38,12 @@ func main() {
 	var invertFlag = flag.Bool("i", false, "invert default colors")
 	flag.Parse()
 
-	if *versionFlag == true {
+	if *versionFlag {
 		printVersion()
 		os.Exit(0)
 	}
 
-	if *helpFlag == true {
+	if *helpFlag {
 		printHelp()
 		os.Exit(0)
 	}
@@ -53,7 +53,7 @@ func main() {
 		config.Update("filterStr", *filterFlag)
 	}
 
-	if *activeOnlyFlag == true {
+	if *activeOnlyFlag {
 		config.Toggle("allContainers")
 	}
 
@@ -62,7 +62,7 @@ func main() {
 		config.Update("sortField", *sortFieldFlag)
 	}
 
-	if *reverseSortFlag == true {
+	if *reverseSortFlag {
 		config.Toggle("sortReversed")
 	}
 
@@ -73,7 +73,7 @@ func main() {
 	}
 
 	// init ui
-	if *invertFlag == true {
+	if *invertFlag {
 		InvertColorMap()
 	}
 	ui.ColorMap = ColorMap // override default colormap
