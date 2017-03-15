@@ -25,7 +25,7 @@ sudo chmod +x /usr/local/bin/ctop
 #### OS X
 
 ```bash
-brew install slackcat
+brew install ctop
 ```
 or
 ```bash
