@@ -35,7 +35,7 @@ or run via Docker:
 docker run -ti --name ctop --rm -v /var/run/docker.sock:/var/run/docker.sock quay.io/vektorlab/ctop:latest
 ```
 
-`ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop/)
+`ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)
 
 ## Building
 
