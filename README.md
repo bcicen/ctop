@@ -73,7 +73,7 @@ Option | Description
 Key | Action
 --- | ---
 a | Toggle display of all (running and non-running) containers
-f | Filter displayed containers
+f | Filter displayed containers (`esc` to clear when open)
 H | Toggle ctop header
 h | Open help dialog
 s | Select container sort field
