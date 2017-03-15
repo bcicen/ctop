@@ -1,6 +1,6 @@
 FROM quay.io/vektorcloud/glibc:latest
 
-ARG CTOP_VERSION=0.4.1
+ARG CTOP_VERSION=0.5
 ENV CTOP_URL https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64
 
 RUN echo $CTOP_URL && \

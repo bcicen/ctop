@@ -17,7 +17,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-wget https://github.com/bcicen/ctop/releases/download/v0.4.1/ctop-0.4.1-linux-amd64 -O ctop
+wget https://github.com/bcicen/ctop/releases/download/v0.5/ctop-0.5-linux-amd64 -O ctop
 sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
 ```
@@ -25,7 +25,7 @@ sudo chmod +x /usr/local/bin/ctop
 #### OS X
 
 ```bash
-curl -Lo ctop https://github.com/bcicen/ctop/releases/download/v0.4.1/ctop-0.4.1-darwin-amd64
+curl -Lo ctop https://github.com/bcicen/ctop/releases/download/v0.5/ctop-0.5-darwin-amd64
 sudo mv ctop /usr/local/bin/
 sudo chmod +x /usr/local/bin/ctop
 ```
@@ -63,6 +63,7 @@ Option | Description
 -a	| show active containers only
 -f <string> | set an initial filter string
 -h	| display help dialog
+-i  | invert default colors
 -r	| reverse container sort order
 -s  | select initial container sort field
 -v	| output version information and exit
