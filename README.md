@@ -53,6 +53,26 @@ glide install && \
 go build
 ```
 
+To build a minimal Docker image containing only `ctop`, follow the build instructions above up through `glide install`, then:
+
+```bash
+CGO_ENABLED=0 go build -a
+[[ ! -d docker-build ]] && mkdir docker-build
+cd docker-build && cp ../ctop ./
+cat > Dockerfile <<- "EOF"
+FROM scratch
+COPY ./ctop /ctop
+ENTRYPOINT ["/ctop"]
+EOF
+docker build -t ctop .
+```
+
+Now you can run ctop as above:
+
+```bash
+docker run -ti --name ctop --rm -v /var/run/docker.sock:/var/run/docker.sock ctop
+```
+
 ## Usage
 
 `ctop` requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
