@@ -49,8 +49,7 @@ To build `ctop` from source, ensure you have a recent version of [glide](http://
 ```bash
 git clone https://github.com/bcicen/ctop.git $GOPATH/src/github.com/bcicen/ctop && \
 cd $GOPATH/src/github.com/bcicen/ctop && \
-glide install && \
-go build
+make build
 ```
 
 To build a minimal Docker image containing only `ctop`, follow the build instructions above up through `glide install`, then:
