@@ -42,7 +42,7 @@ docker run -ti --name ctop --rm -v /var/run/docker.sock:/var/run/docker.sock qua
 
 ## Building
 
-To build `ctop` from source, ensure you have a recent version of [glide](http://glide.sh/) installed and run:
+To build `ctop` from source, ensure you have a recent version of [glide](https://github.com/Masterminds/glide) installed and run:
 
 ```bash
 git clone https://github.com/bcicen/ctop.git $GOPATH/src/github.com/bcicen/ctop && \
