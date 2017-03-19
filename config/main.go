@@ -18,7 +18,6 @@ func Init() {
 		GlobalParams = append(GlobalParams, p)
 		log.Infof("loaded config param: %s: %s", quote(p.Key), quote(p.Val))
 	}
-
 	for _, s := range switches {
 		GlobalSwitches = append(GlobalSwitches, s)
 		log.Infof("loaded config switch: %s: %t", quote(s.Key), s.Val)

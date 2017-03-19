@@ -17,11 +17,6 @@ var switches = []*Switch{
 		Val:   true,
 		Label: "Enable Status Header",
 	},
-	&Switch{
-		Key:   "loggingEnabled",
-		Val:   false,
-		Label: "Enable Logging Server",
-	},
 }
 
 type Switch struct {

@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"os"
 	"time"
 
 	"github.com/op/go-logging"
@@ -13,7 +14,7 @@ const (
 var (
 	Log    *CTopLogger
 	exited bool
-	level  = logging.INFO
+	level  = logging.INFO // default level
 	format = logging.MustStringFormatter(
 		`%{color}%{time:15:04:05.000} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 	)
@@ -31,6 +32,11 @@ func Init() *CTopLogger {
 		Log = &CTopLogger{
 			logging.MustGetLogger("ctop"),
 			logging.NewMemoryBackend(size),
+		}
+
+		if debugMode() {
+			level = logging.DEBUG
+			StartServer()
 		}
 
 		backendLvl := logging.AddModuleLevel(Log.backend)
@@ -71,3 +77,5 @@ func (log *CTopLogger) Exit() {
 	exited = true
 	StopServer()
 }
+
+func debugMode() bool { return os.Getenv("CTOP_DEBUG") == "1" }

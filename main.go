@@ -25,9 +25,6 @@ var (
 func main() {
 	defer panicExit()
 
-	// init global config
-	config.Init()
-
 	// parse command line arguments
 	var versionFlag = flag.Bool("v", false, "output version information and exit")
 	var helpFlag = flag.Bool("h", false, "display this help dialog")
@@ -48,6 +45,12 @@ func main() {
 		os.Exit(0)
 	}
 
+	// init logger
+	log = logging.Init()
+
+	// init global config
+	config.Init()
+
 	// override default config values with command line flags
 	if *filterFlag != "" {
 		config.Update("filterStr", *filterFlag)
@@ -64,12 +67,6 @@ func main() {
 
 	if *reverseSortFlag {
 		config.Toggle("sortReversed")
-	}
-
-	// init logger
-	log = logging.Init()
-	if config.GetSwitchVal("loggingEnabled") {
-		logging.StartServer()
 	}
 
 	// init ui
