@@ -7,7 +7,7 @@ machine:
 dependencies:
   override:
     - docker info
-    - docker build --build-arg CTOP_VERSION=$(cat VERSION) -t ctop .
+    - make image
 
 test:
   override:

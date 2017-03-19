@@ -22,7 +22,7 @@ build-all:
 image:
 	docker build -t ctop_build -f Dockerfile_build .
 	docker run -ti --rm -v $(shell pwd):/target ctop_build cp -v /go/bin/ctop /target/
-	docker build -t ctop -f Dockerfile_minimal .
+	docker build -t ctop -f Dockerfile .
 
 release:
 	mkdir release
