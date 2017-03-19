@@ -42,33 +42,7 @@ docker run -ti --name ctop --rm -v /var/run/docker.sock:/var/run/docker.sock qua
 
 ## Building
 
-To build `ctop` from source, ensure you have a recent version of [glide](https://github.com/Masterminds/glide) installed and run:
-
-```bash
-git clone https://github.com/bcicen/ctop.git $GOPATH/src/github.com/bcicen/ctop && \
-cd $GOPATH/src/github.com/bcicen/ctop && \
-make build
-```
-
-To build a minimal Docker image containing only `ctop`, follow the build instructions above up through `glide install`, then:
-
-```bash
-CGO_ENABLED=0 go build -a
-[[ ! -d docker-build ]] && mkdir docker-build
-cd docker-build && cp ../ctop ./
-cat > Dockerfile <<- "EOF"
-FROM scratch
-COPY ./ctop /ctop
-ENTRYPOINT ["/ctop"]
-EOF
-docker build -t ctop .
-```
-
-Now you can run ctop as above:
-
-```bash
-docker run -ti --name ctop --rm -v /var/run/docker.sock:/var/run/docker.sock ctop
-```
+Build steps can be found [here][build].
 
 ## Usage
 
@@ -102,4 +76,5 @@ s | Select container sort field
 r | Reverse container sort order
 q | Quit ctop
 
+[build]: _docs/build.md
 [expanded_view]: _docs/expanded.md
