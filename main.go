@@ -20,6 +20,8 @@ var (
 	cursor *GridCursor
 	cGrid  *compact.CompactGrid
 	header *widgets.CTopHeader
+
+	versionStr = fmt.Sprintf("ctop version %v, build %v", version, build)
 )
 
 func main() {
@@ -36,7 +38,7 @@ func main() {
 	flag.Parse()
 
 	if *versionFlag {
-		printVersion()
+		fmt.Println(versionStr)
 		os.Exit(0)
 	}
 
@@ -77,8 +79,8 @@ func main() {
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
-	defer ui.Close()
 
+	defer Shutdown()
 	// init grid, cursor, header
 	cursor = NewGridCursor()
 	cGrid = compact.NewCompactGrid()
@@ -87,11 +89,15 @@ func main() {
 	for {
 		exit := Display()
 		if exit {
-			log.Notice("shutting down")
-			log.Exit()
 			return
 		}
 	}
+}
+
+func Shutdown() {
+	log.Notice("shutting down")
+	log.Exit()
+	ui.Close()
 }
 
 // ensure a given sort field is valid
@@ -104,7 +110,7 @@ func validSort(s string) {
 
 func panicExit() {
 	if r := recover(); r != nil {
-		ui.Clear()
+		Shutdown()
 		fmt.Printf("panic: %s\n", r)
 		os.Exit(1)
 	}
@@ -120,8 +126,4 @@ options:
 func printHelp() {
 	fmt.Println(helpMsg)
 	flag.PrintDefaults()
-}
-
-func printVersion() {
-	fmt.Printf("ctop version %v, build %v\n", version, build)
 }
