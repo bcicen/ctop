@@ -79,6 +79,10 @@ func Display() bool {
 
 	HandleKeys("up", cursor.Up)
 	HandleKeys("down", cursor.Down)
+
+	HandleKeys("pgup", cursor.PgUp)
+	HandleKeys("pgdown", cursor.PgDown)
+
 	HandleKeys("exit", ui.StopLoop)
 	HandleKeys("help", func() {
 		menu = HelpMenu
