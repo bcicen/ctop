@@ -1,6 +1,7 @@
 package main
 
 import (
+    "math"
 	ui "github.com/gizak/termui"
 )
 
@@ -128,5 +129,50 @@ func (gc *GridCursor) Down() {
 	next.Widgets.Name.Highlight()
 
 	gc.ScrollPage()
+	ui.Render(cGrid)
+}
+
+func (gc *GridCursor) PgUp() {
+    idx := gc.Idx()
+	if idx <= 0 { // already at top
+		return
+	}
+
+	var nextidx int
+	nextidx = int(math.Max(0.0, float64(idx - cGrid.MaxRows())))
+	cGrid.Offset = int(math.Max(float64(cGrid.Offset - cGrid.MaxRows()),
+		float64(0)))
+
+	active := gc.filtered[idx]
+	next   := gc.filtered[nextidx]
+
+	active.Widgets.Name.UnHighlight()
+	gc.selectedID = next.Id
+	next.Widgets.Name.Highlight()
+	
+	cGrid.Align()
+	ui.Render(cGrid)
+}
+
+func (gc *GridCursor) PgDown() {
+    idx := gc.Idx()
+	if idx >= gc.Len()-1 { // already at bottom
+		return
+	}
+
+	var nextidx int
+	nextidx = int(math.Min(float64(gc.Len() - 1),
+		float64(idx + cGrid.MaxRows())))
+	cGrid.Offset = int(math.Min(float64(cGrid.Offset + cGrid.MaxRows()),
+		float64(gc.Len() - cGrid.MaxRows())))
+
+	active := gc.filtered[idx]
+	next   := gc.filtered[nextidx]
+
+	active.Widgets.Name.UnHighlight()
+	gc.selectedID = next.Id
+	next.Widgets.Name.Highlight()
+
+	cGrid.Align()
 	ui.Render(cGrid)
 }
