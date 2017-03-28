@@ -5,7 +5,6 @@ import (
 )
 
 // Common action keybindings
-// Common action keybindings
 var keyMap = map[string][]string{
 	"up": []string{
 		"/sys/kbd/<up>",
@@ -22,7 +21,7 @@ var keyMap = map[string][]string{
 	"pgdown": []string{
 		"/sys/kbd/<next>",
 		"/sys/kbd/C-<down>",
-    },
+	},
 	"exit": []string{
 		"/sys/kbd/q",
 		"/sys/kbd/C-c",
