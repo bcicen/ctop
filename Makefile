@@ -21,7 +21,9 @@ build-all:
 
 image:
 	docker build -t ctop_build -f Dockerfile_build .
-	docker run -ti --rm -v $(shell pwd):/target ctop_build cp -v /go/bin/ctop /target/
+	docker create --name=ctop_built ctop_build ctop -v
+	docker cp ctop_built:/go/bin/ctop .
+	docker rm -vf ctop_built
 	docker build -t ctop -f Dockerfile .
 
 release:
