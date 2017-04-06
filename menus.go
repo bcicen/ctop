@@ -39,14 +39,14 @@ func FilterMenu() {
 	i := widgets.NewInput()
 	i.BorderLabel = "Filter"
 	i.SetY(ui.TermHeight() - i.Height)
-	i.Data = config.GetVal("filterStr")
+	i.Data = config.GetVal("FilterStr")
 	ui.Render(i)
 
 	// refresh container rows on input
 	stream := i.Stream()
 	go func() {
 		for s := range stream {
-			config.Update("filterStr", s)
+			config.Update("FilterStr", s)
 			RefreshDisplay()
 			ui.Render(i)
 		}
@@ -54,11 +54,11 @@ func FilterMenu() {
 
 	i.InputHandlers()
 	ui.Handle("/sys/kbd/<escape>", func(ui.Event) {
-		config.Update("filterStr", "")
+		config.Update("FilterStr", "")
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		config.Update("filterStr", i.Data)
+		config.Update("FilterStr", i.Data)
 		ui.StopLoop()
 	})
 	ui.Loop()
@@ -79,14 +79,14 @@ func SortMenu() {
 	}
 
 	// set cursor position to current sort field
-	m.SetCursor(config.GetVal("sortField"))
+	m.SetCursor(config.GetVal("SortField"))
 
 	HandleKeys("up", m.Up)
 	HandleKeys("down", m.Down)
 	HandleKeys("exit", ui.StopLoop)
 
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		config.Update("sortField", m.SelectedItem().Val)
+		config.Update("SortField", m.SelectedItem().Val)
 		ui.StopLoop()
 	})
 

@@ -92,7 +92,7 @@ type Containers []*Container
 func (a Containers) Len() int      { return len(a) }
 func (a Containers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a Containers) Less(i, j int) bool {
-	f := Sorters[config.GetVal("sortField")]
+	f := Sorters[config.GetVal("SortField")]
 	if config.GetSwitchVal("sortReversed") {
 		return f(a[j], a[i])
 	}
@@ -100,7 +100,7 @@ func (a Containers) Less(i, j int) bool {
 }
 
 func (a Containers) Filter() {
-	filter := config.GetVal("filterStr")
+	filter := config.GetVal("FilterStr")
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
 	for _, c := range a {

@@ -14,7 +14,7 @@ func RedrawRows(clr bool) {
 	y := 1
 	if config.GetSwitchVal("enableHeader") {
 		header.SetCount(cursor.Len())
-		header.SetFilter(config.GetVal("filterStr"))
+		header.SetFilter(config.GetVal("FilterStr"))
 		y += header.Height()
 	}
 	cGrid.SetY(y)

@@ -7,17 +7,17 @@ import (
 	"github.com/bcicen/ctop/logging"
 )
 
+var Config struct {
+	Params
+}
+
 var (
-	GlobalParams   []*Param
 	GlobalSwitches []*Switch
 	log            = logging.Init()
 )
 
 func Init() {
-	for _, p := range params {
-		GlobalParams = append(GlobalParams, p)
-		log.Infof("loaded config param: %s: %s", quote(p.Key), quote(p.Val))
-	}
+	initParams()
 	for _, s := range switches {
 		GlobalSwitches = append(GlobalSwitches, s)
 		log.Infof("loaded config switch: %s: %t", quote(s.Key), s.Val)
