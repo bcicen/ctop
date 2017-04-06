@@ -35,7 +35,7 @@ func GetSwitchVal(k string) bool {
 // Set param value
 func Toggle(k string) {
 	p := Get(k)
-	if p.CanSet() {
+	if p.CanSet() && p.Kind().String() == "bool" {
 		log.Noticef("config change: %s: %b -> %b", k, p.Bool(), p.Bool() != true)
 		p.SetBool(p.Bool() != true)
 	} else {

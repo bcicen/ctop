@@ -33,7 +33,7 @@ func GetVal(k string) string {
 // Set param value
 func Update(k, v string) {
 	p := Get(k)
-	if p.CanSet() {
+	if p.CanSet() && p.Kind().String() == "string" {
 		log.Noticef("config change: %s: %s -> %s", k, quote(p.String()), quote(v))
 		p.SetString(v)
 	} else {
