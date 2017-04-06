@@ -59,7 +59,7 @@ func main() {
 	}
 
 	if *activeOnlyFlag {
-		config.Toggle("allContainers")
+		config.Toggle("AllContainers")
 	}
 
 	if *SortFieldFlag != "" {
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	if *reverseSortFlag {
-		config.Toggle("sortReversed")
+		config.Toggle("SortReversed")
 	}
 
 	// init ui

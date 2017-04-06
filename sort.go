@@ -93,7 +93,7 @@ func (a Containers) Len() int      { return len(a) }
 func (a Containers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a Containers) Less(i, j int) bool {
 	f := Sorters[config.GetVal("SortField")]
-	if config.GetSwitchVal("sortReversed") {
+	if config.GetSwitchVal("SortReversed") {
 		return f(a[j], a[i])
 	}
 	return f(a[i], a[j])
@@ -110,7 +110,7 @@ func (a Containers) Filter() {
 			c.display = false
 		}
 		// Apply state filter
-		if !config.GetSwitchVal("allContainers") && c.GetMeta("state") != "running" {
+		if !config.GetSwitchVal("AllContainers") && c.GetMeta("state") != "running" {
 			c.display = false
 		}
 	}

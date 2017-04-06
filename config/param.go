@@ -10,25 +10,6 @@ type Params struct {
 	SortField string // Container Sort Field
 }
 
-var params = []*Param{
-	&Param{
-		Key:   "filterStr",
-		Val:   "",
-		Label: "Container Name or ID Filter",
-	},
-	&Param{
-		Key:   "sortField",
-		Val:   "state",
-		Label: "Container Sort Field",
-	},
-}
-
-type Param struct {
-	Key   string
-	Val   string
-	Label string
-}
-
 func initParams() {
 	Config.FilterStr = ""
 	Config.SortField = "state"

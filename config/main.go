@@ -9,19 +9,16 @@ import (
 
 var Config struct {
 	Params
+	Switches
 }
 
 var (
-	GlobalSwitches []*Switch
-	log            = logging.Init()
+	log = logging.Init()
 )
 
 func Init() {
 	initParams()
-	for _, s := range switches {
-		GlobalSwitches = append(GlobalSwitches, s)
-		log.Infof("loaded config switch: %s: %t", quote(s.Key), s.Val)
-	}
+	initSwitches()
 }
 
 func quote(s string) string {
