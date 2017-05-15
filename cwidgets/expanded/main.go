@@ -18,7 +18,6 @@ type Expanded struct {
 	Cpu   *Cpu
 	Mem   *Mem
 	IO    *IO
-	Ports *Ports
 	X, Y  int
 	Width int
 }
@@ -33,7 +32,6 @@ func NewExpanded(id string) *Expanded {
 		Cpu:   NewCpu(),
 		Mem:   NewMem(),
 		IO:    NewIO(),
-		Ports: NewPorts(),
 		Width: ui.TermWidth(),
 	}
 }
@@ -62,7 +60,6 @@ func (e *Expanded) SetMetrics(m metrics.Metrics) {
 	e.Net.Update(m.NetRx, m.NetTx)
 	e.Mem.Update(int(m.MemUsage), int(m.MemLimit))
 	e.IO.Update(m.IOBytesRead, m.IOBytesWrite)
-	e.Ports.Update(m.PortsExposed, m.PortsOpen)
 }
 
 // Return total column height
@@ -72,7 +69,6 @@ func (e *Expanded) GetHeight() (h int) {
 	h += e.Cpu.Height
 	h += e.Mem.Height
 	h += e.IO.Height
-	h += e.Ports.Height
 	return h
 }
 
@@ -110,7 +106,6 @@ func (e *Expanded) Buffer() ui.Buffer {
 	buf.Merge(e.Mem.Buffer())
 	buf.Merge(e.Net.Buffer())
 	buf.Merge(e.IO.Buffer())
-	buf.Merge(e.Ports.Buffer())
 	return buf
 }
 
@@ -118,7 +113,6 @@ func (e *Expanded) all() []ui.GridBufferer {
 	return []ui.GridBufferer{
 		e.Info,
 		e.Cpu,
-		e.Ports,
 		e.Mem,
 		e.Net,
 		e.IO,

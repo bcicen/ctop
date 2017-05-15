@@ -46,7 +46,6 @@ func (c *Docker) Start() {
 			c.ReadCPU(s)
 			c.ReadMem(s)
 			c.ReadNet(s)
-			c.ReadPorts()
 			c.ReadIO(s)
 			c.stream <- c.Metrics
 		}
@@ -88,27 +87,6 @@ func (c *Docker) ReadMem(stats *api.Stats) {
 	c.MemUsage = int64(stats.MemoryStats.Usage)
 	c.MemLimit = int64(stats.MemoryStats.Limit)
 	c.MemPercent = round((float64(c.MemUsage) / float64(c.MemLimit)) * 100)
-}
-
-func (c *Docker) ReadPorts() {
-	containers, err := c.client.ListContainers(api.ListContainersOptions{All: true})
-	if err != nil {
-		log.Infof("Error gathering containers")
-		return
-	}
-	for _, container := range containers {
-		if container.ID == c.id {
-			c.PortsOpen = [][]int64{}
-			c.PortsExposed = []int64{}
-			for _, port := range container.Ports {
-				if port.PublicPort > 0 {
-					c.PortsOpen = append(c.PortsOpen, []int64{port.PrivatePort, port.PublicPort})
-				} else {
-					c.PortsExposed = append(c.PortsExposed, port.PrivatePort)
-				}
-			}
-		}
-	}
 }
 
 func (c *Docker) ReadNet(stats *api.Stats) {

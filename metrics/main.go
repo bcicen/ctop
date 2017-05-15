@@ -18,22 +18,18 @@ type Metrics struct {
 	IOBytesRead  int64
 	IOBytesWrite int64
 	Pids         int
-	PortsExposed []int64
-	PortsOpen    [][]int64
 }
 
 func NewMetrics() Metrics {
 	return Metrics{
-		CPUUtil:      -1,
-		NetTx:        -1,
-		NetRx:        -1,
-		MemUsage:     -1,
-		MemPercent:   -1,
-		IOBytesRead:  -1,
-		IOBytesWrite: -1,
-		Pids:         -1,
-		PortsExposed: nil,
-		PortsOpen:    nil,
+		CPUUtil:           -1,
+		NetTx:             -1,
+		NetRx:             -1,
+		MemUsage:          -1,
+		MemPercent:        -1,
+		IOBytesRead:       -1,
+		IOBytesWrite:      -1,
+		Pids:              -1,
 	}
 }
 
