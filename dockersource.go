@@ -60,6 +60,24 @@ func (cm *DockerContainerSource) watchEvents() {
 	}
 }
 
+func portsFormat(ports map[docker.Port][]docker.PortBinding) string {
+	res := ""
+	for k, v := range ports {
+		res += string(k)
+		if len(v) > 0 {
+			res += " -> ["
+			for i, p := range v {
+				res += p.HostPort
+				if i < len(v)-1 {
+					res += ","
+				}
+			}
+			res += "] "
+		}
+	}
+	return res
+}
+
 func (cm *DockerContainerSource) refresh(c *Container) {
 	insp := cm.inspect(c.Id)
 	// remove container if no longer exists
@@ -69,6 +87,7 @@ func (cm *DockerContainerSource) refresh(c *Container) {
 	}
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
+	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetState(insp.State.Status)
 }
