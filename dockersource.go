@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -61,21 +62,21 @@ func (cm *DockerContainerSource) watchEvents() {
 }
 
 func portsFormat(ports map[docker.Port][]docker.PortBinding) string {
-	res := ""
+	var exposed []string
+	var published []string
+
 	for k, v := range ports {
-		res += string(k)
-		if len(v) > 0 {
-			res += " -> ["
-			for i, p := range v {
-				res += p.HostPort
-				if i < len(v)-1 {
-					res += ","
-				}
-			}
-			res += "] "
+		if len(v) == 0 {
+			exposed = append(exposed, string(k))
+			continue
+		}
+		for _, binding := range v {
+			s := fmt.Sprintf("%s -> %s:%s", k, binding.HostIP, binding.HostPort)
+			published = append(published, s)
 		}
 	}
-	return res
+
+	return strings.Join(append(exposed, published...), "\n")
 }
 
 func (cm *DockerContainerSource) refresh(c *Container) {
