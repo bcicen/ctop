@@ -78,4 +78,5 @@ func (log *CTopLogger) Exit() {
 	StopServer()
 }
 
-func debugMode() bool { return os.Getenv("CTOP_DEBUG") == "1" }
+func debugMode() bool    { return os.Getenv("CTOP_DEBUG") == "1" }
+func debugModeTCP() bool { return os.Getenv("CTOP_DEBUG_TCP") == "1" }

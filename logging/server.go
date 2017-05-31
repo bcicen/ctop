@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	path = "./ctop.sock"
+	socketPath = "./ctop.sock"
+	socketAddr = "0.0.0.0:9000"
 )
 
 var server struct {
@@ -16,7 +17,13 @@ var server struct {
 }
 
 func getListener() net.Listener {
-	ln, err := net.Listen("unix", path)
+	var ln net.Listener
+	var err error
+	if debugModeTCP() {
+		ln, err = net.Listen("tcp", socketAddr)
+	} else {
+		ln, err = net.Listen("unix", socketPath)
+	}
 	if err != nil {
 		panic(err)
 	}
