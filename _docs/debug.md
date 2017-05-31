@@ -22,3 +22,16 @@ example output:
 15:06:43.883 ▶ INFO 008 collector started for container: 7120f83ca...
 ...
 ```
+
+## TCP Logging Socket
+
+In lieu of using a local unix socket, TCP logging can be enabled via the `CTOP_DEBUG_TCP` environment variable:
+
+```bash
+CTOP_DEBUG=1 CTOP_DEBUG_TCP=1 ./ctop
+```
+
+Messages can be followed by connecting to the default listen address:
+```bash
+curl -s localhost:9000
+```
