@@ -8,7 +8,7 @@ CTOP_DEBUG=1 ./ctop
 
 While `ctop` is running, you can connect to the logging socket via socat or similar tools:
 ```bash
-socat unix-connect:/tmp/ctop.sock stdio
+socat unix-connect:./ctop.sock stdio
 ```
 
 example output:

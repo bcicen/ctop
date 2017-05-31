@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	path = "/tmp/ctop.sock"
+	path = "./ctop.sock"
 )
 
 var server struct {
