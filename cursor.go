@@ -16,7 +16,8 @@ type GridCursor struct {
 
 func NewGridCursor() *GridCursor {
 	return &GridCursor{
-		cSource: connector.NewDocker(),
+		cSource: connector.NewRunc(),
+		//cSource: connector.NewDocker(),
 	}
 }
 
