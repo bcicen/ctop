@@ -14,19 +14,19 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
-type MockContainerSource struct {
+type Mock struct {
 	containers container.Containers
 }
 
-func NewMockContainerSource() *MockContainerSource {
-	cs := &MockContainerSource{}
+func NewMock() *Mock {
+	cs := &Mock{}
 	go cs.Init()
 	go cs.Loop()
 	return cs
 }
 
 // Create Mock containers
-func (cs *MockContainerSource) Init() {
+func (cs *Mock) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < 4; i++ {
@@ -39,7 +39,7 @@ func (cs *MockContainerSource) Init() {
 
 }
 
-func (cs *MockContainerSource) makeContainer(aggression int64) {
+func (cs *Mock) makeContainer(aggression int64) {
 	collector := metrics.NewMock(aggression)
 	c := container.New(makeID(), collector)
 	c.SetMeta("name", makeName())
@@ -47,7 +47,7 @@ func (cs *MockContainerSource) makeContainer(aggression int64) {
 	cs.containers = append(cs.containers, c)
 }
 
-func (cs *MockContainerSource) Loop() {
+func (cs *Mock) Loop() {
 	iter := 0
 	for {
 		// Change state for random container
@@ -61,7 +61,7 @@ func (cs *MockContainerSource) Loop() {
 }
 
 // Get a single container, by ID
-func (cs *MockContainerSource) Get(id string) (*container.Container, bool) {
+func (cs *Mock) Get(id string) (*container.Container, bool) {
 	for _, c := range cs.containers {
 		if c.Id == id {
 			return c, true
@@ -71,14 +71,14 @@ func (cs *MockContainerSource) Get(id string) (*container.Container, bool) {
 }
 
 // Return array of all containers, sorted by field
-func (cs *MockContainerSource) All() container.Containers {
+func (cs *Mock) All() container.Containers {
 	sort.Sort(cs.containers)
 	cs.containers.Filter()
 	return cs.containers
 }
 
 // Remove containers by ID
-func (cs *MockContainerSource) delByID(id string) {
+func (cs *Mock) delByID(id string) {
 	for n, c := range cs.containers {
 		if c.Id == id {
 			cs.del(n)
@@ -88,7 +88,7 @@ func (cs *MockContainerSource) delByID(id string) {
 }
 
 // Remove one or more containers by index
-func (cs *MockContainerSource) del(idx ...int) {
+func (cs *Mock) del(idx ...int) {
 	for _, i := range idx {
 		cs.containers = append(cs.containers[:i], cs.containers[i+1:]...)
 	}
