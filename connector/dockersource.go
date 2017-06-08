@@ -1,4 +1,4 @@
-package main
+package connector
 
 import (
 	"fmt"
@@ -6,18 +6,24 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bcicen/ctop/container"
+	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/metrics"
 	"github.com/fsouza/go-dockerclient"
 )
 
+var (
+	log = logging.Init()
+)
+
 type ContainerSource interface {
-	All() Containers
-	Get(string) (*Container, bool)
+	All() container.Containers
+	Get(string) (*container.Container, bool)
 }
 
 type DockerContainerSource struct {
 	client       *docker.Client
-	containers   map[string]*Container
+	containers   map[string]*container.Container
 	needsRefresh chan string // container IDs requiring refresh
 	lock         sync.RWMutex
 }
@@ -30,7 +36,7 @@ func NewDockerContainerSource() *DockerContainerSource {
 	}
 	cm := &DockerContainerSource{
 		client:       client,
-		containers:   make(map[string]*Container),
+		containers:   make(map[string]*container.Container),
 		needsRefresh: make(chan string, 60),
 		lock:         sync.RWMutex{},
 	}
@@ -79,7 +85,7 @@ func portsFormat(ports map[docker.Port][]docker.PortBinding) string {
 	return strings.Join(append(exposed, published...), "\n")
 }
 
-func (cm *DockerContainerSource) refresh(c *Container) {
+func (cm *DockerContainerSource) refresh(c *container.Container) {
 	insp := cm.inspect(c.Id)
 	// remove container if no longer exists
 	if insp == nil {
@@ -127,14 +133,14 @@ func (cm *DockerContainerSource) Loop() {
 }
 
 // Get a single container, creating one anew if not existing
-func (cm *DockerContainerSource) MustGet(id string) *Container {
+func (cm *DockerContainerSource) MustGet(id string) *container.Container {
 	c, ok := cm.Get(id)
 	// append container struct for new containers
 	if !ok {
 		// create collector
 		collector := metrics.NewDocker(cm.client, id)
 		// create container
-		c = NewContainer(id, collector)
+		c = container.New(id, collector)
 		cm.lock.Lock()
 		cm.containers[id] = c
 		cm.lock.Unlock()
@@ -143,7 +149,7 @@ func (cm *DockerContainerSource) MustGet(id string) *Container {
 }
 
 // Get a single container, by ID
-func (cm *DockerContainerSource) Get(id string) (*Container, bool) {
+func (cm *DockerContainerSource) Get(id string) (*container.Container, bool) {
 	cm.lock.Lock()
 	c, ok := cm.containers[id]
 	cm.lock.Unlock()
@@ -159,7 +165,7 @@ func (cm *DockerContainerSource) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *DockerContainerSource) All() (containers Containers) {
+func (cm *DockerContainerSource) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)

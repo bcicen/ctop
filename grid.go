@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/expanded"
 	ui "github.com/gizak/termui"
 )
@@ -34,7 +35,7 @@ func RedrawRows(clr bool) {
 	ui.Render(cGrid)
 }
 
-func ExpandView(c *Container) {
+func ExpandView(c *container.Container) {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()

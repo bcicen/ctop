@@ -1,9 +1,14 @@
-package main
+package container
 
 import (
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
+	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/metrics"
+)
+
+var (
+	log = logging.Init()
 )
 
 // Metrics and metadata representing a container
@@ -12,12 +17,12 @@ type Container struct {
 	Id        string
 	Meta      map[string]string
 	Widgets   *compact.Compact
+	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
 	collector metrics.Collector
-	display   bool // display this container in compact view
 }
 
-func NewContainer(id string, collector metrics.Collector) *Container {
+func New(id string, collector metrics.Collector) *Container {
 	widgets := compact.NewCompact(id)
 	return &Container{
 		Metrics:   metrics.NewMetrics(),

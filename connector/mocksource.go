@@ -1,6 +1,6 @@
 // +build !release
 
-package main
+package connector
 
 import (
 	"math/rand"
@@ -8,13 +8,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/metrics"
 	"github.com/jgautheron/codename-generator"
 	"github.com/nu7hatch/gouuid"
 )
 
 type MockContainerSource struct {
-	containers Containers
+	containers container.Containers
 }
 
 func NewMockContainerSource() *MockContainerSource {
@@ -40,7 +41,7 @@ func (cs *MockContainerSource) Init() {
 
 func (cs *MockContainerSource) makeContainer(aggression int64) {
 	collector := metrics.NewMock(aggression)
-	c := NewContainer(makeID(), collector)
+	c := container.New(makeID(), collector)
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
 	cs.containers = append(cs.containers, c)
@@ -60,7 +61,7 @@ func (cs *MockContainerSource) Loop() {
 }
 
 // Get a single container, by ID
-func (cs *MockContainerSource) Get(id string) (*Container, bool) {
+func (cs *MockContainerSource) Get(id string) (*container.Container, bool) {
 	for _, c := range cs.containers {
 		if c.Id == id {
 			return c, true
@@ -70,7 +71,7 @@ func (cs *MockContainerSource) Get(id string) (*Container, bool) {
 }
 
 // Return array of all containers, sorted by field
-func (cs *MockContainerSource) All() Containers {
+func (cs *MockContainerSource) All() container.Containers {
 	sort.Sort(cs.containers)
 	cs.containers.Filter()
 	return cs.containers

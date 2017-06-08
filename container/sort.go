@@ -1,4 +1,4 @@
-package main
+package container
 
 import (
 	"fmt"
@@ -104,14 +104,14 @@ func (a Containers) Filter() {
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
 	for _, c := range a {
-		c.display = true
+		c.Display = true
 		// Apply name filter
 		if re.FindAllString(c.GetMeta("name"), 1) == nil {
-			c.display = false
+			c.Display = false
 		}
 		// Apply state filter
 		if !config.GetSwitchVal("allContainers") && c.GetMeta("state") != "running" {
-			c.display = false
+			c.Display = false
 		}
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/widgets"
@@ -102,7 +103,7 @@ func Shutdown() {
 
 // ensure a given sort field is valid
 func validSort(s string) {
-	if _, ok := Sorters[s]; !ok {
+	if _, ok := container.Sorters[s]; !ok {
 		fmt.Printf("invalid sort field: %s\n", s)
 		os.Exit(1)
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
@@ -74,7 +75,7 @@ func SortMenu() {
 	m.SortItems = true
 	m.BorderLabel = "Sort Field"
 
-	for _, field := range SortFields() {
+	for _, field := range container.SortFields() {
 		m.AddItems(menu.Item{field, ""})
 	}
 

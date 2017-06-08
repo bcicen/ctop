@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/bcicen/ctop/container"
 	ui "github.com/gizak/termui"
 )
 
@@ -19,7 +20,7 @@ func logEvent(e ui.Event) {
 }
 
 // log container, metrics, and widget state
-func dumpContainer(c *Container) {
+func dumpContainer(c *container.Container) {
 	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
 	for k, v := range c.Meta {
 		msg += fmt.Sprintf("Meta.%s = %s\n", k, v)

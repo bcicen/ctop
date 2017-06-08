@@ -3,24 +3,26 @@ package main
 import (
 	"math"
 
+	"github.com/bcicen/ctop/connector"
+	"github.com/bcicen/ctop/container"
 	ui "github.com/gizak/termui"
 )
 
 type GridCursor struct {
 	selectedID string // id of currently selected container
-	filtered   Containers
-	cSource    ContainerSource
+	filtered   container.Containers
+	cSource    connector.ContainerSource
 }
 
 func NewGridCursor() *GridCursor {
 	return &GridCursor{
-		cSource: NewDockerContainerSource(),
+		cSource: connector.NewDockerContainerSource(),
 	}
 }
 
 func (gc *GridCursor) Len() int { return len(gc.filtered) }
 
-func (gc *GridCursor) Selected() *Container {
+func (gc *GridCursor) Selected() *container.Container {
 	idx := gc.Idx()
 	if idx < gc.Len() {
 		return gc.filtered[idx]
@@ -33,10 +35,10 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
 
 	// Containers filtered by display bool
-	gc.filtered = Containers{}
+	gc.filtered = container.Containers{}
 	var cursorVisible bool
 	for _, c := range gc.cSource.All() {
-		if c.display {
+		if c.Display {
 			if c.Id == gc.selectedID {
 				cursorVisible = true
 			}
