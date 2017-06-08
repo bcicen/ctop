@@ -11,6 +11,7 @@ import (
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
+	tm "github.com/nsf/termbox-go"
 )
 
 var (
@@ -72,6 +73,12 @@ func main() {
 		config.Toggle("sortReversed")
 	}
 
+	defer Shutdown()
+	// init grid, cursor, header
+	cursor = NewGridCursor()
+	cGrid = compact.NewCompactGrid()
+	header = widgets.NewCTopHeader()
+
 	// init ui
 	if *invertFlag {
 		InvertColorMap()
@@ -80,12 +87,6 @@ func main() {
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
-
-	defer Shutdown()
-	// init grid, cursor, header
-	cursor = NewGridCursor()
-	cGrid = compact.NewCompactGrid()
-	header = widgets.NewCTopHeader()
 
 	for {
 		exit := Display()
@@ -98,7 +99,9 @@ func main() {
 func Shutdown() {
 	log.Notice("shutting down")
 	log.Exit()
-	ui.Close()
+	if tm.IsInit {
+		ui.Close()
+	}
 }
 
 // ensure a given sort field is valid
