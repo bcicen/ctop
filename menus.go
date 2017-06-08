@@ -83,7 +83,7 @@ func SortMenu() {
 
 	HandleKeys("up", m.Up)
 	HandleKeys("down", m.Down)
-	HandleKeys("exit", ui.StopLoop)
+	HandleKeys("esc", ui.StopLoop)
 
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		config.Update("sortField", m.SelectedItem().Val)

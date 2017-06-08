@@ -27,6 +27,9 @@ var keyMap = map[string][]string{
 		"/sys/kbd/C-c",
 		"/sys/kbd/<escape>",
 	},
+	"esc": []string{
+		"/sys/kbd/<escape>",
+	},
 	"help": []string{
 		"/sys/kbd/h",
 		"/sys/kbd/?",
