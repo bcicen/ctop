@@ -1,50 +1,44 @@
 package config
 
+import (
+	"reflect"
+)
+
 // defaults
-var switches = []*Switch{
-	&Switch{
-		Key:   "sortReversed",
-		Val:   false,
-		Label: "Reverse Sort Order",
-	},
-	&Switch{
-		Key:   "allContainers",
-		Val:   true,
-		Label: "Show All Containers",
-	},
-	&Switch{
-		Key:   "enableHeader",
-		Val:   true,
-		Label: "Enable Status Header",
-	},
+type Switches struct {
+	SortReversed  bool // Reverse Sort Order
+	AllContainers bool // Show All Containers
+	EnableHeader  bool // Enable Status Header
 }
 
-type Switch struct {
-	Key   string
-	Val   bool
-	Label string
+func initSwitches() {
+	Config.SortReversed = false
+	Config.AllContainers = true
+	Config.EnableHeader = true
 }
 
-// Return Switch by key
-func GetSwitch(k string) *Switch {
-	for _, sw := range GlobalSwitches {
-		if sw.Key == k {
-			return sw
-		}
-	}
-	return &Switch{} // default
+// Get Param by key
+func GetSwitch(k string) reflect.Value {
+	return reflect.ValueOf(&Config).Elem().FieldByName(k)
 }
 
-// Return Switch value by key
+// Get Param value by key
 func GetSwitchVal(k string) bool {
-	return GetSwitch(k).Val
+	p := Get(k)
+	if p.Kind().String() != "bool" {
+		log.Errorf("Tried to access a " + p.Kind().String() + " named " + k + " as a Bool Param")
+		return false
+	}
+	return p.Bool()
 }
 
-// Toggle a boolean switch
+// Set param value
 func Toggle(k string) {
-	sw := GetSwitch(k)
-	newVal := sw.Val != true
-	log.Noticef("config change: %s: %t -> %t", k, sw.Val, newVal)
-	sw.Val = newVal
-	//log.Errorf("ignoring toggle for non-existant switch: %s", k)
+	p := Get(k)
+	if p.CanSet() && p.Kind().String() == "bool" {
+		log.Noticef("config change: %s: %b -> %b", k, p.Bool(), p.Bool() != true)
+		p.SetBool(p.Bool() != true)
+	} else {
+		log.Errorf("ignoring toggle for non-existent switch: %s", k)
+	}
 }

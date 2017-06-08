@@ -32,7 +32,7 @@ func main() {
 	var helpFlag = flag.Bool("h", false, "display this help dialog")
 	var filterFlag = flag.String("f", "", "filter containers")
 	var activeOnlyFlag = flag.Bool("a", false, "show active containers only")
-	var sortFieldFlag = flag.String("s", "", "select container sort field")
+	var SortFieldFlag = flag.String("s", "", "select container sort field")
 	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
 	var invertFlag = flag.Bool("i", false, "invert default colors")
 	flag.Parse()
@@ -55,20 +55,20 @@ func main() {
 
 	// override default config values with command line flags
 	if *filterFlag != "" {
-		config.Update("filterStr", *filterFlag)
+		config.Update("FilterStr", *filterFlag)
 	}
 
 	if *activeOnlyFlag {
-		config.Toggle("allContainers")
+		config.Toggle("AllContainers")
 	}
 
-	if *sortFieldFlag != "" {
-		validSort(*sortFieldFlag)
-		config.Update("sortField", *sortFieldFlag)
+	if *SortFieldFlag != "" {
+		validSort(*SortFieldFlag)
+		config.Update("SortField", *SortFieldFlag)
 	}
 
 	if *reverseSortFlag {
-		config.Toggle("sortReversed")
+		config.Toggle("SortReversed")
 	}
 
 	// init ui

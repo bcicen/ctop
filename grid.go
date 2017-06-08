@@ -12,9 +12,9 @@ func RedrawRows(clr bool) {
 
 	// build layout
 	y := 1
-	if config.GetSwitchVal("enableHeader") {
+	if config.GetSwitchVal("EnableHeader") {
 		header.SetCount(cursor.Len())
-		header.SetFilter(config.GetVal("filterStr"))
+		header.SetFilter(config.GetVal("FilterStr"))
 		y += header.Height()
 	}
 	cGrid.SetY(y)
@@ -27,7 +27,7 @@ func RedrawRows(clr bool) {
 		ui.Clear()
 		log.Debugf("screen cleared")
 	}
-	if config.GetSwitchVal("enableHeader") {
+	if config.GetSwitchVal("EnableHeader") {
 		ui.Render(header)
 	}
 	cGrid.Align()
@@ -94,7 +94,7 @@ func Display() bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
-		config.Toggle("allContainers")
+		config.Toggle("AllContainers")
 		RefreshDisplay()
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
@@ -105,11 +105,11 @@ func Display() bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/H", func(ui.Event) {
-		config.Toggle("enableHeader")
+		config.Toggle("EnableHeader")
 		RedrawRows(true)
 	})
 	ui.Handle("/sys/kbd/r", func(e ui.Event) {
-		config.Toggle("sortReversed")
+		config.Toggle("SortReversed")
 	})
 	ui.Handle("/sys/kbd/s", func(ui.Event) {
 		menu = SortMenu

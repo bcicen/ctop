@@ -2,26 +2,40 @@ package config
 
 import (
 	"fmt"
-	"os"
-
+	"github.com/BurntSushi/toml"
 	"github.com/bcicen/ctop/logging"
+	"io/ioutil"
+	"os"
 )
 
+var configFile = os.Getenv("HOME") + "/.ctop.conf"
+
+var Config struct {
+	Params
+	Switches
+}
+
 var (
-	GlobalParams   []*Param
-	GlobalSwitches []*Switch
-	log            = logging.Init()
+	log = logging.Init()
 )
 
 func Init() {
-	for _, p := range params {
-		GlobalParams = append(GlobalParams, p)
-		log.Infof("loaded config param: %s: %s", quote(p.Key), quote(p.Val))
+	initParams()
+	initSwitches()
+	loadConfig()
+}
+
+func loadConfig() {
+	cfile, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		log.Noticef("Config File %s does not appear to exist", configFile)
+		return
 	}
-	for _, s := range switches {
-		GlobalSwitches = append(GlobalSwitches, s)
-		log.Infof("loaded config switch: %s: %t", quote(s.Key), s.Val)
+	_, err = toml.Decode(string(cfile), &Config)
+	if err != nil {
+		log.Noticef("Config File %s does appears to have errors: %s", configFile, err.Error())
 	}
+
 }
 
 func quote(s string) string {
