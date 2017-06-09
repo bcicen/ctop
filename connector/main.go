@@ -7,7 +7,7 @@ import (
 
 var log = logging.Init()
 
-type ContainerSource interface {
+type Connector interface {
 	All() container.Containers
 	Get(string) (*container.Container, bool)
 }

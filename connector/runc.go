@@ -59,7 +59,7 @@ func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
 	return libcontainer.New(opts.root, cgroupManager, libcontainer.CriuPath("criu"))
 }
 
-func NewRunc() *Runc {
+func NewRunc() Connector {
 	opts, err := readRuncOpts()
 	runcFailOnErr(err)
 

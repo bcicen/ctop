@@ -19,7 +19,7 @@ type Docker struct {
 	lock         sync.RWMutex
 }
 
-func NewDocker() *Docker {
+func NewDocker() Connector {
 	// init docker client
 	client, err := api.NewClientFromEnv()
 	if err != nil {

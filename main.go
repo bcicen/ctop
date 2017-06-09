@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/container"
@@ -37,7 +38,10 @@ func main() {
 	var sortFieldFlag = flag.String("s", "", "select container sort field")
 	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
 	var invertFlag = flag.Bool("i", false, "invert default colors")
+	var connectorFlag = flag.String("connector", "docker", "container connector to use")
 	flag.Parse()
+
+	validConnector(*connectorFlag)
 
 	if *versionFlag {
 		fmt.Println(versionStr)
@@ -75,7 +79,7 @@ func main() {
 
 	defer Shutdown()
 	// init grid, cursor, header
-	cursor = NewGridCursor()
+	cursor = NewGridCursor(*connectorFlag)
 	cGrid = compact.NewCompactGrid()
 	header = widgets.NewCTopHeader()
 
@@ -101,6 +105,18 @@ func Shutdown() {
 	log.Exit()
 	if tm.IsInit {
 		ui.Close()
+	}
+}
+
+func validConnector(s string) {
+	if _, ok := enabledConnectors[s]; !ok {
+		fmt.Printf("invalid connector type: %s", s)
+		var connectors []string
+		for k, _ := range enabledConnectors {
+			connectors = append(connectors, k)
+		}
+		fmt.Printf("connector must be one of: %s", strings.Join(connectors, ","))
+		os.Exit(1)
 	}
 }
 
