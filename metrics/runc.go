@@ -91,6 +91,9 @@ func (c *Runc) ReadCPU(stats *cgroups.Stats) {
 func (c *Runc) ReadMem(stats *cgroups.Stats) {
 	c.MemUsage = int64(stats.MemoryStats.Usage.Usage)
 	c.MemLimit = int64(stats.MemoryStats.Usage.Limit)
+	if c.MemLimit > sysMemTotal && sysMemTotal > 0 {
+		c.MemLimit = sysMemTotal
+	}
 	c.MemPercent = round((float64(c.MemUsage) / float64(c.MemLimit)) * 100)
 }
 
