@@ -75,12 +75,6 @@ func NewRunc() *Runc {
 	}
 
 	go cm.Loop()
-	go func() {
-		time.Sleep(1 * time.Second)
-		for _, c := range cm.containers {
-			cm.needsRefresh <- c.Id
-		}
-	}()
 
 	return cm
 }
@@ -99,11 +93,9 @@ func (cm *Runc) inspect(id string) libcontainer.Container {
 	return libc
 }
 
-func (cm *Runc) refresh(c *container.Container) {
-	libc := cm.inspect(c.Id)
-	if libc == nil {
-		return
-	}
+// update a ctop container from libcontainer
+func (cm *Runc) refresh(libc libcontainer.Container, c *container.Container) {
+	log.Debugf("refreshing container: %s", c.Id)
 
 	status, err := libc.Status()
 	if err != nil {
@@ -129,37 +121,45 @@ func (cm *Runc) refreshAll() {
 
 	for _, i := range list {
 		if i.IsDir() {
+			name := i.Name()
 			// attempt to load
-			libc, err := cm.factory.Load(i.Name())
-			if err != nil {
-				log.Warningf("failed to read container: %s\n", err)
+			libc := cm.inspect(name)
+			if libc == nil {
 				continue
 			}
 
-			c := cm.MustGet(libc.ID())
-			c.SetMeta("name", i.Name())
-
-			cm.needsRefresh <- c.Id
+			c := cm.MustGet(libc)
+			cm.refresh(libc, c)
 		}
 	}
 }
 
 func (cm *Runc) Loop() {
-	for id := range cm.needsRefresh {
-		c := cm.MustGet(id)
-		cm.refresh(c)
+	for {
+		cm.refreshAll()
+		time.Sleep(5 * time.Second)
 	}
 }
 
-// Get a single container in the map, creating one anew if not existing
-func (cm *Runc) MustGet(id string) *container.Container {
+// Get a single ctop container in the map matching libc container, creating one anew if not existing
+func (cm *Runc) MustGet(libc libcontainer.Container) *container.Container {
+	id := libc.ID()
 	c, ok := cm.Get(id)
-	// append container struct for new containers
 	if !ok {
 		// create collector
-		collector := metrics.NewRunc(2)
+		collector := metrics.NewRunc(libc)
+
 		// create container
 		c = container.New(id, collector)
+
+		name := libc.ID()
+		// set initial metadata
+		if len(name) > 12 {
+			name = name[0:12]
+		}
+		c.SetMeta("name", name)
+
+		// add to map
 		cm.lock.Lock()
 		cm.containers[id] = c
 		cm.lock.Unlock()
