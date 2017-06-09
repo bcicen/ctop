@@ -110,7 +110,7 @@ func Shutdown() {
 
 func validConnector(s string) {
 	if _, ok := enabledConnectors[s]; !ok {
-		fmt.Printf("invalid connector type: %s", s)
+		fmt.Printf("invalid connector type: %s\n", s)
 		var connectors []string
 		for k, _ := range enabledConnectors {
 			connectors = append(connectors, k)

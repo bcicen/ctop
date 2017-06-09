@@ -195,7 +195,7 @@ func readRuncOpts() (RuncOpts, error) {
 	// read runc root path
 	root := os.Getenv("RUNC_ROOT")
 	if root == "" {
-		return opts, fmt.Errorf("RUNC_ROOT not set")
+		root = "/run/runc"
 	}
 	abs, err := filepath.Abs(root)
 	if err != nil {
