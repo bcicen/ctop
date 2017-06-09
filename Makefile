@@ -1,7 +1,7 @@
 NAME=ctop
 VERSION=$(shell cat VERSION)
 BUILD=$(shell git rev-parse --short HEAD)
-LD_FLAGS="-w -X main.version=$(VERSION) -X main.build=$(BUILD)"
+LD_FLAGS="-w -X main.version=$(VERSION) -X main.build=$(BUILD) -extldflags=-Wl,--allow-multiple-definition"
 
 clean:
 	rm -rf build/ release/

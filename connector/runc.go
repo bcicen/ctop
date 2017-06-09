@@ -218,7 +218,7 @@ func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
 			return nil, fmt.Errorf("systemd cgroup enabled, but systemd support for managing cgroups is not available")
 		}
 	}
-	return libcontainer.New(opts.root, cgroupManager, libcontainer.CriuPath("criu"))
+	return libcontainer.New(opts.root, cgroupManager)
 }
 
 func runcFailOnErr(err error) {

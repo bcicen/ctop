@@ -66,7 +66,7 @@ imports:
 - name: github.com/op/go-logging
   version: b2cb9fa56473e98db8caba80237377e83fe44db5
 - name: github.com/opencontainers/runc
-  version: 31980a53ae7887b2c8f8715d13c3eb486c27b6cf
+  version: baf6536d6259209c3edfa2b22237af82942d3dfa
   subpackages:
   - libcontainer/system
   - libcontainer/user

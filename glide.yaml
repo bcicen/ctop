@@ -9,3 +9,5 @@ import:
 - package: github.com/nu7hatch/gouuid
 - package: github.com/op/go-logging
   version: ^1.0.0
+- package: github.com/opencontainers/runc
+  version: ^0.1.1
