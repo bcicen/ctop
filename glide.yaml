@@ -1,13 +1,18 @@
 package: github.com/bcicen/ctop
 import:
+- package: github.com/c9s/goprocinfo/linux
+- package: github.com/docker/docker
+  version: ^17.5.0-ce-rc3
+- package: github.com/opencontainers/runc
+  version: 0.1.1
 - package: github.com/fsouza/go-dockerclient
+  version: 318513eb1ab27495afbc67f671ba1080513d8aa0
 - package: github.com/gizak/termui
   version: barchart-numfmt
   repo: https://github.com/bcicen/termui
   vcs: git
 - package: github.com/jgautheron/codename-generator
 - package: github.com/nu7hatch/gouuid
+- package: github.com/c9s/goprocinfo/linux
 - package: github.com/op/go-logging
   version: ^1.0.0
-- package: github.com/opencontainers/runc
-  version: ^0.1.1

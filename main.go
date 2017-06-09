@@ -115,7 +115,7 @@ func validConnector(s string) {
 		for k, _ := range enabledConnectors {
 			connectors = append(connectors, k)
 		}
-		fmt.Printf("connector must be one of: %s", strings.Join(connectors, ","))
+		fmt.Printf("connector must be one of: %s\n", strings.Join(connectors, ","))
 		os.Exit(1)
 	}
 }

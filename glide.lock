@@ -1,12 +1,22 @@
-hash: c13011881e895378f374b68596a59a0ea6def372b4f5239b2d8aa342eaa46a4b
-updated: 2017-03-12T09:53:35.212073637+07:00
+hash: 0d550b01b3a1c4751a8f5c3fba0c43f62252055e231712729628e514bb494da8
+updated: 2017-06-09T18:11:10.930196504-03:00
 imports:
 - name: github.com/Azure/go-ansiterm
   version: fa152c58bc15761d0200cb75fe958b89a9d4888e
   subpackages:
   - winterm
+- name: github.com/c9s/goprocinfo
+  version: b34328d6e0cd139894ea7347d2624ccf31fa3c58
+  subpackages:
+  - linux
+- name: github.com/coreos/go-systemd
+  version: b4a58d95188dd092ae20072bac14cece0e67c388
+  subpackages:
+  - activation
+  - dbus
+  - util
 - name: github.com/docker/docker
-  version: ce07fb6b0f1b8765b92022e45f96bd4349812e06
+  version: 90d35abf7b3535c1c319c872900fbd76374e521c
   subpackages:
   - api/types
   - api/types/blkiodev
@@ -27,9 +37,11 @@ imports:
   - pkg/jsonlog
   - pkg/jsonmessage
   - pkg/longpath
+  - pkg/mount
   - pkg/pools
   - pkg/promise
   - pkg/stdcopy
+  - pkg/symlink
   - pkg/system
   - pkg/term
   - pkg/term/windows
@@ -45,6 +57,12 @@ imports:
   version: ea10e6ccee219e572ffad0ac1909f1a17f6db7d6
   repo: https://github.com/bcicen/termui
   vcs: git
+- name: github.com/godbus/dbus
+  version: c7fdd8b5cd55e87b4e1f4e372cdb1db61dd6c66f
+- name: github.com/golang/protobuf
+  version: f7137ae6b19afbfd61a94b746fda3b3fe0491874
+  subpackages:
+  - proto
 - name: github.com/hashicorp/go-cleanhttp
   version: 3573b8b52aa7b37b9358d966a898feb387f62437
 - name: github.com/jgautheron/codename-generator
@@ -63,15 +81,41 @@ imports:
   version: 91bae1bb5fa9ee504905ecbe7043fa30e92feaa3
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/Nvveen/Gotty
+  version: cd527374f1e5bff4938207604a14f2e38a9cf512
 - name: github.com/op/go-logging
   version: b2cb9fa56473e98db8caba80237377e83fe44db5
 - name: github.com/opencontainers/runc
   version: baf6536d6259209c3edfa2b22237af82942d3dfa
   subpackages:
+  - libcontainer
+  - libcontainer/apparmor
+  - libcontainer/cgroups
+  - libcontainer/cgroups/fs
+  - libcontainer/cgroups/systemd
+  - libcontainer/configs
+  - libcontainer/configs/validate
+  - libcontainer/criurpc
+  - libcontainer/keys
+  - libcontainer/label
+  - libcontainer/seccomp
+  - libcontainer/selinux
+  - libcontainer/stacktrace
   - libcontainer/system
   - libcontainer/user
+  - libcontainer/utils
+- name: github.com/seccomp/libseccomp-golang
+  version: 1b506fc7c24eec5a3693cdcbed40d9c226cfc6a1
 - name: github.com/Sirupsen/logrus
-  version: 1deb2db2a6fff8a35532079061b903c3a25eed52
+  version: 26709e2714106fb8ad40b773b711ebce25b78914
+- name: github.com/syndtr/gocapability
+  version: 2c00daeb6c3b45114c80ac44119e7b8801fdd852
+  subpackages:
+  - capability
+- name: github.com/vishvananda/netlink
+  version: 1e2e08e8a2dcdacaae3f14ac44c5cfa31361f270
+  subpackages:
+  - nl
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
