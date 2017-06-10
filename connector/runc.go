@@ -84,6 +84,13 @@ func (cm *Runc) refresh(id string) {
 	}
 	c := cm.MustGet(id)
 
+	// remove container if entered destroyed state on last refresh
+	// this gives adequate time for the collector to be shut down
+	if c.GetMeta("state") == "destroyed" {
+		cm.delByID(id)
+		return
+	}
+
 	status, err := libc.Status()
 	if err != nil {
 		log.Warningf("failed to read status for container: %s\n", err)
@@ -123,6 +130,7 @@ func (cm *Runc) refreshAll() {
 	for id, _ := range cm.containers {
 		cm.needsRefresh <- id
 	}
+	log.Debugf("queued %d containers for refresh", len(cm.containers))
 }
 
 func (cm *Runc) Loop() {
