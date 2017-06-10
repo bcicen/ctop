@@ -78,7 +78,6 @@ func (cm *Runc) GetLibc(id string) libcontainer.Container {
 
 // update a ctop container from libcontainer
 func (cm *Runc) refresh(id string) {
-	log.Debugf("refreshing container: %s", id)
 	libc := cm.GetLibc(id)
 	if libc == nil {
 		return
@@ -156,6 +155,7 @@ func (cm *Runc) MustGet(id string) *container.Container {
 		cm.containers[id] = c
 		cm.libContainers[id] = libc
 		cm.lock.Unlock()
+		log.Debugf("saw new container: %s", id)
 	}
 
 	return c

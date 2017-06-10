@@ -51,6 +51,7 @@ func (c *Runc) Stream() chan Metrics {
 func (c *Runc) run() {
 	c.running = true
 	defer close(c.stream)
+	log.Debugf("collector started for container: %s", c.id)
 
 	for {
 		stats, err := c.libc.Stats()
