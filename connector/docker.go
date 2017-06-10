@@ -161,9 +161,9 @@ func (cm *Docker) All() (containers container.Containers) {
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
-	cm.lock.Unlock()
 	sort.Sort(containers)
 	containers.Filter()
+	cm.lock.Unlock()
 	return containers
 }
 
