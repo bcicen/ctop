@@ -20,6 +20,31 @@ type RuncOpts struct {
 	systemdCgroups bool   // use systemd cgroups
 }
 
+func NewRuncOpts() (RuncOpts, error) {
+	var opts RuncOpts
+	// read runc root path
+	root := os.Getenv("RUNC_ROOT")
+	if root == "" {
+		root = "/run/runc"
+	}
+	abs, err := filepath.Abs(root)
+	if err != nil {
+		return opts, err
+	}
+	opts.root = abs
+
+	// ensure runc root path is readable
+	_, err = ioutil.ReadDir(opts.root)
+	if err != nil {
+		return opts, err
+	}
+
+	if os.Getenv("RUNC_SYSTEMD_CGROUP") == "1" {
+		opts.systemdCgroups = true
+	}
+	return opts, nil
+}
+
 type Runc struct {
 	opts          RuncOpts
 	factory       libcontainer.Factory
@@ -30,7 +55,7 @@ type Runc struct {
 }
 
 func NewRunc() Connector {
-	opts, err := readRuncOpts()
+	opts, err := NewRuncOpts()
 	runcFailOnErr(err)
 
 	factory, err := getFactory(opts)
@@ -196,25 +221,6 @@ func (cm *Runc) All() (containers container.Containers) {
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers
-}
-
-func readRuncOpts() (RuncOpts, error) {
-	var opts RuncOpts
-	// read runc root path
-	root := os.Getenv("RUNC_ROOT")
-	if root == "" {
-		root = "/run/runc"
-	}
-	abs, err := filepath.Abs(root)
-	if err != nil {
-		return opts, err
-	}
-	opts.root = abs
-
-	if os.Getenv("RUNC_SYSTEMD_CGROUP") == "1" {
-		opts.systemdCgroups = true
-	}
-	return opts, nil
 }
 
 func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
