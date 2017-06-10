@@ -95,7 +95,7 @@ func (c *Runc) ReadMem(stats *cgroups.Stats) {
 	if c.MemLimit > sysMemTotal && sysMemTotal > 0 {
 		c.MemLimit = sysMemTotal
 	}
-	c.MemPercent = round((float64(c.MemUsage) / float64(c.MemLimit)) * 100)
+	c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
 }
 
 func (c *Runc) ReadNet(interfaces []*libcontainer.NetworkInterface) {

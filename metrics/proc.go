@@ -19,6 +19,7 @@ func getSysMemTotal() int64 {
 	return int64(stat.MemTotal * 1024)
 }
 
+// return cumulative system cpu usage in nanoseconds
 func getSysCPUUsage() uint64 {
 	stat, err := linuxproc.ReadStat("/proc/stat")
 	if err != nil {

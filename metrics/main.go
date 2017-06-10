@@ -22,14 +22,14 @@ type Metrics struct {
 
 func NewMetrics() Metrics {
 	return Metrics{
-		CPUUtil:           -1,
-		NetTx:             -1,
-		NetRx:             -1,
-		MemUsage:          -1,
-		MemPercent:        -1,
-		IOBytesRead:       -1,
-		IOBytesWrite:      -1,
-		Pids:              -1,
+		CPUUtil:      -1,
+		NetTx:        -1,
+		NetRx:        -1,
+		MemUsage:     -1,
+		MemPercent:   -1,
+		IOBytesRead:  -1,
+		IOBytesWrite: -1,
+		Pids:         -1,
 	}
 }
 
@@ -42,4 +42,12 @@ type Collector interface {
 
 func round(num float64) int {
 	return int(num + math.Copysign(0.5, num))
+}
+
+// return rounded percentage
+func percent(val float64, total float64) int {
+	if total <= 0 {
+		return 0
+	}
+	return round((val / total) * 100)
 }

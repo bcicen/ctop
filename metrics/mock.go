@@ -60,7 +60,7 @@ func (c *Mock) run() {
 		if c.MemUsage > c.MemLimit {
 			c.MemUsage = 0
 		}
-		c.MemPercent = round((float64(c.MemUsage) / float64(c.MemLimit)) * 100)
+		c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
 		c.stream <- c.Metrics
 		if c.done {
 			break
