@@ -6,7 +6,7 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var displayInfo = []string{"id", "name", "image", "ports", "state"}
+var displayInfo = []string{"id", "name", "image", "ports", "state", "created"}
 
 type Info struct {
 	*ui.Table
