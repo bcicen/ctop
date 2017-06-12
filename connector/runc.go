@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sort"
 	"sync"
 	"time"
 
@@ -217,7 +216,7 @@ func (cm *Runc) All() (containers container.Containers) {
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
-	sort.Sort(containers)
+	containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers

@@ -3,6 +3,7 @@ package container
 import (
 	"fmt"
 	"regexp"
+	"sort"
 
 	"github.com/bcicen/ctop/config"
 )
@@ -89,6 +90,7 @@ func SortFields() (fields []string) {
 
 type Containers []*Container
 
+func (a Containers) Sort()         { sort.Sort(a) }
 func (a Containers) Len() int      { return len(a) }
 func (a Containers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a Containers) Less(i, j int) bool {

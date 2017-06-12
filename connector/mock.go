@@ -4,7 +4,6 @@ package connector
 
 import (
 	"math/rand"
-	"sort"
 	"strings"
 	"time"
 
@@ -72,7 +71,7 @@ func (cs *Mock) Get(id string) (*container.Container, bool) {
 
 // Return array of all containers, sorted by field
 func (cs *Mock) All() container.Containers {
-	sort.Sort(cs.containers)
+	cs.containers.Sort()
 	cs.containers.Filter()
 	return cs.containers
 }
