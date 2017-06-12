@@ -62,8 +62,11 @@ func ExpandView(c *container.Container) {
 }
 
 func RefreshDisplay() {
-	needsClear := cursor.RefreshContainers()
-	RedrawRows(needsClear)
+	// skip display refresh during scroll
+	if !cursor.isScrolling {
+		needsClear := cursor.RefreshContainers()
+		RedrawRows(needsClear)
+	}
 }
 
 func Display() bool {

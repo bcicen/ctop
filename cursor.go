@@ -14,9 +14,10 @@ var enabledConnectors = map[string]func() connector.Connector{
 }
 
 type GridCursor struct {
-	selectedID string // id of currently selected container
-	filtered   container.Containers
-	cSource    connector.Connector
+	selectedID  string // id of currently selected container
+	filtered    container.Containers
+	cSource     connector.Connector
+	isScrolling bool // toggled when actively scrolling
 }
 
 func NewGridCursor(connector string) *GridCursor {
@@ -109,6 +110,9 @@ func (gc *GridCursor) ScrollPage() {
 }
 
 func (gc *GridCursor) Up() {
+	gc.isScrolling = true
+	defer func() { gc.isScrolling = false }()
+
 	idx := gc.Idx()
 	if idx <= 0 { // already at top
 		return
@@ -125,6 +129,9 @@ func (gc *GridCursor) Up() {
 }
 
 func (gc *GridCursor) Down() {
+	gc.isScrolling = true
+	defer func() { gc.isScrolling = false }()
+
 	idx := gc.Idx()
 	if idx >= gc.Len()-1 { // already at bottom
 		return
