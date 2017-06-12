@@ -21,8 +21,3 @@ deployment:
       - docker tag ctop ${IMAGE_NAME}:$(cat VERSION)
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS quay.io
       - docker push ${IMAGE_NAME}
-    branch: /^.*/
-    commands:
-      - docker tag ctop ${IMAGE_NAME}:${CIRCLE_BRANCH}
-      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS quay.io
-      - docker push ${IMAGE_NAME}
