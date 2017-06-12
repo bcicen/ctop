@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/metrics"
 	api "github.com/fsouza/go-dockerclient"
 )
 
@@ -128,7 +128,7 @@ func (cm *Docker) MustGet(id string) *container.Container {
 	// append container struct for new containers
 	if !ok {
 		// create collector
-		collector := metrics.NewDocker(cm.client, id)
+		collector := collector.NewDocker(cm.client, id)
 		// create container
 		c = container.New(id, collector)
 		cm.lock.Lock()

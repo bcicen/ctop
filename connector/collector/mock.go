@@ -1,16 +1,18 @@
 // +build !release
 
-package metrics
+package collector
 
 import (
 	"math/rand"
 	"time"
+
+	"github.com/bcicen/ctop/metrics"
 )
 
 // Mock collector
 type Mock struct {
-	Metrics
-	stream     chan Metrics
+	metrics.Metrics
+	stream     chan metrics.Metrics
 	done       bool
 	running    bool
 	aggression int64
@@ -18,7 +20,7 @@ type Mock struct {
 
 func NewMock(a int64) *Mock {
 	c := &Mock{
-		Metrics:    Metrics{},
+		Metrics:    metrics.Metrics{},
 		aggression: a,
 	}
 	c.MemLimit = 2147483648
@@ -31,7 +33,7 @@ func (c *Mock) Running() bool {
 
 func (c *Mock) Start() {
 	c.done = false
-	c.stream = make(chan Metrics)
+	c.stream = make(chan metrics.Metrics)
 	go c.run()
 }
 
@@ -39,7 +41,7 @@ func (c *Mock) Stop() {
 	c.done = true
 }
 
-func (c *Mock) Stream() chan Metrics {
+func (c *Mock) Stream() chan metrics.Metrics {
 	return c.stream
 }
 

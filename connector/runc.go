@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/metrics"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 )
@@ -170,7 +170,7 @@ func (cm *Runc) MustGet(id string) *container.Container {
 		libc := cm.GetLibc(id)
 
 		// create collector
-		collector := metrics.NewRunc(libc)
+		collector := collector.NewRunc(libc)
 
 		// create container
 		c = container.New(id, collector)

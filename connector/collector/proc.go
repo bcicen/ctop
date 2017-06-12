@@ -1,4 +1,4 @@
-package metrics
+package collector
 
 import (
 	linuxproc "github.com/c9s/goprocinfo/linux"

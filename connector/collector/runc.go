@@ -1,18 +1,19 @@
-package metrics
+package collector
 
 import (
 	"time"
 
+	"github.com/bcicen/ctop/metrics"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 )
 
 // Runc collector
 type Runc struct {
-	Metrics
+	metrics.Metrics
 	id         string
 	libc       libcontainer.Container
-	stream     chan Metrics
+	stream     chan metrics.Metrics
 	done       bool
 	running    bool
 	interval   int // collection interval, in seconds
@@ -22,7 +23,7 @@ type Runc struct {
 
 func NewRunc(libc libcontainer.Container) *Runc {
 	c := &Runc{
-		Metrics:  Metrics{},
+		Metrics:  metrics.Metrics{},
 		id:       libc.ID(),
 		libc:     libc,
 		interval: 1,
@@ -36,7 +37,7 @@ func (c *Runc) Running() bool {
 
 func (c *Runc) Start() {
 	c.done = false
-	c.stream = make(chan Metrics)
+	c.stream = make(chan metrics.Metrics)
 	go c.run()
 }
 
@@ -44,7 +45,7 @@ func (c *Runc) Stop() {
 	c.done = true
 }
 
-func (c *Runc) Stream() chan Metrics {
+func (c *Runc) Stream() chan metrics.Metrics {
 	return c.stream
 }
 

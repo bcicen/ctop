@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/metrics"
 	"github.com/jgautheron/codename-generator"
 	"github.com/nu7hatch/gouuid"
 )
@@ -39,7 +39,7 @@ func (cs *Mock) Init() {
 }
 
 func (cs *Mock) makeContainer(aggression int64) {
-	collector := metrics.NewMock(aggression)
+	collector := collector.NewMock(aggression)
 	c := container.New(makeID(), collector)
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
