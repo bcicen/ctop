@@ -50,6 +50,11 @@ func (c *Mock) run() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 	defer close(c.stream)
 
+	// set to random static value, once
+	c.Pids = rand.Intn(12)
+	c.IOBytesRead = rand.Int63n(8098) * c.aggression
+	c.IOBytesWrite = rand.Int63n(8098) * c.aggression
+
 	for {
 		c.CPUUtil += rand.Intn(2) * int(c.aggression)
 		if c.CPUUtil >= 100 {

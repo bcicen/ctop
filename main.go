@@ -77,12 +77,6 @@ func main() {
 		config.Toggle("sortReversed")
 	}
 
-	defer Shutdown()
-	// init grid, cursor, header
-	cursor = NewGridCursor(*connectorFlag)
-	cGrid = compact.NewCompactGrid()
-	header = widgets.NewCTopHeader()
-
 	// init ui
 	if *invertFlag {
 		InvertColorMap()
@@ -91,6 +85,12 @@ func main() {
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
+
+	defer Shutdown()
+	// init grid, cursor, header
+	cursor = NewGridCursor(*connectorFlag)
+	cGrid = compact.NewCompactGrid()
+	header = widgets.NewCTopHeader()
 
 	for {
 		exit := Display()

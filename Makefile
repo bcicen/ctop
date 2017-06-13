@@ -1,7 +1,8 @@
 NAME=ctop
 VERSION=$(shell cat VERSION)
 BUILD=$(shell git rev-parse --short HEAD)
-LD_FLAGS="-w -X main.version=$(VERSION) -X main.build=$(BUILD) -extldflags=-Wl,--allow-multiple-definition"
+EXT_LD_FLAGS="-Wl,--allow-multiple-definition"
+LD_FLAGS="-w -X main.version=$(VERSION) -X main.build=$(BUILD) -extldflags=$(EXT_LD_FLAGS)"
 
 clean:
 	rm -rf build/ release/
@@ -11,7 +12,7 @@ build:
 	CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o ctop
 
 build-dev:
-	go build -ldflags "-w -X main.version=$(VERSION)-dev -X main.build=$(BUILD)"
+	go build -ldflags "-w -X main.version=$(VERSION)-dev -X main.build=$(BUILD) -extldflags=$(EXT_LD_FLAGS)"
 
 build-all:
 	mkdir -p build
