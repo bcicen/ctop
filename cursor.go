@@ -20,9 +20,9 @@ type GridCursor struct {
 	isScrolling bool // toggled when actively scrolling
 }
 
-func NewGridCursor(connector string) *GridCursor {
+func NewGridCursor(connectorName string) *GridCursor {
 	return &GridCursor{
-		cSource: enabledConnectors[connector](),
+		cSource: enabledConnectors[connectorName](),
 	}
 }
 
