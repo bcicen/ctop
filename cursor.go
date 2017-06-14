@@ -8,22 +8,11 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var enabledConnectors = map[string]func() connector.Connector{
-	"docker": connector.NewDocker,
-	"runc":   connector.NewRunc,
-}
-
 type GridCursor struct {
 	selectedID  string // id of currently selected container
 	filtered    container.Containers
 	cSource     connector.Connector
 	isScrolling bool // toggled when actively scrolling
-}
-
-func NewGridCursor(connectorName string) *GridCursor {
-	return &GridCursor{
-		cSource: enabledConnectors[connectorName](),
-	}
 }
 
 func (gc *GridCursor) Len() int { return len(gc.filtered) }

@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/connector"
 	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/logging"
@@ -40,8 +40,6 @@ func main() {
 	var invertFlag = flag.Bool("i", false, "invert default colors")
 	var connectorFlag = flag.String("connector", "docker", "container connector to use")
 	flag.Parse()
-
-	validConnector(*connectorFlag)
 
 	if *versionFlag {
 		fmt.Println(versionStr)
@@ -88,7 +86,11 @@ func main() {
 
 	defer Shutdown()
 	// init grid, cursor, header
-	cursor = NewGridCursor(*connectorFlag)
+	conn, err := connector.ByName(*connectorFlag)
+	if err != nil {
+		panic(err)
+	}
+	cursor = &GridCursor{cSource: conn}
 	cGrid = compact.NewCompactGrid()
 	header = widgets.NewCTopHeader()
 
@@ -108,18 +110,6 @@ func Shutdown() {
 	}
 }
 
-func validConnector(s string) {
-	if _, ok := enabledConnectors[s]; !ok {
-		fmt.Printf("invalid connector type: %s\n", s)
-		var connectors []string
-		for k, _ := range enabledConnectors {
-			connectors = append(connectors, k)
-		}
-		fmt.Printf("connector must be one of: %s\n", strings.Join(connectors, ","))
-		os.Exit(1)
-	}
-}
-
 // ensure a given sort field is valid
 func validSort(s string) {
 	if _, ok := container.Sorters[s]; !ok {
@@ -131,7 +121,7 @@ func validSort(s string) {
 func panicExit() {
 	if r := recover(); r != nil {
 		Shutdown()
-		fmt.Printf("panic: %s\n", r)
+		fmt.Printf("error: %s\n", r)
 		os.Exit(1)
 	}
 }
