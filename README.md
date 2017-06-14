@@ -2,8 +2,6 @@
 
 #
 
-![release][release] ![homebrew][homebrew]
-
 Top-like interface for container metrics
 
 `ctop` provides a concise and condensed overview of real-time metrics for multiple containers:
@@ -11,7 +9,7 @@ Top-like interface for container metrics
 
 as well as an [expanded view][expanded_view] for inspecting a specific container.
 
-`ctop` currently comes with built-in support for Docker; connectors for other container and cluster systems are planned for future releases.
+`ctop` comes with built-in support for Docker and runC; connectors for other container and cluster systems are planned for future releases.
 
 ## Install
 
@@ -20,7 +18,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.5/ctop-0.5-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/bcicen/ctop/releases/download/v0.6/ctop-0.6-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -31,13 +29,17 @@ brew install ctop
 ```
 or
 ```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.5/ctop-0.5-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.6/ctop-0.6-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
-or run via Docker:
+#### Docker
+
 ```bash
-docker run -ti --name ctop --rm -v /var/run/docker.sock:/var/run/docker.sock quay.io/vektorlab/ctop:latest
+docker run --rm -ti \
+  --name=ctop \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  quay.io/vektorlab/ctop:latest
 ```
 
 `ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)
@@ -48,11 +50,7 @@ Build steps can be found [here][build].
 
 ## Usage
 
-`ctop` requires no arguments and will configure itself using the `DOCKER_HOST` environment variable
-```bash
-export DOCKER_HOST=tcp://127.0.0.1:4243
-ctop
-```
+`ctop` requires no arguments and uses Docker host variables by default. See [connectors][connectors] for further configuration options.
 
 ### Options
 
@@ -79,6 +77,5 @@ r | Reverse container sort order
 q | Quit ctop
 
 [build]: _docs/build.md
+[connectors]: _docs/connectors.md
 [expanded_view]: _docs/expanded.md
-[release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
-[homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"
