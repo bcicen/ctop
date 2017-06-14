@@ -20,8 +20,6 @@ Using this connector requires full privileges to the local runC root dir (defaul
 
 #### Options
 
-Default connector behavior can be changed by setting the below environment variables:
-
 Var | Description
 --- | ---
 RUNC_ROOT | path to runc root (default: `/run/runc`)
