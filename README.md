@@ -2,6 +2,8 @@
 
 #
 
+![release][release] ![homebrew][homebrew]
+
 Top-like interface for container metrics
 
 `ctop` provides a concise and condensed overview of real-time metrics for multiple containers:
@@ -79,3 +81,5 @@ q | Quit ctop
 [build]: _docs/build.md
 [connectors]: _docs/connectors.md
 [expanded_view]: _docs/expanded.md
+[release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
+[homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"
