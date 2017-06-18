@@ -66,7 +66,7 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 			continue
 		}
 		for _, binding := range v {
-			s := fmt.Sprintf("%s -> %s:%s", k, binding.HostIP, binding.HostPort)
+			s := fmt.Sprintf("%s:%s -> %s", binding.HostIP, binding.HostPort, k)
 			published = append(published, s)
 		}
 	}
