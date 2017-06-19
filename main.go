@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/connector"
@@ -16,15 +17,16 @@ import (
 )
 
 var (
-	build   = "none"
-	version = "dev-build"
+	build     = "none"
+	version   = "dev-build"
+	goVersion = runtime.Version()
 
 	log    *logging.CTopLogger
 	cursor *GridCursor
 	cGrid  *compact.CompactGrid
 	header *widgets.CTopHeader
 
-	versionStr = fmt.Sprintf("ctop version %v, build %v", version, build)
+	versionStr = fmt.Sprintf("ctop version %v, build %v %v", version, build, goVersion)
 )
 
 func main() {
