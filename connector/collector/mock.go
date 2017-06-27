@@ -9,6 +9,8 @@ import (
 	"github.com/bcicen/ctop/models"
 )
 
+const mockLog = "Cura ob pro qui tibi inveni dum qua fit donec amare illic mea, regem falli contexo pro peregrinorum heremo absconditi araneae meminerim deliciosas actionibus facere modico dura sonuerunt psalmi contra rerum, tempus mala anima volebant dura quae o modis."
+
 // Mock collector
 type Mock struct {
 	models.Metrics
@@ -43,6 +45,17 @@ func (c *Mock) Stop() {
 
 func (c *Mock) Stream() chan models.Metrics {
 	return c.stream
+}
+
+func (c *Mock) StreamLogs() (chan string, error) {
+	logCh := make(chan string)
+	go func() {
+		for {
+			logCh <- mockLog
+			time.Sleep(250 * time.Millisecond)
+		}
+	}()
+	return logCh, nil
 }
 
 func (c *Mock) run() {

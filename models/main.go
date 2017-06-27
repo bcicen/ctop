@@ -24,10 +24,3 @@ func NewMetrics() Metrics {
 		Pids:         -1,
 	}
 }
-
-type Collector interface {
-	Stream() chan Metrics
-	Running() bool
-	Start()
-	Stop()
-}

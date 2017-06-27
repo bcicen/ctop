@@ -3,6 +3,7 @@
 package collector
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/bcicen/ctop/models"
@@ -49,6 +50,10 @@ func (c *Runc) Stop() {
 
 func (c *Runc) Stream() chan models.Metrics {
 	return c.stream
+}
+
+func (c *Runc) StreamLogs() (chan string, error) {
+	return nil, fmt.Errorf("log streaming unavailable for runc collector")
 }
 
 func (c *Runc) run() {

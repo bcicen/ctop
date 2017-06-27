@@ -1,6 +1,7 @@
 package container
 
 import (
+	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/logging"
@@ -19,10 +20,10 @@ type Container struct {
 	Widgets   *compact.Compact
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
-	collector models.Collector
+	collector collector.Collector
 }
 
-func New(id string, collector models.Collector) *Container {
+func New(id string, collector collector.Collector) *Container {
 	widgets := compact.NewCompact(id)
 	return &Container{
 		Metrics:   models.NewMetrics(),

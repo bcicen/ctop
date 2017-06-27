@@ -1,6 +1,9 @@
 package collector
 
 import (
+	"bufio"
+	"io"
+
 	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 )
@@ -65,6 +68,31 @@ func (c *Docker) Stream() chan models.Metrics {
 	return c.stream
 }
 
+func (c *Docker) StreamLogs() (chan string, error) {
+	r, w := io.Pipe()
+	logCh := make(chan string)
+
+	opts := api.LogsOptions{
+		Container:    c.id,
+		OutputStream: w,
+		ErrorStream:  w,
+		Stdout:       true,
+		Stderr:       true,
+		Tail:         "10",
+		Follow:       true,
+		Timestamps:   true,
+	}
+
+	go tailLogs(r, logCh)
+	go func() {
+		err := c.client.Logs(opts)
+		if err != nil {
+			log.Errorf("error reading container logs: %s", err)
+		}
+	}()
+	return logCh, nil
+}
+
 // Stop collector
 func (c *Docker) Stop() {
 	c.done <- true
@@ -110,4 +138,11 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 		}
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
+}
+
+func tailLogs(reader io.Reader, ch chan string) {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		ch <- scanner.Text()
+	}
 }

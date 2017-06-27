@@ -4,9 +4,18 @@ import (
 	"math"
 
 	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/models"
 )
 
 var log = logging.Init()
+
+type Collector interface {
+	Stream() chan models.Metrics
+	StreamLogs() (chan string, error)
+	Running() bool
+	Start()
+	Stop()
+}
 
 func round(num float64) int {
 	return int(num + math.Copysign(0.5, num))
