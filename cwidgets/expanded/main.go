@@ -2,7 +2,7 @@ package expanded
 
 import (
 	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/metrics"
+	"github.com/bcicen/ctop/models"
 	ui "github.com/gizak/termui"
 )
 
@@ -55,7 +55,7 @@ func (e *Expanded) Down() {
 func (e *Expanded) SetWidth(w int)      { e.Width = w }
 func (e *Expanded) SetMeta(k, v string) { e.Info.Set(k, v) }
 
-func (e *Expanded) SetMetrics(m metrics.Metrics) {
+func (e *Expanded) SetMetrics(m models.Metrics) {
 	e.Cpu.Update(m.CPUUtil)
 	e.Net.Update(m.NetRx, m.NetTx)
 	e.Mem.Update(int(m.MemUsage), int(m.MemLimit))

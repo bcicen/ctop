@@ -4,7 +4,7 @@ import (
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/metrics"
+	"github.com/bcicen/ctop/models"
 )
 
 var (
@@ -13,19 +13,19 @@ var (
 
 // Metrics and metadata representing a container
 type Container struct {
-	metrics.Metrics
+	models.Metrics
 	Id        string
 	Meta      map[string]string
 	Widgets   *compact.Compact
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
-	collector metrics.Collector
+	collector models.Collector
 }
 
-func New(id string, collector metrics.Collector) *Container {
+func New(id string, collector models.Collector) *Container {
 	widgets := compact.NewCompact(id)
 	return &Container{
-		Metrics:   metrics.NewMetrics(),
+		Metrics:   models.NewMetrics(),
 		Id:        id,
 		Meta:      make(map[string]string),
 		Widgets:   widgets,
@@ -67,14 +67,14 @@ func (c *Container) SetState(s string) {
 }
 
 // Read metric stream, updating widgets
-func (c *Container) Read(stream chan metrics.Metrics) {
+func (c *Container) Read(stream chan models.Metrics) {
 	go func() {
 		for metrics := range stream {
 			c.Metrics = metrics
 			c.updater.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
-		c.Metrics = metrics.NewMetrics()
+		c.Metrics = models.NewMetrics()
 		c.Widgets.Reset()
 	}()
 	log.Infof("reader started for container: %s", c.Id)

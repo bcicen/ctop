@@ -2,7 +2,7 @@ package compact
 
 import (
 	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/metrics"
+	"github.com/bcicen/ctop/models"
 	ui "github.com/gizak/termui"
 )
 
@@ -59,7 +59,7 @@ func (row *Compact) SetMeta(k, v string) {
 	}
 }
 
-func (row *Compact) SetMetrics(m metrics.Metrics) {
+func (row *Compact) SetMetrics(m models.Metrics) {
 	row.SetCPU(m.CPUUtil)
 	row.SetNet(m.NetRx, m.NetTx)
 	row.SetMem(m.MemUsage, m.MemLimit, m.MemPercent)

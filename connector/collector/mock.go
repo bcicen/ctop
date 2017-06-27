@@ -6,13 +6,13 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/bcicen/ctop/metrics"
+	"github.com/bcicen/ctop/models"
 )
 
 // Mock collector
 type Mock struct {
-	metrics.Metrics
-	stream     chan metrics.Metrics
+	models.Metrics
+	stream     chan models.Metrics
 	done       bool
 	running    bool
 	aggression int64
@@ -20,7 +20,7 @@ type Mock struct {
 
 func NewMock(a int64) *Mock {
 	c := &Mock{
-		Metrics:    metrics.Metrics{},
+		Metrics:    models.Metrics{},
 		aggression: a,
 	}
 	c.MemLimit = 2147483648
@@ -33,7 +33,7 @@ func (c *Mock) Running() bool {
 
 func (c *Mock) Start() {
 	c.done = false
-	c.stream = make(chan metrics.Metrics)
+	c.stream = make(chan models.Metrics)
 	go c.run()
 }
 
@@ -41,7 +41,7 @@ func (c *Mock) Stop() {
 	c.done = true
 }
 
-func (c *Mock) Stream() chan metrics.Metrics {
+func (c *Mock) Stream() chan models.Metrics {
 	return c.stream
 }
 

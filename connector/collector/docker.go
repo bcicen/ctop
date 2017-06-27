@@ -1,17 +1,17 @@
 package collector
 
 import (
-	"github.com/bcicen/ctop/metrics"
+	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 )
 
 // Docker collector
 type Docker struct {
-	metrics.Metrics
+	models.Metrics
 	id         string
 	client     *api.Client
 	running    bool
-	stream     chan metrics.Metrics
+	stream     chan models.Metrics
 	done       chan bool
 	lastCpu    float64
 	lastSysCpu float64
@@ -19,7 +19,7 @@ type Docker struct {
 
 func NewDocker(client *api.Client, id string) *Docker {
 	return &Docker{
-		Metrics: metrics.Metrics{},
+		Metrics: models.Metrics{},
 		id:      id,
 		client:  client,
 	}
@@ -27,7 +27,7 @@ func NewDocker(client *api.Client, id string) *Docker {
 
 func (c *Docker) Start() {
 	c.done = make(chan bool)
-	c.stream = make(chan metrics.Metrics)
+	c.stream = make(chan models.Metrics)
 	stats := make(chan *api.Stats)
 
 	go func() {
@@ -61,7 +61,7 @@ func (c *Docker) Running() bool {
 	return c.running
 }
 
-func (c *Docker) Stream() chan metrics.Metrics {
+func (c *Docker) Stream() chan models.Metrics {
 	return c.stream
 }
 
