@@ -9,9 +9,14 @@ import (
 
 var log = logging.Init()
 
+type LogCollector interface {
+	Stream() chan string
+	Stop()
+}
+
 type Collector interface {
 	Stream() chan models.Metrics
-	StreamLogs() (chan string, error)
+	Logs() LogCollector
 	Running() bool
 	Start()
 	Stop()

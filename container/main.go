@@ -67,6 +67,11 @@ func (c *Container) SetState(s string) {
 	}
 }
 
+// Return container log collector
+func (c *Container) Logs() collector.LogCollector {
+	return c.collector.Logs()
+}
+
 // Read metric stream, updating widgets
 func (c *Container) Read(stream chan models.Metrics) {
 	go func() {
