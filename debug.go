@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"runtime"
 
 	"github.com/bcicen/ctop/container"
 	ui "github.com/gizak/termui"
 )
+
+var mstats = &runtime.MemStats{}
 
 func logEvent(e ui.Event) {
 	var s string
@@ -17,6 +20,22 @@ func logEvent(e ui.Event) {
 		s += fmt.Sprintf(" To=%s", quote(e.To))
 	}
 	log.Debugf("new event: %s", s)
+}
+
+func runtimeStats() {
+	var msg string
+	msg += fmt.Sprintf("cgo calls=%v", runtime.NumCgoCall())
+	msg += fmt.Sprintf(" routines=%v", runtime.NumGoroutine())
+	runtime.ReadMemStats(mstats)
+	msg += fmt.Sprintf(" numgc=%v", mstats.NumGC)
+	msg += fmt.Sprintf(" alloc=%v", mstats.Alloc)
+	log.Debugf("runtime: %v", msg)
+}
+
+func runtimeStack() {
+	buf := make([]byte, 32768)
+	buf = buf[:runtime.Stack(buf, true)]
+	log.Infof(fmt.Sprintf("stack:\n%v", string(buf)))
 }
 
 // log container, metrics, and widget state
