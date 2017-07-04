@@ -1,5 +1,12 @@
 package models
 
+import "time"
+
+type Log struct {
+	Timestamp time.Time
+	Message   string
+}
+
 type Metrics struct {
 	CPUUtil      int
 	NetTx        int64

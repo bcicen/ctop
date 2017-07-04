@@ -10,7 +10,7 @@ import (
 var log = logging.Init()
 
 type LogCollector interface {
-	Stream() chan string
+	Stream() chan models.Log
 	Stop()
 }
 

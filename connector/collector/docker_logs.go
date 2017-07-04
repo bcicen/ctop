@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"context"
 	"io"
+	"strings"
+	"time"
 
+	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 )
 
@@ -14,9 +17,9 @@ type DockerLogs struct {
 	done   chan bool
 }
 
-func (l *DockerLogs) Stream() chan string {
+func (l *DockerLogs) Stream() chan models.Log {
 	r, w := io.Pipe()
-	logCh := make(chan string)
+	logCh := make(chan models.Log)
 	ctx, cancel := context.WithCancel(context.Background())
 
 	opts := api.LogsOptions{
@@ -35,7 +38,9 @@ func (l *DockerLogs) Stream() chan string {
 	go func() {
 		scanner := bufio.NewScanner(r)
 		for scanner.Scan() {
-			logCh <- scanner.Text()
+			parts := strings.Split(scanner.Text(), " ")
+			ts := l.parseTime(parts[0])
+			logCh <- models.Log{ts, strings.Join(parts[1:], " ")}
 		}
 	}()
 
@@ -58,3 +63,12 @@ func (l *DockerLogs) Stream() chan string {
 }
 
 func (l *DockerLogs) Stop() { l.done <- true }
+
+func (l *DockerLogs) parseTime(s string) time.Time {
+	ts, err := time.Parse("2006-01-02T15:04:05.000000000Z", s)
+	if err != nil {
+		log.Errorf("failed to parse container log: %s", err)
+		ts = time.Now()
+	}
+	return ts
+}
