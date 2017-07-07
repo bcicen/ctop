@@ -143,8 +143,10 @@ func (gc *GridCursor) PgUp() {
 	}
 
 	nextidx := int(math.Max(0.0, float64(idx-cGrid.MaxRows())))
-	cGrid.Offset = int(math.Max(float64(cGrid.Offset-cGrid.MaxRows()),
-		float64(0)))
+	if gc.pgCount() > 0 {
+		cGrid.Offset = int(math.Max(float64(cGrid.Offset-cGrid.MaxRows()),
+			float64(0)))
+	}
 
 	active := gc.filtered[idx]
 	next := gc.filtered[nextidx]
@@ -163,10 +165,11 @@ func (gc *GridCursor) PgDown() {
 		return
 	}
 
-	nextidx := int(math.Min(float64(gc.Len()-1),
-		float64(idx+cGrid.MaxRows())))
-	cGrid.Offset = int(math.Min(float64(cGrid.Offset+cGrid.MaxRows()),
-		float64(gc.Len()-cGrid.MaxRows())))
+	nextidx := int(math.Min(float64(gc.Len()-1), float64(idx+cGrid.MaxRows())))
+	if gc.pgCount() > 0 {
+		cGrid.Offset = int(math.Min(float64(cGrid.Offset+cGrid.MaxRows()),
+			float64(gc.Len()-cGrid.MaxRows())))
+	}
 
 	active := gc.filtered[idx]
 	next := gc.filtered[nextidx]
