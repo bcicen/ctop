@@ -142,8 +142,7 @@ func (gc *GridCursor) PgUp() {
 		return
 	}
 
-	var nextidx int
-	nextidx = int(math.Max(0.0, float64(idx-cGrid.MaxRows())))
+	nextidx := int(math.Max(0.0, float64(idx-cGrid.MaxRows())))
 	cGrid.Offset = int(math.Max(float64(cGrid.Offset-cGrid.MaxRows()),
 		float64(0)))
 
@@ -164,8 +163,7 @@ func (gc *GridCursor) PgDown() {
 		return
 	}
 
-	var nextidx int
-	nextidx = int(math.Min(float64(gc.Len()-1),
+	nextidx := int(math.Min(float64(gc.Len()-1),
 		float64(idx+cGrid.MaxRows())))
 	cGrid.Offset = int(math.Min(float64(cGrid.Offset+cGrid.MaxRows()),
 		float64(gc.Len()-cGrid.MaxRows())))
@@ -179,4 +177,13 @@ func (gc *GridCursor) PgDown() {
 
 	cGrid.Align()
 	ui.Render(cGrid)
+}
+
+// number of pages at current row count and term height
+func (gc *GridCursor) pgCount() int {
+	pages := gc.Len() / cGrid.MaxRows()
+	if gc.Len()%cGrid.MaxRows() > 0 {
+		pages++
+	}
+	return pages
 }
