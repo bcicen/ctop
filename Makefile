@@ -22,9 +22,6 @@ build-all:
 	GOOS=linux  GOARCH=arm64 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-arm64
 
 image:
-	docker build -t ctop_build -f Dockerfile_build .
-	docker create --name=ctop_built ctop_build ctop -v
-	docker cp ctop_built:/go/bin/ctop .
 	docker build -t ctop -f Dockerfile .
 
 release:
