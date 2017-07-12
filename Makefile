@@ -5,7 +5,7 @@ EXT_LD_FLAGS="-Wl,--allow-multiple-definition"
 LD_FLAGS="-w -X main.version=$(VERSION) -X main.build=$(BUILD) -extldflags=$(EXT_LD_FLAGS)"
 
 clean:
-	rm -rf _build/ _release/
+	rm -rf _build/ release/
 
 build:
 	glide install
@@ -25,9 +25,9 @@ image:
 	docker build -t ctop -f Dockerfile .
 
 release:
-	mkdir _release
+	mkdir release
 	go get github.com/progrium/gh-release/...
-	cp _build/* _release
+	cp _build/* release
 	gh-release create bcicen/$(NAME) $(VERSION) \
 		$(shell git rev-parse --abbrev-ref HEAD) $(VERSION)
 
