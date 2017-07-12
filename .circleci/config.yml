@@ -9,10 +9,11 @@ jobs:
       - setup_remote_docker:
           version: 17.05.0-ce
       - run: make image
-      - deploy: |
-          if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-            docker tag ctop quay.io/vektorlab/ctop:latest
-            docker tag ctop quay.io/vektorlab/ctop:$(cat VERSION)
-            docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS quay.io
-            docker push quay.io/vektorlab/ctop
-          fi
+      - deploy: 
+          command: |
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+              docker tag ctop quay.io/vektorlab/ctop:latest
+              docker tag ctop quay.io/vektorlab/ctop:$(cat VERSION)
+              docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS quay.io
+              docker push quay.io/vektorlab/ctop
+            fi
