@@ -1,4 +1,4 @@
-package expanded
+package single
 
 type IntHist struct {
 	Val    int   // most current data point

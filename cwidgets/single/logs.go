@@ -1,4 +1,4 @@
-package expanded
+package single
 
 import (
 	"time"

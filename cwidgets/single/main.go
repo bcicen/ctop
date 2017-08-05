@@ -1,4 +1,4 @@
-package expanded
+package single
 
 import (
 	"github.com/bcicen/ctop/logging"
@@ -12,7 +12,7 @@ var (
 	colWidth  = [2]int{65, 0} // left,right column width
 )
 
-type Expanded struct {
+type Single struct {
 	Info  *Info
 	Net   *Net
 	Cpu   *Cpu
@@ -22,11 +22,11 @@ type Expanded struct {
 	Width int
 }
 
-func NewExpanded(id string) *Expanded {
+func NewSingle(id string) *Single {
 	if len(id) > 12 {
 		id = id[:12]
 	}
-	return &Expanded{
+	return &Single{
 		Info:  NewInfo(id),
 		Net:   NewNet(),
 		Cpu:   NewCpu(),
@@ -36,7 +36,7 @@ func NewExpanded(id string) *Expanded {
 	}
 }
 
-func (e *Expanded) Up() {
+func (e *Single) Up() {
 	if e.Y < 0 {
 		e.Y++
 		e.Align()
@@ -44,7 +44,7 @@ func (e *Expanded) Up() {
 	}
 }
 
-func (e *Expanded) Down() {
+func (e *Single) Down() {
 	if e.Y > (ui.TermHeight() - e.GetHeight()) {
 		e.Y--
 		e.Align()
@@ -52,10 +52,10 @@ func (e *Expanded) Down() {
 	}
 }
 
-func (e *Expanded) SetWidth(w int)      { e.Width = w }
-func (e *Expanded) SetMeta(k, v string) { e.Info.Set(k, v) }
+func (e *Single) SetWidth(w int)      { e.Width = w }
+func (e *Single) SetMeta(k, v string) { e.Info.Set(k, v) }
 
-func (e *Expanded) SetMetrics(m models.Metrics) {
+func (e *Single) SetMetrics(m models.Metrics) {
 	e.Cpu.Update(m.CPUUtil)
 	e.Net.Update(m.NetRx, m.NetTx)
 	e.Mem.Update(int(m.MemUsage), int(m.MemLimit))
@@ -63,7 +63,7 @@ func (e *Expanded) SetMetrics(m models.Metrics) {
 }
 
 // Return total column height
-func (e *Expanded) GetHeight() (h int) {
+func (e *Single) GetHeight() (h int) {
 	h += e.Info.Height
 	h += e.Net.Height
 	h += e.Cpu.Height
@@ -72,7 +72,7 @@ func (e *Expanded) GetHeight() (h int) {
 	return h
 }
 
-func (e *Expanded) Align() {
+func (e *Single) Align() {
 	// reset offset if needed
 	if e.GetHeight() <= ui.TermHeight() {
 		e.Y = 0
@@ -94,7 +94,7 @@ func (e *Expanded) Align() {
 func calcWidth(w int) {
 }
 
-func (e *Expanded) Buffer() ui.Buffer {
+func (e *Single) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
 	if e.Width < (colWidth[0] + colWidth[1]) {
 		ui.Clear()
@@ -109,7 +109,7 @@ func (e *Expanded) Buffer() ui.Buffer {
 	return buf
 }
 
-func (e *Expanded) all() []ui.GridBufferer {
+func (e *Single) all() []ui.GridBufferer {
 	return []ui.GridBufferer{
 		e.Info,
 		e.Cpu,

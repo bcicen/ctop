@@ -9,7 +9,7 @@ Top-like interface for container metrics
 `ctop` provides a concise and condensed overview of real-time metrics for multiple containers:
 <p align="center"><img src="_docs/img/grid.gif" alt="ctop"/></p>
 
-as well as an [expanded view][expanded_view] for inspecting a specific container.
+as well as an [single container view][single_view] for inspecting a specific container.
 
 `ctop` comes with built-in support for Docker and runC; connectors for other container and cluster systems are planned for future releases.
 
@@ -80,6 +80,6 @@ q | Quit ctop
 
 [build]: _docs/build.md
 [connectors]: _docs/connectors.md
-[expanded_view]: _docs/expanded.md
+[single_view]: _docs/single.md
 [release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
 [homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"

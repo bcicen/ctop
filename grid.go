@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/cwidgets/expanded"
+	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 )
 
@@ -35,12 +35,12 @@ func RedrawRows(clr bool) {
 	ui.Render(cGrid)
 }
 
-func ExpandView(c *container.Container) {
+func SingleView(c *container.Container) {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	ex := expanded.NewExpanded(c.Id)
+	ex := single.NewSingle(c.Id)
 	c.SetUpdater(ex)
 
 	ex.Align()
@@ -71,7 +71,7 @@ func RefreshDisplay() {
 
 func Display() bool {
 	var menu func()
-	var expand bool
+	var single bool
 
 	cGrid.SetWidth(ui.TermWidth())
 	ui.DefaultEvtStream.Hook(logEvent)
@@ -94,7 +94,7 @@ func Display() bool {
 	})
 
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		expand = true
+		single = true
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
@@ -137,10 +137,10 @@ func Display() bool {
 		menu()
 		return false
 	}
-	if expand {
+	if single {
 		c := cursor.Selected()
 		if c != nil {
-			ExpandView(c)
+			SingleView(c)
 		}
 		return false
 	}

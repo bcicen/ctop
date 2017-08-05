@@ -1,4 +1,4 @@
-package expanded
+package single
 
 import (
 	ui "github.com/gizak/termui"
