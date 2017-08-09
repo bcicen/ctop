@@ -37,12 +37,12 @@ func (row *Compact) SetCPU(val int) {
 }
 
 func (row *Compact) SetMem(val int64, limit int64, percent int) {
-	row.Memory.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(val), cwidgets.ByteFormat(limit))
+	row.Mem.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(val), cwidgets.ByteFormat(limit))
 	if percent < 5 {
 		percent = 5
-		row.Memory.BarColor = ui.ColorBlack
+		row.Mem.BarColor = ui.ColorBlack
 	} else {
-		row.Memory.BarColor = ui.ThemeAttr("gauge.bar.bg")
+		row.Mem.BarColor = ui.ThemeAttr("gauge.bar.bg")
 	}
-	row.Memory.Percent = percent
+	row.Mem.Percent = percent
 }

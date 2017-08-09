@@ -13,7 +13,7 @@ type Compact struct {
 	Name   *TextCol
 	Cid    *TextCol
 	Cpu    *GaugeCol
-	Memory *GaugeCol
+	Mem    *GaugeCol
 	Net    *TextCol
 	IO     *TextCol
 	Pids   *TextCol
@@ -32,7 +32,7 @@ func NewCompact(id string) *Compact {
 		Name:   NewTextCol("-"),
 		Cid:    NewTextCol(id),
 		Cpu:    NewGaugeCol(),
-		Memory: NewGaugeCol(),
+		Mem:    NewGaugeCol(),
 		Net:    NewTextCol("-"),
 		IO:     NewTextCol("-"),
 		Pids:   NewTextCol("-"),
@@ -70,7 +70,7 @@ func (row *Compact) SetMetrics(m models.Metrics) {
 // Set gauges, counters to default unread values
 func (row *Compact) Reset() {
 	row.Cpu.Reset()
-	row.Memory.Reset()
+	row.Mem.Reset()
 	row.Net.Reset()
 	row.IO.Reset()
 	row.Pids.Reset()
@@ -121,7 +121,7 @@ func (row *Compact) Buffer() ui.Buffer {
 	buf.Merge(row.Name.Buffer())
 	buf.Merge(row.Cid.Buffer())
 	buf.Merge(row.Cpu.Buffer())
-	buf.Merge(row.Memory.Buffer())
+	buf.Merge(row.Mem.Buffer())
 	buf.Merge(row.Net.Buffer())
 	buf.Merge(row.IO.Buffer())
 	buf.Merge(row.Pids.Buffer())
@@ -134,7 +134,7 @@ func (row *Compact) all() []ui.GridBufferer {
 		row.Name,
 		row.Cid,
 		row.Cpu,
-		row.Memory,
+		row.Mem,
 		row.Net,
 		row.IO,
 		row.Pids,
