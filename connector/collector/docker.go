@@ -89,7 +89,7 @@ func (c *Docker) ReadCPU(stats *api.Stats) {
 }
 
 func (c *Docker) ReadMem(stats *api.Stats) {
-	c.MemUsage = int64(stats.MemoryStats.Usage)
+	c.MemUsage = int64(stats.MemoryStats.Usage - stats.MemoryStats.Stats.Cache)
 	c.MemLimit = int64(stats.MemoryStats.Limit)
 	c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
 }
