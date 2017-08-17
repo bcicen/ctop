@@ -22,5 +22,5 @@ Using this connector requires full privileges to the local runC root dir (defaul
 
 Var | Description
 --- | ---
-RUNC_ROOT | path to runc root (default: `/run/runc`)
+RUNC_ROOT | path to runc root (default: from PATH environment variable)
 RUNC_SYSTEMD_CGROUP | if set, enable systemd cgroups
