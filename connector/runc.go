@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"time"
@@ -26,7 +27,7 @@ func NewRuncOpts() (RuncOpts, error) {
 	// read runc root path
 	root := os.Getenv("RUNC_ROOT")
 	if root == "" {
-		root = "/run/runc"
+		root, _ = exec.LookPath("runc")
 	}
 	abs, err := filepath.Abs(root)
 	if err != nil {
