@@ -16,11 +16,11 @@ DOCKER_HOST | Daemon socket to connect to (default: `unix://var/run/docker.sock`
 
 ## RunC
 
-Using this connector requires full privileges to the local runC root dir (default: `/run/runc`)
+Using this connector requires full privileges to the local runC root dir of container state (default: `/run/runc`)
 
 #### Options
 
 Var | Description
 --- | ---
-RUNC_ROOT | path to runc root (default: `/run/runc`)
+RUNC_ROOT | path to runc root for container state (default: `/run/runc`)
 RUNC_SYSTEMD_CGROUP | if set, enable systemd cgroups
