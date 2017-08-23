@@ -6,6 +6,7 @@ import (
 
 type TextCol struct {
 	*ui.Par
+	isHighlight bool
 }
 
 func NewTextCol(s string) *TextCol {
@@ -13,17 +14,23 @@ func NewTextCol(s string) *TextCol {
 	p.Border = false
 	p.Height = 1
 	p.Width = 20
-	return &TextCol{p}
+	return &TextCol{p, false}
 }
 
 func (w *TextCol) Highlight() {
-	w.TextFgColor = ui.ThemeAttr("par.text.hi")
+	if w.TextFgColor ==ui.ThemeAttr("par.text.fg"){
+		w.TextFgColor = ui.ThemeAttr("par.text.hi")
+	}
 	w.TextBgColor = ui.ThemeAttr("par.text.fg")
+	w.isHighlight = true
 }
 
 func (w *TextCol) UnHighlight() {
-	w.TextFgColor = ui.ThemeAttr("par.text.fg")
+	if w.TextFgColor == ui.ThemeAttr("par.text.hi"){
+		w.TextFgColor = ui.ThemeAttr("par.text.fg")
+	}
 	w.TextBgColor = ui.ThemeAttr("par.text.bg")
+	w.isHighlight = false
 }
 
 func (w *TextCol) Reset() {
@@ -32,4 +39,20 @@ func (w *TextCol) Reset() {
 
 func (w *TextCol) Set(s string) {
 	w.Text = s
+}
+
+func (w *TextCol) Color(s string){
+	color := ui.ThemeAttr("par.text.fg")
+	if w.isHighlight{
+		color = ui.ThemeAttr("par.text.hi")
+	}
+	switch s {
+	case "healthy":
+		color = ui.ColorGreen
+	case "unhealthy":
+		color = ui.ColorMagenta
+	case "starting":
+		color = ui.ColorYellow
+	}
+	w.TextFgColor = color
 }

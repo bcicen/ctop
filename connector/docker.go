@@ -85,6 +85,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
+	c.SetMeta("health", insp.State.Health.Status)
 	c.SetState(insp.State.Status)
 }
 
@@ -110,6 +111,7 @@ func (cm *Docker) refreshAll() {
 		c := cm.MustGet(i.ID)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
+		cm.HealthCheck(i.ID)
 		cm.needsRefresh <- c.Id
 	}
 }
@@ -158,7 +160,11 @@ func (cm *Docker) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
+		cm.lock.Unlock()
+		cm.HealthCheck(c.Id)
+		cm.lock.Lock()
 	}
+
 	containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
@@ -168,4 +174,10 @@ func (cm *Docker) All() (containers container.Containers) {
 // use primary container name
 func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
+}
+
+func (cm *Docker) HealthCheck(id string){
+	insp := cm.inspect(id)
+	c := cm.MustGet(id)
+	c.SetMeta("health", insp.State.Health.Status)
 }
