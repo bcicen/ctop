@@ -58,7 +58,6 @@ func main() {
 
 	// init global config
 	config.Init()
-
 	// override default config values with command line flags
 	if *filterFlag != "" {
 		config.Update("filterStr", *filterFlag)

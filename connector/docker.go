@@ -85,7 +85,16 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
-	c.SetState(insp.State.Status)
+	c.SetMeta("health", insp.State.Health.Status)
+}
+
+func (cm *Docker) updateHealth(c *container.Container, insp *api.Container) {
+	c.SetMeta("health", insp.State.Health.Status)
+	if insp.State.Health.Status != "" {
+		c.SetState(c.GetMeta("health"))
+	}else {
+		c.SetState(insp.State.Status)
+	}
 }
 
 func (cm *Docker) inspect(id string) *api.Container {
@@ -118,6 +127,7 @@ func (cm *Docker) Loop() {
 	for id := range cm.needsRefresh {
 		c := cm.MustGet(id)
 		cm.refresh(c)
+		log.Infof("id health: " + c.GetMeta("health"))
 	}
 }
 

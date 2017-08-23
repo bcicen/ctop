@@ -31,10 +31,15 @@ func (s *Status) Set(val string) {
 	color := ui.ColorDefault
 
 	switch val {
+	case "healthy":
 	case "running":
 		color = ui.ColorGreen
 	case "exited":
 		color = ui.ColorRed
+	case "unhealthy":
+		color = ui.ColorMagenta
+	case "starting":
+		color = ui.ColorYellow
 	case "paused":
 		text = fmt.Sprintf("%s%s", vBar, vBar)
 	}
