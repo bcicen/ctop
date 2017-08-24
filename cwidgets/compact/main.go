@@ -56,6 +56,8 @@ func (row *Compact) SetMeta(k, v string) {
 		row.Name.Set(v)
 	case "state":
 		row.Status.Set(v)
+	case "health":
+		row.Name.Color(v)
 	}
 }
 

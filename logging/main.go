@@ -35,7 +35,7 @@ func Init() *CTopLogger {
 		}
 
 		if debugMode() {
-			level = logging.INFO
+			level = logging.DEBUG
 			StartServer()
 		}
 
