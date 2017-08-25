@@ -227,7 +227,7 @@ func (cm *Runc) All() (containers container.Containers, services service.Service
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
-	for _, s := range cm.servcies {
+	for _, s := range cm.services {
 		services = append(services, s)
 	}
 	containers.Sort()

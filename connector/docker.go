@@ -10,6 +10,7 @@ import (
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/bcicen/ctop/service"
 	"github.com/bcicen/ctop/config"
+	"context"
 )
 
 type Docker struct {
@@ -29,12 +30,15 @@ func NewDocker() Connector {
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
+		services:     make(map[string]*service.Service),
 		needsRefresh: make(chan string, 60),
 		lock:         sync.RWMutex{},
 	}
 	go cm.Loop()
 	cm.refreshAllContainers()
-	if config.GetSwitchVal("swarmMode"){
+	log.Noticef("swarm1")
+	if config.GetSwitchVal("swarmMode") {
+		log.Noticef("swarm2")
 		cm.refreshAllServices()
 	}
 	go cm.watchEvents()
@@ -123,8 +127,11 @@ func (cm *Docker) refreshAllContainers() {
 }
 
 func (cm *Docker) refreshAllServices() {
-	opts := api.ListServicesOptions{}
+	log.Noticef("Refresh service start!!")
+	ctx, cancel := context.WithCancel(context.Background())
+	opts := api.ListServicesOptions{Context:ctx}
 	allServices, err := cm.client.ListServices(opts)
+
 	if err != nil {
 		panic(err)
 	}
@@ -139,6 +146,7 @@ func (cm *Docker) refreshAllServices() {
 		s.SetMeta("labels", labels)
 		log.Debugf("Id %s, Name %s", s.Id, s.GetMeta("name"))
 	}
+	cancel()
 }
 
 func (cm *Docker) Loop() {

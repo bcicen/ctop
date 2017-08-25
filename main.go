@@ -40,7 +40,7 @@ func main() {
 	var sortFieldFlag = flag.String("s", "", "select container sort field")
 	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
 	var invertFlag = flag.Bool("i", false, "invert default colors")
-	var swarmFlag = flag.Bool("swarm", false, "turn of swarm mode in ctop")
+	var swarmFlag = flag.Bool("w", false, "enable s(W)arm mode")
 	var connectorFlag = flag.String("connector", "docker", "container connector to use")
 	flag.Parse()
 
