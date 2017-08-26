@@ -83,7 +83,7 @@ func NewRunc() Connector {
 	return cm
 }
 
-func (cm *Runc) GetLibc(id string) entity.Container {
+func (cm *Runc) GetLibc(id string) libcontainer.Container {
 	// return previously loaded container
 	libc, ok := cm.libContainers[id]
 	if ok {
