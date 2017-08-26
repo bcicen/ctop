@@ -170,14 +170,23 @@ func (cm *Docker) refreshAllNodes() {
 	for _, i := range allNodes {
 		n := cm.MustGetNode(i.ID)
 		n.SetMeta("hostname", i.Description.Hostname)
-		n.SetState(fmt.Sprintf("%s", i.Status.State))
+		n.SetState(statusNode(&i))
+		n.SetMeta("addr", i.Status.Addr)
+		n.SetMeta("message", messageState(&i))
 		leader, reachable := leaderAndReachable(i.ManagerStatus)
 		n.SetMeta("leader", leader)
 		n.SetMeta("reachable", reachable)
 		cm.needsRefresh <- n.Id
+		log.Debugf("Create NODE: %s", n)
 	}
 
 	cancel()
+}
+func messageState(node *swarm.Node) string {
+	if &node.Status.Message == nil{
+		return ""
+	}
+	return node.Status.Message
 }
 
 func (cm *Docker) Loop() {
@@ -289,9 +298,26 @@ func (cm *Docker) HealthCheck(id string) {
 }
 
 func leaderAndReachable(n *swarm.ManagerStatus) (string, string) {
+	if n == nil{
+		return "", ""
+	}
 	reachable := fmt.Sprintf("%s",n.Reachability)
 	if n.Leader {
 		return "Leader", reachable
 	}
-	return "", reachable
+	return "Leader", reachable
+}
+
+func statusNode(n *swarm.Node) string{
+	switch n.Status.State {
+	case swarm.NodeStateDisconnected:
+		return "disconnected"
+	case swarm.NodeStateDown:
+		return "down"
+	case swarm.NodeStateReady:
+		return "ready"
+	case swarm.NodeStateUnknown:
+		return "unknown"
+	}
+	return ""
 }
