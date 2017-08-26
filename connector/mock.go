@@ -11,10 +11,12 @@ import (
 	"github.com/bcicen/ctop/container"
 	"github.com/jgautheron/codename-generator"
 	"github.com/nu7hatch/gouuid"
+	"github.com/bcicen/ctop/service"
 )
 
 type Mock struct {
 	containers container.Containers
+	services service.Services
 }
 
 func NewMock() *Mock {
@@ -60,7 +62,7 @@ func (cs *Mock) Loop() {
 }
 
 // Get a single container, by ID
-func (cs *Mock) Get(id string) (*container.Container, bool) {
+func (cs *Mock) GetContainer(id string) (*container.Container, bool) {
 	for _, c := range cs.containers {
 		if c.Id == id {
 			return c, true
@@ -70,10 +72,10 @@ func (cs *Mock) Get(id string) (*container.Container, bool) {
 }
 
 // Return array of all containers, sorted by field
-func (cs *Mock) All() container.Containers {
+func (cs *Mock) All() (container.Containers, service.Services) {
 	cs.containers.Sort()
 	cs.containers.Filter()
-	return cs.containers
+	return cs.containers, cs.services
 }
 
 // Remove containers by ID

@@ -5,6 +5,7 @@ import (
 
 	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/service"
 )
 
 var log = logging.Init()
@@ -21,6 +22,7 @@ func ByName(s string) (Connector, error) {
 }
 
 type Connector interface {
-	All() container.Containers
-	Get(string) (*container.Container, bool)
+	All() (container.Containers, service.Services)
+	GetContainer(string) (*container.Container, bool)
+	GetService(string) (*service.Service, bool)
 }
