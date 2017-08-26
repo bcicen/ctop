@@ -17,6 +17,11 @@ var switches = []*Switch{
 		Val:   true,
 		Label: "Enable Status Header",
 	},
+	&Switch{
+		Key: 	"swarmMode",
+		Val:	false,
+		Label:	"Enable Swarm Mode",
+	},
 }
 
 type Switch struct {
