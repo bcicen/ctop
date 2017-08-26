@@ -10,12 +10,14 @@ import (
 	"github.com/bcicen/ctop/config"
 	"context"
 	"github.com/bcicen/ctop/entity"
+	"github.com/docker/docker/api/types/swarm"
 )
 
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*entity.Container
-	services 	 map[string]*entity.Service
+	services     map[string]*entity.Service
+	nodes        map[string]*entity.Node
 	needsRefresh chan string // container IDs requiring refresh
 	lock         sync.RWMutex
 }
@@ -30,14 +32,14 @@ func NewDocker() Connector {
 		client:       client,
 		containers:   make(map[string]*entity.Container),
 		services:     make(map[string]*entity.Service),
+		nodes:        make(map[string]*entity.Node),
 		needsRefresh: make(chan string, 60),
 		lock:         sync.RWMutex{},
 	}
 	go cm.Loop()
 	cm.refreshAllContainers()
-	log.Noticef("swarm1")
 	if config.GetSwitchVal("swarmMode") {
-		log.Noticef("swarm2")
+		cm.refreshAllNodes()
 		cm.refreshAllServices()
 	}
 	go cm.watchEvents()
@@ -51,16 +53,22 @@ func (cm *Docker) watchEvents() {
 	cm.client.AddEventListener(events)
 
 	for e := range events {
-		if e.Type != "container" {
-			continue
-		}
-		switch e.Action {
-		case "start", "die", "pause", "unpause":
-			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+		if e.Type == "container" {
+			log.Debugf("Container")
+			switch e.Action {
+			case "start", "die", "pause", "unpause":
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+				cm.needsRefresh <- e.ID
+			case "destroy":
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+				cm.delByID(e.ID)
+			}
+		} else if e.Type == "node" {
+			log.Debugf("NODE. Action: %s, ID: %s", e.Action, e.ID)
 			cm.needsRefresh <- e.ID
-		case "destroy":
-			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-			cm.delByID(e.ID)
+		} else if e.Type == "service"{
+			log.Debugf("SERVICE. Action: %s, ID: %s", e.Action, e.ID)
+			cm.needsRefresh <- e.ID
 		}
 	}
 }
@@ -128,7 +136,7 @@ func (cm *Docker) refreshAllContainers() {
 func (cm *Docker) refreshAllServices() {
 	log.Noticef("Refresh service start!!")
 	ctx, cancel := context.WithCancel(context.Background())
-	opts := api.ListServicesOptions{Context:ctx}
+	opts := api.ListServicesOptions{Context: ctx}
 	allServices, err := cm.client.ListServices(opts)
 
 	if err != nil {
@@ -140,14 +148,35 @@ func (cm *Docker) refreshAllServices() {
 
 		s.SetMeta("name", i.Spec.Annotations.Name)
 		labels := ""
-		for l := range i.Spec.Annotations.Labels{
+		for l := range i.Spec.Annotations.Labels {
 			labels += l
 		}
 		s.SetMeta("labels", labels)
-		log.Debugf("Id %s, Name %s", s.Id, s.GetMeta("name"))
-		log.Debugf("Service: %s", i.Spec.TaskTemplate.ContainerSpec)
-		log.Debugf("Endpoin: %s", i.Endpoint)
+		cm.needsRefresh <- s.Id
 	}
+	cancel()
+}
+
+func (cm *Docker) refreshAllNodes() {
+	log.Debugf("Start refreshing Nodes in swarm mode")
+	ctx, cancel := context.WithCancel(context.Background())
+	opt := api.ListNodesOptions{Context: ctx}
+	allNodes, err := cm.client.ListNodes(opt)
+
+	if err != nil {
+		panic(err)
+	}
+
+	for _, i := range allNodes {
+		n := cm.MustGetNode(i.ID)
+		n.SetMeta("hostname", i.Description.Hostname)
+		n.SetState(fmt.Sprintf("%s", i.Status.State))
+		leader, reachable := leaderAndReachable(i.ManagerStatus)
+		n.SetMeta("leader", leader)
+		n.SetMeta("reachable", reachable)
+		cm.needsRefresh <- n.Id
+	}
+
 	cancel()
 }
 
@@ -174,10 +203,10 @@ func (cm *Docker) MustGetContainer(id string) *entity.Container {
 	return c
 }
 
-func (cm *Docker) MustGetService(id string) *entity.Service{
+func (cm *Docker) MustGetService(id string) *entity.Service {
 	s, ok := cm.GetService(id)
 
-	if !ok{
+	if !ok {
 		collector := collector.NewDocker(cm.client, id)
 		s = entity.NewService(id, collector)
 		cm.lock.Lock()
@@ -185,6 +214,18 @@ func (cm *Docker) MustGetService(id string) *entity.Service{
 		cm.lock.Unlock()
 	}
 	return s
+}
+
+func (cm *Docker) MustGetNode(id string) *entity.Node {
+	n, ok := cm.GetNode(id)
+	if !ok {
+		collector := collector.NewDocker(cm.client, id)
+		n = entity.NewNode(id, collector)
+		cm.lock.Lock()
+		cm.nodes[id] = n
+		cm.lock.Unlock()
+	}
+	return n
 }
 
 // Get a single container, by ID
@@ -200,6 +241,13 @@ func (cm *Docker) GetService(id string) (*entity.Service, bool) {
 	s, ok := cm.services[id]
 	cm.lock.Unlock()
 	return s, ok
+}
+
+func (cm *Docker) GetNode(id string) (*entity.Node, bool) {
+	cm.lock.Lock()
+	n, ok := cm.nodes[id]
+	cm.lock.Unlock()
+	return n, ok
 }
 
 // Remove containers by ID
@@ -234,8 +282,16 @@ func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
 }
 
-func (cm *Docker) HealthCheck(id string){
+func (cm *Docker) HealthCheck(id string) {
 	insp := cm.inspect(id)
 	c := cm.MustGetContainer(id)
 	c.SetMeta("health", insp.State.Health.Status)
+}
+
+func leaderAndReachable(n *swarm.ManagerStatus) (string, string) {
+	reachable := fmt.Sprintf("%s",n.Reachability)
+	if n.Leader {
+		return "Leader", reachable
+	}
+	return "", reachable
 }

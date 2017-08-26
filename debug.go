@@ -41,7 +41,7 @@ func runtimeStack() {
 // log container, metrics, and widget state
 func dumpContainer(c *entity.Container) {
 	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
-	for k, v := range c.Meta {
+	for k, v := range c.Meta.Meta {
 		msg += fmt.Sprintf("Meta.%s = %s\n", k, v)
 	}
 	msg += inspect(&c.Metrics)

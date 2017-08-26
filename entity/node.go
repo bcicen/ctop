@@ -1,19 +1,19 @@
 package entity
 
 import (
-	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/models"
+	"github.com/bcicen/ctop/connector/collector"
 )
 
-type Service struct {
+type Node struct {
 	models.Metrics
 	Meta
 	Id        string
 	collector collector.Collector
 }
 
-func NewService(id string, collector collector.Collector) *Service {
-	return &Service{
+func NewNode(id string, collector collector.Collector) *Node {
+	return &Node{
 		Metrics:   models.NewMetrics(),
 		Meta:      NewMeta(id),
 		Id:        id,
@@ -21,7 +21,7 @@ func NewService(id string, collector collector.Collector) *Service {
 	}
 }
 
-func (s *Service) SetState(val string) {
+func (s *Node) SetState(val string) {
 	s.Meta.SetMeta("state", val)
 	// start collector, if needed
 	if val == "running" && !s.collector.Running() {
@@ -34,6 +34,6 @@ func (s *Service) SetState(val string) {
 	}
 }
 
-func (s *Service) Logs() collector.LogCollector {
+func (s *Node) Logs() collector.LogCollector {
 	return s.collector.Logs()
 }
