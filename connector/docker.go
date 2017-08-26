@@ -8,15 +8,11 @@ import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/container"
 	api "github.com/fsouza/go-dockerclient"
-	"github.com/bcicen/ctop/service"
-	"github.com/bcicen/ctop/config"
-	"context"
 )
 
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
-	services 	 map[string]*service.Service
 	needsRefresh chan string // container IDs requiring refresh
 	lock         sync.RWMutex
 }
@@ -30,17 +26,11 @@ func NewDocker() Connector {
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
-		services:     make(map[string]*service.Service),
 		needsRefresh: make(chan string, 60),
 		lock:         sync.RWMutex{},
 	}
 	go cm.Loop()
 	cm.refreshAllContainers()
-	log.Noticef("swarm1")
-	if config.GetSwitchVal("swarmMode") {
-		log.Noticef("swarm2")
-		cm.refreshAllServices()
-	}
 	go cm.watchEvents()
 	return cm
 }
@@ -118,7 +108,7 @@ func (cm *Docker) refreshAllContainers() {
 	}
 
 	for _, i := range allContainers {
-		c := cm.MustGetContainer(i.ID)
+		c := cm.MustGet(i.ID)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
 		cm.HealthCheck(i.ID)
@@ -126,41 +116,15 @@ func (cm *Docker) refreshAllContainers() {
 	}
 }
 
-func (cm *Docker) refreshAllServices() {
-	log.Noticef("Refresh service start!!")
-	ctx, cancel := context.WithCancel(context.Background())
-	opts := api.ListServicesOptions{Context:ctx}
-	allServices, err := cm.client.ListServices(opts)
-
-	if err != nil {
-		panic(err)
-	}
-
-	for _, i := range allServices {
-		s := cm.MustGetService(i.ID)
-
-		s.SetMeta("name", i.Spec.Annotations.Name)
-		labels := ""
-		for l := range i.Spec.Annotations.Labels{
-			labels += l
-		}
-		s.SetMeta("labels", labels)
-		log.Debugf("Id %s, Name %s", s.Id, s.GetMeta("name"))
-		log.Debugf("Service: %s", i.Spec.TaskTemplate.ContainerSpec)
-		log.Debugf("Endpoin: %s", i.Endpoint)
-	}
-	cancel()
-}
-
 func (cm *Docker) Loop() {
 	for id := range cm.needsRefresh {
-		c := cm.MustGetContainer(id)
+		c := cm.MustGet(id)
 		cm.refresh(c)
 	}
 }
 
 // Get a single container, creating one anew if not existing
-func (cm *Docker) MustGetContainer(id string) *container.Container {
+func (cm *Docker) MustGet(id string) *container.Container {
 	c, ok := cm.GetContainer(id)
 	// append container struct for new containers
 	if !ok {
@@ -175,32 +139,12 @@ func (cm *Docker) MustGetContainer(id string) *container.Container {
 	return c
 }
 
-func (cm *Docker) MustGetService(id string) *service.Service{
-	s, ok := cm.GetService(id)
-
-	if !ok{
-		collector := collector.NewDocker(cm.client, id)
-		s = service.New(id, collector)
-		cm.lock.Lock()
-		cm.services[id] = s
-		cm.lock.Unlock()
-	}
-	return s
-}
-
 // Get a single container, by ID
 func (cm *Docker) GetContainer(id string) (*container.Container, bool) {
 	cm.lock.Lock()
 	c, ok := cm.containers[id]
 	cm.lock.Unlock()
 	return c, ok
-}
-
-func (cm *Docker) GetService(id string) (*service.Service, bool) {
-	cm.lock.Lock()
-	s, ok := cm.services[id]
-	cm.lock.Unlock()
-	return s, ok
 }
 
 // Remove containers by ID
@@ -212,7 +156,7 @@ func (cm *Docker) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *Docker) All() (containers container.Containers, services service.Services) {
+func (cm *Docker) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
@@ -221,13 +165,10 @@ func (cm *Docker) All() (containers container.Containers, services service.Servi
 		cm.lock.Lock()
 	}
 
-	for _, s := range cm.services {
-		services = append(services, s)
-	}
 	containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
-	return containers, services
+	return containers
 }
 
 // use primary container name
@@ -237,6 +178,6 @@ func shortName(name string) string {
 
 func (cm *Docker) HealthCheck(id string){
 	insp := cm.inspect(id)
-	c := cm.MustGetContainer(id)
+	c := cm.MustGet(id)
 	c.SetMeta("health", insp.State.Health.Status)
 }

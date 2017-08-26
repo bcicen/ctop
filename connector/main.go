@@ -22,7 +22,6 @@ func ByName(s string) (Connector, error) {
 }
 
 type Connector interface {
-	All() (container.Containers, service.Services)
-	GetContainer(string) (*container.Container, bool)
-	GetService(string) (*service.Service, bool)
+	All() (container.Containers)
+	Get(string) (*container.Container, bool)
 }

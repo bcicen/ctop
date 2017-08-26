@@ -12,7 +12,6 @@ import (
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/service"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 )
@@ -51,7 +50,6 @@ type Runc struct {
 	opts          RuncOpts
 	factory       libcontainer.Factory
 	containers    map[string]*container.Container
-	services 	  map[string]*service.Service
 	libContainers map[string]libcontainer.Container
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
@@ -198,18 +196,11 @@ func (cm *Runc) MustGet(id string) *container.Container {
 }
 
 // Get a single container, by ID
-func (cm *Runc) GetContainer(id string) (*container.Container, bool) {
+func (cm *Runc) Get(id string) (*container.Container, bool) {
 	cm.lock.Lock()
 	defer cm.lock.Unlock()
 	c, ok := cm.containers[id]
 	return c, ok
-}
-
-func (cm *Runc) GetService(id string) (*service.Service, bool) {
-	cm.lock.Lock()
-	s, ok := cm.services[id]
-	cm.lock.Unlock()
-	return s, ok
 }
 
 // Remove containers by ID
@@ -222,18 +213,15 @@ func (cm *Runc) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *Runc) All() (containers container.Containers, services service.Services) {
+func (cm *Runc) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
-	for _, s := range cm.services {
-		services = append(services, s)
-	}
 	containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
-	return containers, services
+	return containers
 }
 
 func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
