@@ -11,10 +11,9 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/service"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
+	"github.com/bcicen/ctop/entity"
 )
 
 type RuncOpts struct {
@@ -50,8 +49,8 @@ func NewRuncOpts() (RuncOpts, error) {
 type Runc struct {
 	opts          RuncOpts
 	factory       libcontainer.Factory
-	containers    map[string]*container.Container
-	services 	  map[string]*service.Service
+	containers    map[string]*entity.Container
+	services 	  map[string]*entity.Service
 	libContainers map[string]libcontainer.Container
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
@@ -67,7 +66,7 @@ func NewRunc() Connector {
 	cm := &Runc{
 		opts:          opts,
 		factory:       factory,
-		containers:    make(map[string]*container.Container),
+		containers:    make(map[string]*entity.Container),
 		libContainers: make(map[string]libcontainer.Container),
 		needsRefresh:  make(chan string, 60),
 		lock:          sync.RWMutex{},
@@ -84,7 +83,7 @@ func NewRunc() Connector {
 	return cm
 }
 
-func (cm *Runc) GetLibc(id string) libcontainer.Container {
+func (cm *Runc) GetLibc(id string) entity.Container {
 	// return previously loaded container
 	libc, ok := cm.libContainers[id]
 	if ok {
@@ -168,7 +167,7 @@ func (cm *Runc) Loop() {
 }
 
 // Get a single ctop container in the map matching libc container, creating one anew if not existing
-func (cm *Runc) MustGet(id string) *container.Container {
+func (cm *Runc) MustGet(id string) *entity.Container {
 	c, ok := cm.GetContainer(id)
 	if !ok {
 		libc := cm.GetLibc(id)
@@ -198,14 +197,14 @@ func (cm *Runc) MustGet(id string) *container.Container {
 }
 
 // Get a single container, by ID
-func (cm *Runc) GetContainer(id string) (*container.Container, bool) {
+func (cm *Runc) GetContainer(id string) (*entity.Container, bool) {
 	cm.lock.Lock()
 	defer cm.lock.Unlock()
 	c, ok := cm.containers[id]
 	return c, ok
 }
 
-func (cm *Runc) GetService(id string) (*service.Service, bool) {
+func (cm *Runc) GetService(id string) (*entity.Service, bool) {
 	cm.lock.Lock()
 	s, ok := cm.services[id]
 	cm.lock.Unlock()
@@ -222,7 +221,7 @@ func (cm *Runc) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *Runc) All() (containers container.Containers, services service.Services) {
+func (cm *Runc) All() (containers entity.Containers, services entity.Services) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
