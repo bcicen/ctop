@@ -32,8 +32,7 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	// Containers filtered by display bool
 	gc.filtered = container.Containers{}
 	var cursorVisible bool
-	containers := gc.cSource.All()
-	for _, c := range containers {
+	for _, c := range gc.cSource.All() {
 		if c.Display {
 			if c.Id == gc.selectedID {
 				cursorVisible = true
@@ -57,8 +56,7 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
-	containers := gc.cSource.All()
-	for _, c := range containers {
+	for _, c := range gc.cSource.All() {
 		c.Widgets.Name.UnHighlight()
 	}
 	if gc.Len() > 0 {

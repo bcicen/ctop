@@ -70,7 +70,7 @@ func (cs *Mock) Get(id string) (*container.Container, bool) {
 }
 
 // Return array of all containers, sorted by field
-func (cs *Mock) All() (container.Containers) {
+func (cs *Mock) All() container.Containers {
 	cs.containers.Sort()
 	cs.containers.Filter()
 	return cs.containers

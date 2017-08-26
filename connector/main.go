@@ -21,6 +21,6 @@ func ByName(s string) (Connector, error) {
 }
 
 type Connector interface {
-	All() (container.Containers)
+	All() container.Containers
 	Get(string) (*container.Container, bool)
 }

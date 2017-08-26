@@ -81,7 +81,6 @@ func main() {
 	if *invertFlag {
 		InvertColorMap()
 	}
-
 	ui.ColorMap = ColorMap // override default colormap
 	if err := ui.Init(); err != nil {
 		panic(err)

@@ -167,7 +167,7 @@ func (cm *Runc) Loop() {
 
 // Get a single ctop container in the map matching libc container, creating one anew if not existing
 func (cm *Runc) MustGet(id string) *container.Container {
-	c, ok := cm.GetContainer(id)
+	c, ok := cm.Get(id)
 	if !ok {
 		libc := cm.GetLibc(id)
 
