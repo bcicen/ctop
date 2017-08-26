@@ -1,4 +1,4 @@
-package container
+package entity
 
 import (
 	"fmt"
@@ -89,6 +89,7 @@ func SortFields() (fields []string) {
 }
 
 type Containers []*Container
+type Services []*Service
 
 func (a Containers) Sort()         { sort.Sort(a) }
 func (a Containers) Len() int      { return len(a) }

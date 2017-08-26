@@ -6,17 +6,16 @@ import (
 	"sync"
 
 	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/container"
 	api "github.com/fsouza/go-dockerclient"
-	"github.com/bcicen/ctop/service"
 	"github.com/bcicen/ctop/config"
 	"context"
+	"github.com/bcicen/ctop/entity"
 )
 
 type Docker struct {
 	client       *api.Client
-	containers   map[string]*container.Container
-	services 	 map[string]*service.Service
+	containers   map[string]*entity.Container
+	services 	 map[string]*entity.Service
 	needsRefresh chan string // container IDs requiring refresh
 	lock         sync.RWMutex
 }
@@ -29,8 +28,8 @@ func NewDocker() Connector {
 	}
 	cm := &Docker{
 		client:       client,
-		containers:   make(map[string]*container.Container),
-		services:     make(map[string]*service.Service),
+		containers:   make(map[string]*entity.Container),
+		services:     make(map[string]*entity.Service),
 		needsRefresh: make(chan string, 60),
 		lock:         sync.RWMutex{},
 	}
@@ -84,7 +83,7 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 	return strings.Join(append(exposed, published...), "\n")
 }
 
-func (cm *Docker) refresh(c *container.Container) {
+func (cm *Docker) refresh(c *entity.Container) {
 	insp := cm.inspect(c.Id)
 	// remove container if no longer exists
 	if insp == nil {
@@ -160,14 +159,14 @@ func (cm *Docker) Loop() {
 }
 
 // Get a single container, creating one anew if not existing
-func (cm *Docker) MustGetContainer(id string) *container.Container {
+func (cm *Docker) MustGetContainer(id string) *entity.Container {
 	c, ok := cm.GetContainer(id)
 	// append container struct for new containers
 	if !ok {
 		// create collector
 		collector := collector.NewDocker(cm.client, id)
 		// create container
-		c = container.New(id, collector)
+		c = entity.NewContainer(id, collector)
 		cm.lock.Lock()
 		cm.containers[id] = c
 		cm.lock.Unlock()
@@ -175,12 +174,12 @@ func (cm *Docker) MustGetContainer(id string) *container.Container {
 	return c
 }
 
-func (cm *Docker) MustGetService(id string) *service.Service{
+func (cm *Docker) MustGetService(id string) *entity.Service{
 	s, ok := cm.GetService(id)
 
 	if !ok{
 		collector := collector.NewDocker(cm.client, id)
-		s = service.New(id, collector)
+		s = entity.NewService(id, collector)
 		cm.lock.Lock()
 		cm.services[id] = s
 		cm.lock.Unlock()
@@ -189,14 +188,14 @@ func (cm *Docker) MustGetService(id string) *service.Service{
 }
 
 // Get a single container, by ID
-func (cm *Docker) GetContainer(id string) (*container.Container, bool) {
+func (cm *Docker) GetContainer(id string) (*entity.Container, bool) {
 	cm.lock.Lock()
 	c, ok := cm.containers[id]
 	cm.lock.Unlock()
 	return c, ok
 }
 
-func (cm *Docker) GetService(id string) (*service.Service, bool) {
+func (cm *Docker) GetService(id string) (*entity.Service, bool) {
 	cm.lock.Lock()
 	s, ok := cm.services[id]
 	cm.lock.Unlock()
@@ -212,7 +211,7 @@ func (cm *Docker) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *Docker) All() (containers container.Containers, services service.Services) {
+func (cm *Docker) All() (containers entity.Containers, services entity.Services) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)

@@ -1,15 +1,10 @@
-package service
+package entity
 
 import (
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/models"
-	"github.com/bcicen/ctop/logging"
-)
-
-var (
-	log = logging.Init()
 )
 
 type Service struct {
@@ -22,7 +17,7 @@ type Service struct {
 	collector collector.Collector
 }
 
-func New(id string, collector collector.Collector) *Service {
+func NewService(id string, collector collector.Collector) *Service {
 	widgets := compact.NewCompact(id)
 	return &Service{
 		Metrics: 	models.NewMetrics(),

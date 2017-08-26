@@ -1,4 +1,5 @@
-package container
+package entity
+
 
 import (
 	"github.com/bcicen/ctop/connector/collector"
@@ -8,9 +9,6 @@ import (
 	"github.com/bcicen/ctop/models"
 )
 
-var (
-	log = logging.Init()
-)
 
 // Metrics and metadata representing a container
 type Container struct {
@@ -23,7 +21,7 @@ type Container struct {
 	collector collector.Collector
 }
 
-func New(id string, collector collector.Collector) *Container {
+func NewContainer(id string, collector collector.Collector) *Container {
 	widgets := compact.NewCompact(id)
 	return &Container{
 		Metrics:   models.NewMetrics(),
