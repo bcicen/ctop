@@ -5,7 +5,6 @@ import (
 
 	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/service"
 )
 
 var log = logging.Init()

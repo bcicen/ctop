@@ -30,7 +30,7 @@ func NewDocker() Connector {
 		lock:         sync.RWMutex{},
 	}
 	go cm.Loop()
-	cm.refreshAllContainers()
+	cm.refreshAll()
 	go cm.watchEvents()
 	return cm
 }
@@ -100,7 +100,7 @@ func (cm *Docker) inspect(id string) *api.Container {
 }
 
 // Mark all container IDs for refresh
-func (cm *Docker) refreshAllContainers() {
+func (cm *Docker) refreshAll() {
 	opts := api.ListContainersOptions{All: true}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
@@ -125,7 +125,7 @@ func (cm *Docker) Loop() {
 
 // Get a single container, creating one anew if not existing
 func (cm *Docker) MustGet(id string) *container.Container {
-	c, ok := cm.GetContainer(id)
+	c, ok := cm.Get(id)
 	// append container struct for new containers
 	if !ok {
 		// create collector
@@ -140,7 +140,7 @@ func (cm *Docker) MustGet(id string) *container.Container {
 }
 
 // Get a single container, by ID
-func (cm *Docker) GetContainer(id string) (*container.Container, bool) {
+func (cm *Docker) Get(id string) (*container.Container, bool) {
 	cm.lock.Lock()
 	c, ok := cm.containers[id]
 	cm.lock.Unlock()
