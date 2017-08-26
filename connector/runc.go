@@ -176,7 +176,7 @@ func (cm *Runc) MustGet(id string) *entity.Container {
 		collector := collector.NewRunc(libc)
 
 		// create container
-		c = container.New(id, collector)
+		c = entity.NewContainer(id, collector)
 
 		name := libc.ID()
 		// set initial metadata

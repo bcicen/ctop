@@ -5,7 +5,6 @@ import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/cwidgets/compact"
-	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/models"
 )
 

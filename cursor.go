@@ -4,20 +4,20 @@ import (
 	"math"
 
 	"github.com/bcicen/ctop/connector"
-	"github.com/bcicen/ctop/container"
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/entity"
 )
 
 type GridCursor struct {
 	selectedID  string // id of currently selected container
-	filtered    container.Containers
+	filtered    entity.Containers
 	cSource     connector.Connector
 	isScrolling bool // toggled when actively scrolling
 }
 
 func (gc *GridCursor) Len() int { return len(gc.filtered) }
 
-func (gc *GridCursor) Selected() *container.Container {
+func (gc *GridCursor) Selected() *entity.Container {
 	idx := gc.Idx()
 	if idx < gc.Len() {
 		return gc.filtered[idx]
@@ -30,7 +30,7 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
 
 	// Containers filtered by display bool
-	gc.filtered = container.Containers{}
+	gc.filtered = entity.Containers{}
 	var cursorVisible bool
 	containers, services := gc.cSource.All()
 	for _, c := range containers {
