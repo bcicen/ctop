@@ -29,6 +29,26 @@ func NewService(id string, collector collector.Collector) *Service {
 	}
 }
 
+func (c *Service) SetState(s string) {
+	c.SetMeta("state", s)
+	// start collector, if needed
+	if s == "running" && !c.collector.Running() {
+		c.collector.Start()
+		//c.Read(c.collector.Stream())
+	}
+	// stop collector, if needed
+	if s != "running" && c.collector.Running() {
+		c.collector.Stop()
+	}
+}
+
+func (c *Service) SetUpdater(u cwidgets.WidgetUpdater) {
+	c.updater = u
+	for k, v := range c.Meta {
+		c.updater.SetMeta(k, v)
+	}
+}
+
 func (s *Service) Logs() collector.LogCollector {
 	return s.collector.Logs()
 }
