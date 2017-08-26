@@ -138,6 +138,7 @@ func (cm *Docker) refreshAllServices() {
 
 	for _, i := range allServices {
 		s := cm.MustGetService(i.ID)
+
 		s.SetMeta("name", i.Spec.Annotations.Name)
 		labels := ""
 		for l := range i.Spec.Annotations.Labels{
@@ -145,6 +146,8 @@ func (cm *Docker) refreshAllServices() {
 		}
 		s.SetMeta("labels", labels)
 		log.Debugf("Id %s, Name %s", s.Id, s.GetMeta("name"))
+		log.Debugf("Service: %s", i.Spec.TaskTemplate.ContainerSpec)
+		log.Debugf("Endpoin: %s", i.Endpoint)
 	}
 	cancel()
 }
