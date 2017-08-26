@@ -26,7 +26,7 @@ func NewDocker() Connector {
 	// init docker client
 	client, err := api.NewClientFromEnv()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("NewDocker err:%s", err))
 	}
 	cm := &Docker{
 		client:       client,
@@ -121,7 +121,7 @@ func (cm *Docker) refreshAllContainers() {
 	opts := api.ListContainersOptions{All: true}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Refreshing all containers:%s", err))
 	}
 
 	for _, i := range allContainers {
@@ -140,7 +140,7 @@ func (cm *Docker) refreshAllServices() {
 	allServices, err := cm.client.ListServices(opts)
 
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Refreshing all services:%s", err))
 	}
 
 	for _, i := range allServices {
@@ -164,24 +164,20 @@ func (cm *Docker) refreshAllNodes() {
 	allNodes, err := cm.client.ListNodes(opt)
 
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Refreshing all nodes:%s", err))
 	}
 
 	for _, i := range allNodes {
-		//n := cm.MustGetNode(i.ID)
-		//n.SetMeta("hostname", i.Description.Hostname)
-		log.Debugf("Node: %s", i)
-		//log.Debugf("State: %s", i.Status.State)
-		//log.Debugf("Msg: %s", i.Status.Message)
-		//log.Debugf("Addr: %s", i.Status.Addr)
-		//n.SetState(statusNode(i))
-		//n.SetMeta("addr", addrStatus(i))
-		//n.SetMeta("message", messageState(i))
-		//leader, reachable := leaderAndReachable(i.ManagerStatus)
-		//n.SetMeta("leader", leader)
-		//n.SetMeta("reachable", reachable)
-		//cm.needsRefresh <- n.Id
-		//log.Debugf("Create NODE: %s", n)
+		n := cm.MustGetNode(i.ID)
+		n.SetMeta("hostname", i.Description.Hostname)
+		n.SetState(statusNode(i))
+		n.SetMeta("addr", i.Status.Addr)
+		n.SetMeta("message", i.Status.Message)
+		leader, reachable := leaderAndReachable(i)
+		n.SetMeta("leader", leader)
+		n.SetMeta("reachable", reachable)
+		cm.needsRefresh <- n.Id
+		log.Debugf("Create NODE: %s", n)
 	}
 
 	cancel()
@@ -314,21 +310,27 @@ func (cm *Docker) HealthCheck(id string) {
 	c.SetMeta("health", insp.State.Health.Status)
 }
 
-func leaderAndReachable(n *swarm.ManagerStatus) (string, string) {
-	if n == nil{
-		return "", ""
+func leaderAndReachable(n swarm.Node) (string, string) {
+	reachable := ""
+	if n.ManagerStatus == nil {
+		return "", reachable
 	}
-	reachable := fmt.Sprintf("%s",n.Reachability)
-	if n.Leader {
+	switch n.ManagerStatus.Reachability {
+	case swarm.ReachabilityReachable:
+		reachable = "reachable"
+	case swarm.ReachabilityUnreachable:
+		reachable = "unreachable"
+	default:
+		reachable = "unknown"
+	}
+
+	if n.ManagerStatus.Leader {
 		return "Leader", reachable
 	}
-	return "Leader", reachable
+	return "", reachable
 }
 
 func statusNode(n swarm.Node) string{
-	//if n == nil{
-	//	return ""
-	//}
 	switch n.Status.State {
 	case swarm.NodeStateDisconnected:
 		return "disconnected"
@@ -336,22 +338,21 @@ func statusNode(n swarm.Node) string{
 		return "down"
 	case swarm.NodeStateReady:
 		return "ready"
-	case swarm.NodeStateUnknown:
+	default:
 		return "unknown"
 	}
-	return ""
 }
 
-func addrStatus(n swarm.Node) string{
-	//if n == nil{
-	//	return ""
-	//}
+func addrStatus(n *swarm.Node) string{
+	if n == nil || &n.Status == nil || &n.Status.Addr == nil{
+		return ""
+	}
 	return n.Status.Addr
 }
 
-func messageState(node swarm.Node) string {
-	//if &node.Status.Message == nil{
-	//	return ""
-	//}
+func messageState(node *swarm.Node) string {
+	if &node.Status.Message == nil{
+		return ""
+	}
 	return node.Status.Message
 }

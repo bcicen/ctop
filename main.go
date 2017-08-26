@@ -89,14 +89,14 @@ func main() {
 
 	ui.ColorMap = ColorMap // override default colormap
 	if err := ui.Init(); err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Ui error: %s:",err))
 	}
 
 	defer Shutdown()
 	// init grid, cursor, header
 	conn, err := connector.ByName(*connectorFlag)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Init grid, cursor, header: %s", err))
 	}
 	cursor = &GridCursor{cSource: conn}
 	cGrid = compact.NewCompactGrid()
