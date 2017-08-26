@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/bcicen/ctop/container"
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/entity"
 )
 
 var mstats = &runtime.MemStats{}
@@ -39,7 +39,7 @@ func runtimeStack() {
 }
 
 // log container, metrics, and widget state
-func dumpContainer(c *container.Container) {
+func dumpContainer(c *entity.Container) {
 	msg := fmt.Sprintf("logging state for container: %s\n", c.Id)
 	for k, v := range c.Meta {
 		msg += fmt.Sprintf("Meta.%s = %s\n", k, v)

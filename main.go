@@ -8,12 +8,12 @@ import (
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/connector"
-	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 	tm "github.com/nsf/termbox-go"
+	"github.com/bcicen/ctop/entity"
 )
 
 var (
@@ -120,7 +120,7 @@ func Shutdown() {
 
 // ensure a given sort field is valid
 func validSort(s string) {
-	if _, ok := container.Sorters[s]; !ok {
+	if _, ok := entity.Sorters[s]; !ok {
 		fmt.Printf("invalid sort field: %s\n", s)
 		os.Exit(1)
 	}

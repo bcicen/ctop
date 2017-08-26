@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/entity"
 )
 
 var helpDialog = []menu.Item{
@@ -75,7 +75,7 @@ func SortMenu() {
 	m.SortItems = true
 	m.BorderLabel = "Sort Field"
 
-	for _, field := range container.SortFields() {
+	for _, field := range entity.SortFields() {
 		m.AddItems(menu.Item{field, ""})
 	}
 

@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/entity"
 )
 
 func RedrawRows(clr bool) {
@@ -35,7 +35,7 @@ func RedrawRows(clr bool) {
 	ui.Render(cGrid)
 }
 
-func SingleView(c *container.Container) {
+func SingleView(c *entity.Container) {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
