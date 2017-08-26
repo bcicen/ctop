@@ -40,7 +40,7 @@ func NewDocker() Connector {
 	cm.refreshAllContainers()
 	if config.GetSwitchVal("swarmMode") {
 		cm.refreshAllNodes()
-		cm.refreshAllServices()
+		//cm.refreshAllServices()
 	}
 	go cm.watchEvents()
 	return cm
@@ -168,25 +168,23 @@ func (cm *Docker) refreshAllNodes() {
 	}
 
 	for _, i := range allNodes {
-		n := cm.MustGetNode(i.ID)
-		n.SetMeta("hostname", i.Description.Hostname)
-		n.SetState(statusNode(&i))
-		n.SetMeta("addr", i.Status.Addr)
-		n.SetMeta("message", messageState(&i))
-		leader, reachable := leaderAndReachable(i.ManagerStatus)
-		n.SetMeta("leader", leader)
-		n.SetMeta("reachable", reachable)
-		cm.needsRefresh <- n.Id
-		log.Debugf("Create NODE: %s", n)
+		//n := cm.MustGetNode(i.ID)
+		//n.SetMeta("hostname", i.Description.Hostname)
+		log.Debugf("Node: %s", i)
+		//log.Debugf("State: %s", i.Status.State)
+		//log.Debugf("Msg: %s", i.Status.Message)
+		//log.Debugf("Addr: %s", i.Status.Addr)
+		//n.SetState(statusNode(i))
+		//n.SetMeta("addr", addrStatus(i))
+		//n.SetMeta("message", messageState(i))
+		//leader, reachable := leaderAndReachable(i.ManagerStatus)
+		//n.SetMeta("leader", leader)
+		//n.SetMeta("reachable", reachable)
+		//cm.needsRefresh <- n.Id
+		//log.Debugf("Create NODE: %s", n)
 	}
 
 	cancel()
-}
-func messageState(node *swarm.Node) string {
-	if &node.Status.Message == nil{
-		return ""
-	}
-	return node.Status.Message
 }
 
 func (cm *Docker) Loop() {
@@ -268,22 +266,41 @@ func (cm *Docker) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *Docker) All() (containers entity.Containers, services entity.Services) {
+func (cm *Docker) AllNodes() (nodes entity.Nodes) {
 	cm.lock.Lock()
-	for _, c := range cm.containers {
-		containers = append(containers, c)
+	for _, node := range cm.nodes {
+		nodes = append(nodes, node)
+	}
+
+	//containers.Sort()
+	//containers.Filter()
+	cm.lock.Unlock()
+	return nodes
+}
+func (cm *Docker) AllServices() (services entity.Services) {
+	cm.lock.Lock()
+	for _, service := range cm.services {
+		services = append(services, service)
+	}
+
+	//services.Sort()
+	//services.Filter()
+	cm.lock.Unlock()
+	return services
+}
+func (cm *Docker) AllContainers() (containers entity.Containers) {
+	cm.lock.Lock()
+	for _, container := range cm.containers {
+		containers = append(containers, container)
 		cm.lock.Unlock()
-		cm.HealthCheck(c.Id)
+		cm.HealthCheck(container.Id)
 		cm.lock.Lock()
 	}
 
-	for _, s := range cm.services {
-		services = append(services, s)
-	}
 	containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
-	return containers, services
+	return containers
 }
 
 // use primary container name
@@ -308,7 +325,10 @@ func leaderAndReachable(n *swarm.ManagerStatus) (string, string) {
 	return "Leader", reachable
 }
 
-func statusNode(n *swarm.Node) string{
+func statusNode(n swarm.Node) string{
+	//if n == nil{
+	//	return ""
+	//}
 	switch n.Status.State {
 	case swarm.NodeStateDisconnected:
 		return "disconnected"
@@ -320,4 +340,18 @@ func statusNode(n *swarm.Node) string{
 		return "unknown"
 	}
 	return ""
+}
+
+func addrStatus(n swarm.Node) string{
+	//if n == nil{
+	//	return ""
+	//}
+	return n.Status.Addr
+}
+
+func messageState(node swarm.Node) string {
+	//if &node.Status.Message == nil{
+	//	return ""
+	//}
+	return node.Status.Message
 }

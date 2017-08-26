@@ -20,7 +20,7 @@ func RedrawRows(clr bool) {
 	}
 	cGrid.SetY(y)
 
-	for _, c := range cursor.filtered {
+	for _, c := range cursor.filteredContainers {
 		cGrid.AddRows(c.Widgets)
 	}
 

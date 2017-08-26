@@ -9,18 +9,18 @@ import (
 )
 
 type GridCursor struct {
-	selectedID  string // id of currently selected container
-	filtered    entity.Containers
-	cSource     connector.Connector
-	isScrolling bool // toggled when actively scrolling
+	selectedID         string // id of currently selected container
+	filteredContainers entity.Containers
+	cSource            connector.Connector
+	isScrolling        bool // toggled when actively scrolling
 }
 
-func (gc *GridCursor) Len() int { return len(gc.filtered) }
+func (gc *GridCursor) Len() int { return len(gc.filteredContainers) }
 
 func (gc *GridCursor) Selected() *entity.Container {
 	idx := gc.Idx()
 	if idx < gc.Len() {
-		return gc.filtered[idx]
+		return gc.filteredContainers[idx]
 	}
 	return nil
 }
@@ -30,23 +30,14 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
 
 	// Containers filtered by display bool
-	gc.filtered = entity.Containers{}
+	gc.filteredContainers = entity.Containers{}
 	var cursorVisible bool
-	containers, services := gc.cSource.All()
-	for _, c := range containers {
+	for _, c := range gc.cSource.AllContainers() {
 		if c.Display {
 			if c.Id == gc.selectedID {
 				cursorVisible = true
 			}
-			gc.filtered = append(gc.filtered, c)
-		}
-	}
-
-	for _, s := range services {
-		if s.Display {
-			if s.Id == gc.selectedID {
-				cursorVisible = true
-			}
+			gc.filteredContainers = append(gc.filteredContainers, c)
 		}
 	}
 
@@ -65,22 +56,18 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
-	containers, services := gc.cSource.All()
-	for _, c := range containers {
+	for _, c := range gc.cSource.AllContainers() {
 		c.Widgets.Name.UnHighlight()
 	}
-	for _, s := range services {
-		s.Widgets.Name.UnHighlight()
-	}
 	if gc.Len() > 0 {
-		gc.selectedID = gc.filtered[0].Id
-		gc.filtered[0].Widgets.Name.Highlight()
+		gc.selectedID = gc.filteredContainers[0].Id
+		gc.filteredContainers[0].Widgets.Name.Highlight()
 	}
 }
 
 // Return current cursor index
 func (gc *GridCursor) Idx() int {
-	for n, c := range gc.filtered {
+	for n, c := range gc.filteredContainers {
 		if c.Id == gc.selectedID {
 			return n
 		}
@@ -119,8 +106,8 @@ func (gc *GridCursor) Up() {
 	if idx <= 0 { // already at top
 		return
 	}
-	active := gc.filtered[idx]
-	next := gc.filtered[idx-1]
+	active := gc.filteredContainers[idx]
+	next := gc.filteredContainers[idx-1]
 
 	active.Widgets.Name.UnHighlight()
 	gc.selectedID = next.Id
@@ -138,8 +125,8 @@ func (gc *GridCursor) Down() {
 	if idx >= gc.Len()-1 { // already at bottom
 		return
 	}
-	active := gc.filtered[idx]
-	next := gc.filtered[idx+1]
+	active := gc.filteredContainers[idx]
+	next := gc.filteredContainers[idx+1]
 
 	active.Widgets.Name.UnHighlight()
 	gc.selectedID = next.Id
@@ -161,8 +148,8 @@ func (gc *GridCursor) PgUp() {
 			float64(0)))
 	}
 
-	active := gc.filtered[idx]
-	next := gc.filtered[nextidx]
+	active := gc.filteredContainers[idx]
+	next := gc.filteredContainers[nextidx]
 
 	active.Widgets.Name.UnHighlight()
 	gc.selectedID = next.Id
@@ -184,8 +171,8 @@ func (gc *GridCursor) PgDown() {
 			float64(gc.Len()-cGrid.MaxRows())))
 	}
 
-	active := gc.filtered[idx]
-	next := gc.filtered[nextidx]
+	active := gc.filteredContainers[idx]
+	next := gc.filteredContainers[nextidx]
 
 	active.Widgets.Name.UnHighlight()
 	gc.selectedID = next.Id

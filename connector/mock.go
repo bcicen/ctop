@@ -16,6 +16,7 @@ import (
 type Mock struct {
 	containers entity.Containers
 	services entity.Services
+	nodes entity.Nodes
 }
 
 func NewMock() *Mock {
@@ -71,10 +72,20 @@ func (cs *Mock) GetContainer(id string) (*entity.Container, bool) {
 }
 
 // Return array of all containers, sorted by field
-func (cs *Mock) All() (entity.Containers, entity.Services) {
+func (cs *Mock) AllNodes() (entity.Nodes) {
+	//cs.nodes.Sort()
+	//cs.nodes.Filter()
+	return cs.nodes
+}
+func (cs *Mock) AllServices() (entity.Services) {
+	//cs.services.Sort()
+	//cs.services.Filter()
+	return cs.services
+}
+func (cs *Mock) AllContainers() (entity.Containers) {
 	cs.containers.Sort()
 	cs.containers.Filter()
-	return cs.containers, cs.services
+	return cs.containers
 }
 
 // Remove containers by ID

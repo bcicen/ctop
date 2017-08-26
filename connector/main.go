@@ -21,7 +21,9 @@ func ByName(s string) (Connector, error) {
 }
 
 type Connector interface {
-	All() (entity.Containers, entity.Services)
+	AllNodes() entity.Nodes
+	AllServices() entity.Services
+	AllContainers() entity.Containers
 	GetContainer(string) (*entity.Container, bool)
 	GetService(string) (*entity.Service, bool)
 }

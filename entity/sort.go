@@ -90,6 +90,7 @@ func SortFields() (fields []string) {
 
 type Containers []*Container
 type Services []*Service
+type Nodes []*Node
 type Entities []*Entity
 
 func (a Containers) Sort()         { sort.Sort(a) }

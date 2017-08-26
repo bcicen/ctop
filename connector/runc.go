@@ -50,7 +50,8 @@ type Runc struct {
 	opts          RuncOpts
 	factory       libcontainer.Factory
 	containers    map[string]*entity.Container
-	services 	  map[string]*entity.Service
+	services      map[string]*entity.Service
+	nodes         map[string]*entity.Node
 	libContainers map[string]libcontainer.Container
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
@@ -221,18 +222,35 @@ func (cm *Runc) delByID(id string) {
 }
 
 // Return array of all containers, sorted by field
-func (cm *Runc) All() (containers entity.Containers, services entity.Services) {
+func (cm *Runc) AllNodes() (nodes entity.Nodes) {
 	cm.lock.Lock()
-	for _, c := range cm.containers {
-		containers = append(containers, c)
+	for _, node := range cm.nodes {
+		nodes = append(nodes, node)
 	}
-	for _, s := range cm.services {
-		services = append(services, s)
+	//nodes.Sort()
+	//nodes.Filter()
+	cm.lock.Unlock()
+	return nodes
+}
+func (cm *Runc) AllServices() (services entity.Services) {
+	cm.lock.Lock()
+	for _, service := range cm.services {
+		services = append(services, service)
+	}
+	//services.Sort()
+	//services.Filter()
+	cm.lock.Unlock()
+	return services
+}
+func (cm *Runc) AllContainers() (containers entity.Containers) {
+	cm.lock.Lock()
+	for _, container := range cm.containers {
+		containers = append(containers, container)
 	}
 	containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
-	return containers, services
+	return containers
 }
 
 func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
