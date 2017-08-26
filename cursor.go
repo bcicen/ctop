@@ -11,14 +11,24 @@ import (
 type GridCursor struct {
 	selectedID         string // id of currently selected container
 	filteredContainers entity.Containers
+	filteredNodes      entity.Nodes
+	filteredServices   entity.Services
 	cSource            connector.Connector
 	isScrolling        bool // toggled when actively scrolling
 }
 
 func (gc *GridCursor) Len() int { return len(gc.filteredContainers) }
 
-func (gc *GridCursor) Selected() *entity.Container {
-	idx := gc.Idx()
+func (gc *GridCursor) Selected() (entity.Entity, string) {
+	idx, entity := gc.Idx()
+	if idx < gc.Len() {
+		return gc.entity(entity, idx), entity
+	}
+	return nil, entity
+}
+
+func (gc *GridCursor) SelectedContainer() *entity.Container {
+	idx, _ := gc.Idx()
 	if idx < gc.Len() {
 		return gc.filteredContainers[idx]
 	}
@@ -26,6 +36,33 @@ func (gc *GridCursor) Selected() *entity.Container {
 }
 
 // Refresh containers from source
+func (gc *GridCursor) RefreshNodes() (lenChanged bool) {
+	oldLen := gc.Len()
+
+	// Containers filtered by display bool
+	gc.filteredNodes = entity.Nodes{}
+	var cursorVisible bool
+	for _, n := range gc.cSource.AllNodes() {
+		if n.Display {
+			if n.Id == gc.selectedID {
+				cursorVisible = true
+			}
+			gc.filteredNodes = append(gc.filteredNodes, n)
+		}
+	}
+
+	if oldLen != gc.Len() {
+		lenChanged = true
+	}
+
+	if !cursorVisible {
+		gc.Reset()
+	}
+	if gc.selectedID == "" {
+		gc.Reset()
+	}
+	return lenChanged
+}
 func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.Len()
 
@@ -66,14 +103,19 @@ func (gc *GridCursor) Reset() {
 }
 
 // Return current cursor index
-func (gc *GridCursor) Idx() int {
+func (gc *GridCursor) Idx() (int, string) {
 	for n, c := range gc.filteredContainers {
 		if c.Id == gc.selectedID {
-			return n
+			return n, "container"
+		}
+	}
+	for n, c := range gc.filteredNodes {
+		if c.Id == gc.selectedID {
+			return n, "node"
 		}
 	}
 	gc.Reset()
-	return 0
+	return 0, ""
 }
 
 func (gc *GridCursor) ScrollPage() {
@@ -83,7 +125,7 @@ func (gc *GridCursor) ScrollPage() {
 		return
 	}
 
-	idx := gc.Idx()
+	idx, _ := gc.Idx()
 
 	// page down
 	if idx >= cGrid.Offset+cGrid.MaxRows() {
@@ -102,16 +144,16 @@ func (gc *GridCursor) Up() {
 	gc.isScrolling = true
 	defer func() { gc.isScrolling = false }()
 
-	idx := gc.Idx()
+	idx, entity := gc.Idx()
 	if idx <= 0 { // already at top
 		return
 	}
-	active := gc.filteredContainers[idx]
-	next := gc.filteredContainers[idx-1]
+	active := gc.entity(entity, idx)
+	next := gc.entity(entity, idx-1)
 
-	active.Widgets.Name.UnHighlight()
-	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	active.GetMetaEntity().Widgets.Name.UnHighlight()
+	gc.selectedID = next.GetId()
+	next.GetMetaEntity().Widgets.Name.Highlight()
 
 	gc.ScrollPage()
 	ui.Render(cGrid)
@@ -121,23 +163,24 @@ func (gc *GridCursor) Down() {
 	gc.isScrolling = true
 	defer func() { gc.isScrolling = false }()
 
-	idx := gc.Idx()
+	idx, entity := gc.Idx()
 	if idx >= gc.Len()-1 { // already at bottom
 		return
 	}
-	active := gc.filteredContainers[idx]
-	next := gc.filteredContainers[idx+1]
 
-	active.Widgets.Name.UnHighlight()
-	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	active := gc.entity(entity, idx)
+	next := gc.entity(entity, idx+1)
+
+	active.GetMetaEntity().Widgets.Name.UnHighlight()
+	gc.selectedID = next.GetId()
+	next.GetMetaEntity().Widgets.Name.Highlight()
 
 	gc.ScrollPage()
 	ui.Render(cGrid)
 }
 
 func (gc *GridCursor) PgUp() {
-	idx := gc.Idx()
+	idx, entity := gc.Idx()
 	if idx <= 0 { // already at top
 		return
 	}
@@ -148,19 +191,19 @@ func (gc *GridCursor) PgUp() {
 			float64(0)))
 	}
 
-	active := gc.filteredContainers[idx]
-	next := gc.filteredContainers[nextidx]
+	active := gc.entity(entity, idx)
+	next := gc.entity(entity, nextidx)
 
-	active.Widgets.Name.UnHighlight()
-	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	active.GetMetaEntity().Widgets.Name.UnHighlight()
+	gc.selectedID = next.GetId()
+	next.GetMetaEntity().Widgets.Name.Highlight()
 
 	cGrid.Align()
 	ui.Render(cGrid)
 }
 
 func (gc *GridCursor) PgDown() {
-	idx := gc.Idx()
+	idx, entity := gc.Idx()
 	if idx >= gc.Len()-1 { // already at bottom
 		return
 	}
@@ -171,12 +214,12 @@ func (gc *GridCursor) PgDown() {
 			float64(gc.Len()-cGrid.MaxRows())))
 	}
 
-	active := gc.filteredContainers[idx]
-	next := gc.filteredContainers[nextidx]
+	active := gc.entity(entity, idx)
+	next := gc.entity(entity, nextidx)
 
-	active.Widgets.Name.UnHighlight()
-	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	active.GetMetaEntity().Widgets.Name.UnHighlight()
+	gc.selectedID = next.GetId()
+	next.GetMetaEntity().Widgets.Name.Highlight()
 
 	cGrid.Align()
 	ui.Render(cGrid)
@@ -189,4 +232,14 @@ func (gc *GridCursor) pgCount() int {
 		pages++
 	}
 	return pages
+}
+
+func (gc *GridCursor) entity(t string, id int) entity.Entity {
+	switch t {
+	case "container":
+		return gc.filteredContainers[id]
+	case "node":
+		return gc.filteredNodes[id]
+	}
+	return nil
 }

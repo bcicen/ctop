@@ -66,6 +66,8 @@ func RefreshDisplay() {
 	if !cursor.isScrolling {
 		needsClear := cursor.RefreshContainers()
 		RedrawRows(needsClear)
+		needsClear = cursor.RefreshNodes()
+		RedrawRows(needsClear)
 	}
 }
 
@@ -79,6 +81,7 @@ func Display() bool {
 	// initial draw
 	header.Align()
 	cursor.RefreshContainers()
+	cursor.RefreshNodes()
 	RedrawRows(true)
 
 	HandleKeys("up", cursor.Up)
@@ -102,7 +105,8 @@ func Display() bool {
 		RefreshDisplay()
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
-		dumpContainer(cursor.Selected())
+		e, _ := cursor.Selected()
+		dumpContainer(e)
 	})
 	ui.Handle("/sys/kbd/f", func(ui.Event) {
 		menu = FilterMenu
@@ -138,9 +142,12 @@ func Display() bool {
 		return false
 	}
 	if single {
-		c := cursor.Selected()
-		if c != nil {
-			SingleView(c)
+		c, t := cursor.Selected()
+		switch t {
+		case "container":
+			if c != nil {
+				SingleView(cursor.SelectedContainer())
+			}
 		}
 		return false
 	}

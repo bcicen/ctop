@@ -40,7 +40,7 @@ func NewDocker() Connector {
 	cm.refreshAllContainers()
 	if config.GetSwitchVal("swarmMode") {
 		cm.refreshAllNodes()
-		//cm.refreshAllServices()
+		cm.refreshAllServices()
 	}
 	go cm.watchEvents()
 	return cm
@@ -341,18 +341,4 @@ func statusNode(n swarm.Node) string{
 	default:
 		return "unknown"
 	}
-}
-
-func addrStatus(n *swarm.Node) string{
-	if n == nil || &n.Status == nil || &n.Status.Addr == nil{
-		return ""
-	}
-	return n.Status.Addr
-}
-
-func messageState(node *swarm.Node) string {
-	if &node.Status.Message == nil{
-		return ""
-	}
-	return node.Status.Message
 }

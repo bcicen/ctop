@@ -36,6 +36,18 @@ func (c *Container) SetState(val string) {
 	}
 }
 
+func (c *Container) GetMetaEntity() Meta{
+	return c.Meta
+}
+
+func (c *Container) GetId() string {
+	return c.Id
+}
+
+func (c *Container) GetMetrics() models.Metrics{
+	return c.Metrics
+}
+
 // Return container log collector
 func (c *Container) Logs() collector.LogCollector {
 	return c.collector.Logs()

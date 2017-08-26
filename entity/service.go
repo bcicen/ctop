@@ -37,3 +37,15 @@ func (s *Service) SetState(val string) {
 func (s *Service) Logs() collector.LogCollector {
 	return s.collector.Logs()
 }
+
+func (s *Service) GetMetaEntity() Meta {
+	return s.Meta
+}
+
+func (s *Service) GetId() string {
+	return s.Id
+}
+
+func (s *Service) GetMetrics() models.Metrics{
+	return s.Metrics
+}

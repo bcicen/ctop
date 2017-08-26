@@ -21,19 +21,31 @@ func NewNode(id string, collector collector.Collector) *Node {
 	}
 }
 
-func (s *Node) SetState(val string) {
-	s.Meta.SetMeta("state", val)
+func (n *Node) SetState(val string) {
+	n.Meta.SetMeta("state", val)
 	// start collector, if needed
-	if val == "running" && !s.collector.Running() {
-		s.collector.Start()
+	if val == "running" && !n.collector.Running() {
+		n.collector.Start()
 		//s.Read(s.collector.Stream())
 	}
 	// stop collector, if needed
-	if val != "running" && s.collector.Running() {
-		s.collector.Stop()
+	if val != "running" && n.collector.Running() {
+		n.collector.Stop()
 	}
 }
 
-func (s *Node) Logs() collector.LogCollector {
-	return s.collector.Logs()
+func (n *Node) Logs() collector.LogCollector {
+	return n.collector.Logs()
+}
+
+func (n *Node) GetMetaEntity() Meta {
+	return n.Meta
+}
+
+func (n *Node) GetId() string {
+	return n.Id
+}
+
+func (n *Node) GetMetrics() models.Metrics{
+	return n.Metrics
 }
