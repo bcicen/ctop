@@ -18,7 +18,7 @@ func NewTextCol(s string) *TextCol {
 }
 
 func (w *TextCol) Highlight() {
-	if w.TextFgColor ==ui.ThemeAttr("par.text.fg"){
+	if w.TextFgColor == ui.ThemeAttr("par.text.fg") {
 		w.TextFgColor = ui.ThemeAttr("par.text.hi")
 	}
 	w.TextBgColor = ui.ThemeAttr("par.text.fg")
@@ -26,7 +26,7 @@ func (w *TextCol) Highlight() {
 }
 
 func (w *TextCol) UnHighlight() {
-	if w.TextFgColor == ui.ThemeAttr("par.text.hi"){
+	if w.TextFgColor == ui.ThemeAttr("par.text.hi") {
 		w.TextFgColor = ui.ThemeAttr("par.text.fg")
 	}
 	w.TextBgColor = ui.ThemeAttr("par.text.bg")
@@ -41,18 +41,18 @@ func (w *TextCol) Set(s string) {
 	w.Text = s
 }
 
-func (w *TextCol) Color(s string){
+func (w *TextCol) Color(s string) {
 	color := ui.ThemeAttr("par.text.fg")
-	if w.isHighlight{
+	if w.isHighlight {
 		color = ui.ThemeAttr("par.text.hi")
 	}
 	switch s {
 	case "healthy":
-		color = ui.ColorGreen
+		color = ui.ThemeAttr("status.ok")
 	case "unhealthy":
-		color = ui.ColorMagenta
+		color = ui.ThemeAttr("status.danger")
 	case "starting":
-		color = ui.ColorYellow
+		color = ui.ThemeAttr("status.warn")
 	}
 	w.TextFgColor = color
 }

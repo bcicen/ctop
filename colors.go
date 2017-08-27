@@ -45,6 +45,9 @@ var ColorMap = map[string]ui.Attribute{
 	"par.text.hi":        ui.ColorBlack,
 	"sparkline.line.fg":  ui.ColorGreen,
 	"sparkline.title.fg": ui.ColorWhite,
+	"status.ok":          ui.ColorGreen,
+	"status.warn":        ui.ColorYellow,
+	"status.danger":      ui.ColorRed,
 }
 
 func InvertColorMap() {

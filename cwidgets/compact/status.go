@@ -32,9 +32,9 @@ func (s *Status) Set(val string) {
 
 	switch val {
 	case "running":
-		color = ui.ColorGreen
+		color = ui.ThemeAttr("status.ok")
 	case "exited":
-		color = ui.ColorRed
+		color = ui.ThemeAttr("status.danger")
 	case "paused":
 		text = fmt.Sprintf("%s%s", vBar, vBar)
 	}
