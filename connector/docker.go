@@ -45,8 +45,11 @@ func (cm *Docker) watchEvents() {
 		if e.Type != "container" {
 			continue
 		}
-		switch e.Action {
-		case "start", "die", "pause", "unpause":
+
+		actionName := strings.Split(e.Action, ":")[0]
+
+		switch actionName {
+		case "start", "die", "pause", "unpause", "health_status":
 			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
 			cm.needsRefresh <- e.ID
 		case "destroy":
@@ -111,7 +114,6 @@ func (cm *Docker) refreshAll() {
 		c := cm.MustGet(i.ID)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
-		cm.HealthCheck(i.ID)
 		cm.needsRefresh <- c.Id
 	}
 }
@@ -160,9 +162,6 @@ func (cm *Docker) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
-		cm.lock.Unlock()
-		cm.HealthCheck(c.Id)
-		cm.lock.Lock()
 	}
 
 	containers.Sort()
@@ -174,10 +173,4 @@ func (cm *Docker) All() (containers container.Containers) {
 // use primary container name
 func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
-}
-
-func (cm *Docker) HealthCheck(id string){
-	insp := cm.inspect(id)
-	c := cm.MustGet(id)
-	c.SetMeta("health", insp.State.Health.Status)
 }
