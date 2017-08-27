@@ -50,8 +50,6 @@ type Runc struct {
 	opts          RuncOpts
 	factory       libcontainer.Factory
 	containers    map[string]*entity.Container
-	services      map[string]*entity.Service
-	nodes         map[string]*entity.Node
 	libContainers map[string]libcontainer.Container
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
@@ -68,8 +66,6 @@ func NewRunc() Connector {
 		opts:          opts,
 		factory:       factory,
 		containers:    make(map[string]*entity.Container),
-		nodes:         make(map[string]*entity.Node),
-		services:      make(map[string]*entity.Service),
 		libContainers: make(map[string]libcontainer.Container),
 		needsRefresh:  make(chan string, 60),
 		lock:          sync.RWMutex{},
@@ -77,7 +73,7 @@ func NewRunc() Connector {
 
 	go func() {
 		for {
-			cm.refreshAll()
+			cm.refreshAllContainers()
 			time.Sleep(5 * time.Second)
 		}
 	}()
@@ -140,7 +136,7 @@ func (cm *Runc) refresh(id string) {
 }
 
 // Read runc root, creating any new containers
-func (cm *Runc) refreshAll() {
+func (cm *Runc) refreshAllContainers() {
 	list, err := ioutil.ReadDir(cm.opts.root)
 	runcFailOnErr(err)
 
@@ -160,11 +156,7 @@ func (cm *Runc) refreshAll() {
 	for id, _ := range cm.containers {
 		cm.needsRefresh <- id
 	}
-	for id, _ := range cm.nodes {
-		cm.needsRefresh <- id
-	}
 	log.Debugf("queued %d containers for refresh", len(cm.containers))
-	log.Debugf("queued %d nodes for refresh", len(cm.nodes))
 }
 
 func (cm *Runc) Loop() {
@@ -211,10 +203,7 @@ func (cm *Runc) GetContainer(id string) (*entity.Container, bool) {
 	return c, ok
 }
 
-func (cm *Runc) GetService(id string) (*entity.Service, bool) {
-	cm.lock.Lock()
-	s, ok := cm.services[id]
-	cm.lock.Unlock()
+func (cm *Runc) GetService(id string) (s *entity.Service, ok bool) {
 	return s, ok
 }
 
@@ -227,27 +216,18 @@ func (cm *Runc) delByID(id string) {
 	log.Infof("removed dead container: %s", id)
 }
 
-// Return array of all containers, sorted by field
 func (cm *Runc) AllNodes() (nodes entity.Nodes) {
-	cm.lock.Lock()
-	for _, node := range cm.nodes {
-		nodes = append(nodes, node)
-	}
-	//nodes.Sort()
-	nodes.Filter()
-	cm.lock.Unlock()
 	return nodes
 }
+
+func (cm *Runc) AllTasks() (tasks entity.Tasks) {
+	return tasks
+}
+
 func (cm *Runc) AllServices() (services entity.Services) {
-	cm.lock.Lock()
-	for _, service := range cm.services {
-		services = append(services, service)
-	}
-	//services.Sort()
-	//services.Filter()
-	cm.lock.Unlock()
 	return services
 }
+
 func (cm *Runc) AllContainers() (containers entity.Containers) {
 	cm.lock.Lock()
 	for _, container := range cm.containers {

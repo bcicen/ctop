@@ -58,8 +58,12 @@ func headerBg() *ui.Par {
 	return bg
 }
 
-func (c *CTopHeader) SetCount(val int) {
-	c.Count.Text = fmt.Sprintf("%d containers", val)
+func (c *CTopHeader) SetCountContainer(container int) {
+	c.Count.Text = fmt.Sprintf("%d containers", container)
+}
+
+func (c *CTopHeader) SetCountSwarm(node int, service int, task int) {
+	c.Count.Text = fmt.Sprintf("Nodes: %s Services: %s Tasks: %s", node, service, task)
 }
 
 func (c *CTopHeader) SetFilter(val string) {

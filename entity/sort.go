@@ -91,6 +91,7 @@ func SortFields() (fields []string) {
 type Containers []*Container
 type Services []*Service
 type Nodes []*Node
+type Tasks []*Task
 type Entities []*Entity
 
 func (a Containers) Sort()         { sort.Sort(a) }
@@ -132,7 +133,32 @@ func (n Nodes) Filter(){
 			c.Display = false
 		}
 	}
+}
 
+func (t Tasks) Filter() {
+	filter := config.GetVal("filterStr")
+	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+
+	for _, c := range t {
+		c.Display = true
+		// Apply name filter
+		if re.FindAllString(c.GetMeta("name"), 1) == nil {
+			c.Display = false
+		}
+	}
+}
+
+func (s Services) Filter() {
+	filter := config.GetVal("filterStr")
+	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+
+	for _, c := range s {
+		c.Display = true
+		// Apply name filter
+		if re.FindAllString(c.GetMeta("name"), 1) == nil {
+			c.Display = false
+		}
+	}
 }
 
 func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }

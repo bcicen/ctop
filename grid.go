@@ -14,17 +14,29 @@ func RedrawRows(clr bool) {
 	// build layout
 	y := 1
 	if config.GetSwitchVal("enableHeader") {
-		header.SetCount(cursor.Len())
+		if config.GetSwitchVal("swarmMode") {
+			header.SetCountContainer(cursor.LenContainers())
+		} else {
+			header.SetCountSwarm(cursor.LenNodes(), cursor.LenServices(), cursor.LenTasks())
+		}
 		header.SetFilter(config.GetVal("filterStr"))
 		y += header.Height()
 	}
 	cGrid.SetY(y)
-	log.Debugf("filteredNodes: %d, filteredContainers: %s", len(cursor.filteredNodes), len(cursor.filteredContainers))
-	for _, c := range cursor.filteredNodes {
-		cGrid.AddRows(c.Widgets)
-	}
-	for _, c := range cursor.filteredContainers {
-		cGrid.AddRows(c.Widgets)
+	if config.GetSwitchVal("swarmMode") {
+		for _, n := range cursor.filteredNodes {
+			cGrid.AddRows(n.Widgets)
+		}
+		for _, s := range cursor.filteredServices {
+			cGrid.AddRows(s.Widgets)
+		}
+		for _, t := range cursor.filteredTasks {
+			cGrid.AddRows(t.Widgets)
+		}
+	} else {
+		for _, c := range cursor.filteredContainers {
+			cGrid.AddRows(c.Widgets)
+		}
 	}
 
 	if clr {
@@ -67,10 +79,17 @@ func SingleView(c *entity.Container) {
 func RefreshDisplay() {
 	// skip display refresh during scroll
 	if !cursor.isScrolling {
-		//needsClear := cursor.RefreshContainers()
-		//RedrawRows(needsClear)
-		needsClear := cursor.RefreshNodes()
-		RedrawRows(needsClear)
+		if config.GetSwitchVal("swarmMode") {
+			needsClear := cursor.RefreshNodes()
+			RedrawRows(needsClear)
+			needsClear = cursor.RefreshServices()
+			RedrawRows(needsClear)
+			needsClear = cursor.RefreshTasks()
+			RedrawRows(needsClear)
+		} else {
+			needsClear := cursor.RefreshContainers()
+			RedrawRows(needsClear)
+		}
 	}
 }
 
@@ -83,8 +102,14 @@ func Display() bool {
 
 	// initial draw
 	header.Align()
-	cursor.RefreshContainers()
-	cursor.RefreshNodes()
+	if config.GetSwitchVal("swarmMode") {
+		cursor.RefreshNodes()
+		cursor.RefreshServices()
+		cursor.RefreshTasks()
+	} else {
+		cursor.RefreshContainers()
+	}
+
 	RedrawRows(true)
 
 	HandleKeys("up", cursor.Up)

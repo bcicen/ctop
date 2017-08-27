@@ -24,6 +24,7 @@ type Connector interface {
 	AllNodes() entity.Nodes
 	AllServices() entity.Services
 	AllContainers() entity.Containers
+	AllTasks() entity.Tasks
 	GetContainer(string) (*entity.Container, bool)
 	GetService(string) (*entity.Service, bool)
 }

@@ -14,6 +14,7 @@ var helpDialog = []menu.Item{
 	menu.Item{"[h] - open this help dialog", ""},
 	menu.Item{"[H] - toggle ctop header", ""},
 	menu.Item{"[s] - select container sort field", ""},
+	menu.Item{"[w] - toggle swarm mode", ""},
 	menu.Item{"[r] - reverse container sort order", ""},
 	menu.Item{"[q] - exit ctop", ""},
 }
