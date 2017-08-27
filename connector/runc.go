@@ -68,6 +68,8 @@ func NewRunc() Connector {
 		opts:          opts,
 		factory:       factory,
 		containers:    make(map[string]*entity.Container),
+		nodes:         make(map[string]*entity.Node),
+		services:      make(map[string]*entity.Service),
 		libContainers: make(map[string]libcontainer.Container),
 		needsRefresh:  make(chan string, 60),
 		lock:          sync.RWMutex{},
@@ -158,7 +160,11 @@ func (cm *Runc) refreshAll() {
 	for id, _ := range cm.containers {
 		cm.needsRefresh <- id
 	}
+	for id, _ := range cm.nodes {
+		cm.needsRefresh <- id
+	}
 	log.Debugf("queued %d containers for refresh", len(cm.containers))
+	log.Debugf("queued %d nodes for refresh", len(cm.nodes))
 }
 
 func (cm *Runc) Loop() {
@@ -228,7 +234,7 @@ func (cm *Runc) AllNodes() (nodes entity.Nodes) {
 		nodes = append(nodes, node)
 	}
 	//nodes.Sort()
-	//nodes.Filter()
+	nodes.Filter()
 	cm.lock.Unlock()
 	return nodes
 }

@@ -17,14 +17,14 @@ type GridCursor struct {
 	isScrolling        bool // toggled when actively scrolling
 }
 
-func (gc *GridCursor) Len() int { return len(gc.filteredContainers) }
+func (gc *GridCursor) Len() int { return len(gc.filteredNodes) }
 
 func (gc *GridCursor) Selected() (entity.Entity, string) {
-	idx, entity := gc.Idx()
+	idx, type_entity := gc.Idx()
 	if idx < gc.Len() {
-		return gc.entity(entity, idx), entity
+		return gc.entity(type_entity, idx), type_entity
 	}
-	return nil, entity
+	return nil, type_entity
 }
 
 func (gc *GridCursor) SelectedContainer() *entity.Container {
@@ -42,7 +42,9 @@ func (gc *GridCursor) RefreshNodes() (lenChanged bool) {
 	// Containers filtered by display bool
 	gc.filteredNodes = entity.Nodes{}
 	var cursorVisible bool
-	for _, n := range gc.cSource.AllNodes() {
+	allNode := gc.cSource.AllNodes()
+	log.Debugf("RefreshNode, all nodes: %d", len(allNode))
+	for _, n := range allNode {
 		if n.Display {
 			if n.Id == gc.selectedID {
 				cursorVisible = true

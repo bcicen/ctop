@@ -121,6 +121,20 @@ func (a Containers) Filter() {
 	}
 }
 
+func (n Nodes) Filter(){
+	filter := config.GetVal("filterStr")
+	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+
+	for _, c := range n {
+		c.Display = true
+		// Apply name filter
+		if re.FindAllString(c.GetMeta("name"), 1) == nil {
+			c.Display = false
+		}
+	}
+
+}
+
 func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }
 
 func sumIO(c *Container) int64 { return c.IOBytesRead + c.IOBytesWrite }

@@ -19,7 +19,10 @@ func RedrawRows(clr bool) {
 		y += header.Height()
 	}
 	cGrid.SetY(y)
-
+	log.Debugf("filteredNodes: %d, filteredContainers: %s", len(cursor.filteredNodes), len(cursor.filteredContainers))
+	for _, c := range cursor.filteredNodes {
+		cGrid.AddRows(c.Widgets)
+	}
 	for _, c := range cursor.filteredContainers {
 		cGrid.AddRows(c.Widgets)
 	}
@@ -64,9 +67,9 @@ func SingleView(c *entity.Container) {
 func RefreshDisplay() {
 	// skip display refresh during scroll
 	if !cursor.isScrolling {
-		needsClear := cursor.RefreshContainers()
-		RedrawRows(needsClear)
-		needsClear = cursor.RefreshNodes()
+		//needsClear := cursor.RefreshContainers()
+		//RedrawRows(needsClear)
+		needsClear := cursor.RefreshNodes()
 		RedrawRows(needsClear)
 	}
 }
