@@ -1,28 +1,42 @@
 package compact
 
 import (
-	"fmt"
-
 	ui "github.com/gizak/termui"
 )
 
 const (
-	mark        = string('\u25C9')
-	vBar        = string('\u25AE')
-	statusWidth = 3
+	mark       = string('\u25C9')
+	healthMark = string('\u207A')
+	vBar       = string('\u25AE') + string('\u25AE')
 )
 
 // Status indicator
 type Status struct {
-	*ui.Par
+	*ui.Block
+	status []ui.Cell
+	health []ui.Cell
 }
 
 func NewStatus() *Status {
-	p := ui.NewPar(mark)
-	p.Border = false
-	p.Height = 1
-	p.Width = statusWidth
-	return &Status{p}
+	s := &Status{Block: ui.NewBlock()}
+	s.Height = 1
+	s.Border = false
+	s.Set("")
+	return s
+}
+
+func (s *Status) Buffer() ui.Buffer {
+	buf := s.Block.Buffer()
+	x := 0
+	for _, c := range s.status {
+		buf.Set(s.InnerX()+x, s.InnerY(), c)
+		x += c.Width()
+	}
+	for _, c := range s.health {
+		buf.Set(s.InnerX()+x, s.InnerY(), c)
+		x += c.Width()
+	}
+	return buf
 }
 
 func (s *Status) Set(val string) {
@@ -36,9 +50,34 @@ func (s *Status) Set(val string) {
 	case "exited":
 		color = ui.ThemeAttr("status.danger")
 	case "paused":
-		text = fmt.Sprintf("%s%s", vBar, vBar)
+		text = vBar
 	}
 
-	s.Text = text
-	s.TextFgColor = color
+	var cells []ui.Cell
+	for _, ch := range text {
+		cells = append(cells, ui.Cell{Ch: ch, Fg: color})
+	}
+	s.status = cells
+}
+
+func (s *Status) SetHealth(val string) {
+	if val == "" {
+		return
+	}
+	color := ui.ColorDefault
+
+	switch val {
+	case "healthy":
+		color = ui.ThemeAttr("status.ok")
+	case "unhealthy":
+		color = ui.ThemeAttr("status.danger")
+	case "starting":
+		color = ui.ThemeAttr("status.warn")
+	}
+
+	var cells []ui.Cell
+	for _, ch := range healthMark {
+		cells = append(cells, ui.Cell{Ch: ch, Fg: color})
+	}
+	s.health = cells
 }
