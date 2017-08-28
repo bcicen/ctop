@@ -47,7 +47,7 @@ func (w *TextCol) Color(s string){
 		color = ui.ThemeAttr("par.text.hi")
 	}
 	switch s {
-	case "health":
+	case "healthy":
 		color = ui.ColorGreen
 	case "unhealthy":
 		color = ui.ColorMagenta

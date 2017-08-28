@@ -63,17 +63,17 @@ func (cm *Docker) watchEvents() {
 	cm.client.AddEventListener(events)
 
 	for e := range events {
-		if config.GetSwitchVal("swarm") {
-			if e.Type == "container" {
-				log.Debugf("Container")
-				switch e.Action {
-				case "start", "die", "pause", "unpause":
-					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-					cm.needsRefreshContainers <- e.ID
-				case "destroy":
-					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-					cm.delByIDContainer(e.ID)
-				}
+		if config.GetSwitchVal("swarm") {if e.Type == "container" {
+			log.Debugf("Container")
+		actionName := strings.Split( e.Action, ":")[0]
+
+		switch actionName {
+		case "start", "die", "pause", "unpause", "health_status":
+			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+			cm.needsRefreshContainers <- e.ID
+		case "destroy":
+			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+			cm.delByIDContainer(e.ID)}
 			}
 		} else {
 			if e.Type == "node" {
@@ -202,7 +202,6 @@ func (cm *Docker) refreshAllContainers() {
 		c := cm.MustGetContainer(i.ID)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
-		cm.HealthCheck(i.ID)
 		cm.needsRefreshContainers <- c.Id
 	}
 }
@@ -446,9 +445,6 @@ func (cm *Docker) AllContainers() (containers entity.Containers) {
 	cm.lock.Lock()
 	for _, container := range cm.containers {
 		containers = append(containers, container)
-		cm.lock.Unlock()
-		cm.HealthCheck(container.Id)
-		cm.lock.Lock()
 	}
 
 	containers.Sort()
@@ -460,12 +456,6 @@ func (cm *Docker) AllContainers() (containers entity.Containers) {
 // use primary container name
 func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
-}
-
-func (cm *Docker) HealthCheck(id string) {
-	insp := cm.inspectContainer(id)
-	c := cm.MustGetContainer(id)
-	c.SetMeta("health", insp.State.Health.Status)
 }
 
 func leaderAndReachable(n swarm.Node) (string, string) {
