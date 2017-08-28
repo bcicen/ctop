@@ -45,8 +45,11 @@ func (cm *Docker) watchEvents() {
 		if e.Type != "container" {
 			continue
 		}
-		switch e.Action {
-		case "start", "die", "pause", "unpause":
+
+		actionName := strings.Split(e.Action, ":")[0]
+
+		switch actionName {
+		case "start", "die", "pause", "unpause", "health_status":
 			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
 			cm.needsRefresh <- e.ID
 		case "destroy":
