@@ -114,7 +114,6 @@ func (cm *Docker) refreshAll() {
 		c := cm.MustGet(i.ID)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
-		cm.HealthCheck(i.ID)
 		cm.needsRefresh <- c.Id
 	}
 }
@@ -163,9 +162,6 @@ func (cm *Docker) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
-		cm.lock.Unlock()
-		cm.HealthCheck(c.Id)
-		cm.lock.Lock()
 	}
 
 	containers.Sort()
@@ -177,10 +173,4 @@ func (cm *Docker) All() (containers container.Containers) {
 // use primary container name
 func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
-}
-
-func (cm *Docker) HealthCheck(id string){
-	insp := cm.inspect(id)
-	c := cm.MustGet(id)
-	c.SetMeta("health", insp.State.Health.Status)
 }
