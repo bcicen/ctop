@@ -63,17 +63,19 @@ func (cm *Docker) watchEvents() {
 	cm.client.AddEventListener(events)
 
 	for e := range events {
-		if config.GetSwitchVal("swarm") {if e.Type == "container" {
-			log.Debugf("Container")
-		actionName := strings.Split( e.Action, ":")[0]
+		if config.GetSwitchVal("swarm") {
+			if e.Type == "container" {
+				log.Debugf("Container")
+				actionName := strings.Split(e.Action, ":")[0]
 
-		switch actionName {
-		case "start", "die", "pause", "unpause", "health_status":
-			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-			cm.needsRefreshContainers <- e.ID
-		case "destroy":
-			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-			cm.delByIDContainer(e.ID)}
+				switch actionName {
+				case "start", "die", "pause", "unpause", "health_status":
+					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+					cm.needsRefreshContainers <- e.ID
+				case "destroy":
+					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+					cm.delByIDContainer(e.ID)
+				}
 			}
 		} else {
 			if e.Type == "node" {
