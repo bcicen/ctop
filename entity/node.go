@@ -49,3 +49,7 @@ func (n *Node) GetId() string {
 func (n *Node) GetMetrics() models.Metrics{
 	return n.Metrics
 }
+
+func (n *Node) GetMeta(v string) string {
+	return n.Meta.GetMeta(v)
+}

@@ -49,3 +49,7 @@ func (s *Service) GetId() string {
 func (s *Service) GetMetrics() models.Metrics{
 	return s.Metrics
 }
+
+func (s *Service) GetMeta(v string) string {
+	return s.Meta.GetMeta(v)
+}

@@ -14,6 +14,7 @@ type Entity interface {
 	SetState(s string)
 	Logs() collector.LogCollector
 	GetMetaEntity() Meta
+	GetMeta(v string) string
 	GetId() string
 	GetMetrics() models.Metrics
 }

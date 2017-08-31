@@ -8,44 +8,54 @@ import (
 	"github.com/bcicen/ctop/config"
 )
 
-type sortMethod func(c1, c2 *Container) bool
+type sortMethod func(c1, c2 Entity) bool
 
 var stateMap = map[string]int{
-	"running": 3,
-	"paused":  2,
-	"exited":  1,
-	"created": 0,
-	"":        0,
+	"new":                6, //>
+	"running":            5, //>
+	"rollback_completed": 5,
+	"ready":              4, //>
+	"rollback_paused":    4,
+	"updating":           4,
+	"starting":           4,
+	"paused":             3, //>
+	"exited":             2, //>
+	"shutdown":           2,
+	"failed":             1, //>
+	"created":            0, //>
+	"":                   0,
 }
 
-var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
-var nameSorter = func(c1, c2 *Container) bool { return c1.GetMeta("name") < c2.GetMeta("name") }
+var idSorter = func(c1, c2 Entity) bool { return c1.GetId() < c2.GetId() }
+var nameSorter = func(c1, c2 Entity) bool {
+	return c1.GetMeta("name") < c2.GetMeta("name")
+}
 
 var Sorters = map[string]sortMethod{
 	"id":   idSorter,
 	"name": nameSorter,
-	"cpu": func(c1, c2 *Container) bool {
+	"cpu": func(c1, c2 Entity) bool {
 		// Use secondary sort method if equal values
-		if c1.CPUUtil == c2.CPUUtil {
+		if c1.GetMetrics().CPUUtil == c2.GetMetrics().CPUUtil {
 			return nameSorter(c1, c2)
 		}
-		return c1.CPUUtil > c2.CPUUtil
+		return c1.GetMetrics().CPUUtil > c2.GetMetrics().CPUUtil
 	},
-	"mem": func(c1, c2 *Container) bool {
+	"mem": func(c1, c2 Entity) bool {
 		// Use secondary sort method if equal values
-		if c1.MemUsage == c2.MemUsage {
+		if c1.GetMetrics().MemUsage == c2.GetMetrics().MemUsage {
 			return nameSorter(c1, c2)
 		}
-		return c1.MemUsage > c2.MemUsage
+		return c1.GetMetrics().MemUsage > c2.GetMetrics().MemUsage
 	},
-	"mem %": func(c1, c2 *Container) bool {
+	"mem %": func(c1, c2 Entity) bool {
 		// Use secondary sort method if equal values
-		if c1.MemPercent == c2.MemPercent {
+		if c1.GetMetrics().MemPercent == c2.GetMetrics().MemPercent {
 			return nameSorter(c1, c2)
 		}
-		return c1.MemPercent > c2.MemPercent
+		return c1.GetMetrics().MemPercent > c2.GetMetrics().MemPercent
 	},
-	"net": func(c1, c2 *Container) bool {
+	"net": func(c1, c2 Entity) bool {
 		sum1 := sumNet(c1)
 		sum2 := sumNet(c2)
 		// Use secondary sort method if equal values
@@ -54,14 +64,14 @@ var Sorters = map[string]sortMethod{
 		}
 		return sum1 > sum2
 	},
-	"pids": func(c1, c2 *Container) bool {
+	"pids": func(c1, c2 Entity) bool {
 		// Use secondary sort method if equal values
-		if c1.Pids == c2.Pids {
+		if c1.GetMetrics().Pids == c2.GetMetrics().Pids {
 			return nameSorter(c1, c2)
 		}
-		return c1.Pids > c2.Pids
+		return c1.GetMetrics().Pids > c2.GetMetrics().Pids
 	},
-	"io": func(c1, c2 *Container) bool {
+	"io": func(c1, c2 Entity) bool {
 		sum1 := sumIO(c1)
 		sum2 := sumIO(c2)
 		// Use secondary sort method if equal values
@@ -70,7 +80,7 @@ var Sorters = map[string]sortMethod{
 		}
 		return sum1 > sum2
 	},
-	"state": func(c1, c2 *Container) bool {
+	"state": func(c1, c2 Entity) bool {
 		// Use secondary sort method if equal values
 		c1state := c1.GetMeta("state")
 		c2state := c2.GetMeta("state")
@@ -89,20 +99,16 @@ func SortFields() (fields []string) {
 }
 
 type Containers []*Container
-type Services []*Service
-type Nodes []*Node
-type Tasks []*Task
-type Entities []*Entity
 
-func (a Containers) Sort()         { sort.Sort(a) }
-func (a Containers) Len() int      { return len(a) }
-func (a Containers) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a Containers) Less(i, j int) bool {
+func (c Containers) Sort()         { sort.Sort(c) }
+func (c Containers) Len() int      { return len(c) }
+func (c Containers) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c Containers) Less(i, j int) bool {
 	f := Sorters[config.GetVal("sortField")]
 	if config.GetSwitchVal("sortReversed") {
-		return f(a[j], a[i])
+		return f(c[j], c[i])
 	}
-	return f(a[i], a[j])
+	return f(c[i], c[j])
 }
 
 func (a Containers) Filter() {
@@ -122,7 +128,9 @@ func (a Containers) Filter() {
 	}
 }
 
-func (n Nodes) Filter(){
+type Nodes []*Node
+
+func (n Nodes) Filter() {
 	filter := config.GetVal("filterStr")
 	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
 
@@ -135,17 +143,17 @@ func (n Nodes) Filter(){
 	}
 }
 
-func (t Tasks) Filter() {
-	filter := config.GetVal("filterStr")
-	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+type Services []*Service
 
-	for _, c := range t {
-		c.Display = true
-		// Apply name filter
-		if re.FindAllString(c.GetMeta("name"), 1) == nil {
-			c.Display = false
-		}
+func (s Services) Sort()         { sort.Sort(s) }
+func (s Services) Len() int      { return len(s) }
+func (s Services) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s Services) Less(i, j int) bool {
+	f := Sorters[config.GetVal("sortField")]
+	if config.GetSwitchVal("sortReversed") {
+		return f(s[j], s[i])
 	}
+	return f(s[i], s[j])
 }
 
 func (s Services) Filter() {
@@ -161,6 +169,34 @@ func (s Services) Filter() {
 	}
 }
 
-func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }
+type Tasks []*Task
 
-func sumIO(c *Container) int64 { return c.IOBytesRead + c.IOBytesWrite }
+func (t Tasks) Filter() {
+	filter := config.GetVal("filterStr")
+	re := regexp.MustCompile(fmt.Sprintf(".*%s", filter))
+
+	for _, c := range t {
+		c.Display = true
+		// Apply name filter
+		if re.FindAllString(c.GetMeta("name"), 1) == nil {
+			c.Display = false
+		}
+	}
+}
+
+func (t Tasks) Sort()         { sort.Sort(t) }
+func (t Tasks) Len() int      { return len(t) }
+func (t Tasks) Swap(i, j int) { t[i], t[j] = t[j], t[i] }
+func (t Tasks) Less(i, j int) bool {
+	f := Sorters[config.GetVal("sortField")]
+	if config.GetSwitchVal("sortReversed") {
+		return f(t[j], t[i])
+	}
+	return f(t[i], t[j])
+}
+
+type Entities []Entity
+
+func sumNet(c Entity) int64 { return c.GetMetrics().NetRx + c.GetMetrics().NetTx }
+
+func sumIO(c Entity) int64 { return c.GetMetrics().IOBytesRead + c.GetMetrics().IOBytesWrite }

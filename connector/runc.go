@@ -233,7 +233,7 @@ func (cm *Runc) AllContainers() (containers entity.Containers) {
 	for _, container := range cm.containers {
 		containers = append(containers, container)
 	}
-	containers.Sort()
+	//containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers

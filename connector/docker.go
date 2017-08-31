@@ -209,7 +209,6 @@ func (cm *Docker) refreshAllContainers() {
 }
 
 func (cm *Docker) refreshAllNodes() {
-	log.Debugf("Start refreshing Nodes in swarm mode")
 	ctx, cancel := context.WithCancel(context.Background())
 	opt := api.ListNodesOptions{Context: ctx}
 	allNodes, err := cm.client.ListNodes(opt)
@@ -221,7 +220,6 @@ func (cm *Docker) refreshAllNodes() {
 		n := cm.MustGetNode(i.ID)
 		n.SetMeta("name", i.Description.Hostname)
 		cm.needsRefreshNodes <- n.Id
-		log.Debugf("Node resource %s", i.Description.Resources)
 	}
 
 	if cancel != nil {
@@ -230,7 +228,6 @@ func (cm *Docker) refreshAllNodes() {
 }
 
 func (cm *Docker) refreshAllServices() {
-	log.Noticef("Refresh service start!!")
 	ctx, cancel := context.WithCancel(context.Background())
 	opts := api.ListServicesOptions{Context: ctx}
 	allServices, err := cm.client.ListServices(opts)
@@ -242,6 +239,7 @@ func (cm *Docker) refreshAllServices() {
 		s := cm.MustGetService(i.ID)
 
 		s.SetMeta("name", i.Spec.Annotations.Name)
+		s.SetState("service")
 		labels := ""
 		for k, v := range i.Spec.Annotations.Labels {
 			labels += k + ":" + v + "\n"
@@ -255,7 +253,6 @@ func (cm *Docker) refreshAllServices() {
 }
 
 func (cm *Docker) refreshAllTasks() {
-	log.Debugf("Start refreshing Task in swarm mode")
 	ctx, cancel := context.WithCancel(context.Background())
 	opt := api.ListTasksOptions{Context: ctx}
 	allTasks, err := cm.client.ListTasks(opt)
@@ -263,15 +260,17 @@ func (cm *Docker) refreshAllTasks() {
 	if err != nil {
 		panic(fmt.Sprintf("Refreshing all tasks:%s", err))
 	}
-	for _, i := range allTasks {
+	for n, i := range allTasks {
 		t := cm.MustGetTask(i.ID)
 
-		t.SetMeta("name", i.Annotations.Name)
 		node := cm.MustGetNode(i.NodeID)
+		service := cm.MustGetService(i.ServiceID)
+		t.SetMeta("name", "\\"+service.GetMeta("name")+"."+fmt.Sprintf("%d", n))
 		t.SetMeta("node", node.GetMeta("name"))
+		t.SetState(fmt.Sprintf("%s", i.Status.State))
 		t.SetMeta("service", i.ServiceID)
+		log.Debugf("Service %s Node id %s Node name %s", t.GetMeta("name"), i.NodeID, node.GetMeta("name"))
 		cm.needsRefreshTasks <- t.Id
-		log.Debugf("Task: %s", i)
 	}
 
 	if cancel != nil {
@@ -428,7 +427,7 @@ func (cm *Docker) AllServices() (services entity.Services) {
 		services = append(services, service)
 	}
 
-	//services.Sort()
+	services.Sort()
 	services.Filter()
 	cm.lock.Unlock()
 	return services
@@ -440,7 +439,7 @@ func (cm *Docker) AllTasks() (tasks entity.Tasks) {
 		tasks = append(tasks, task)
 	}
 
-	//tasks.Sort()
+	tasks.Sort()
 	tasks.Filter()
 	cm.lock.Unlock()
 	return tasks

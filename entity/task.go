@@ -49,3 +49,7 @@ func (t *Task) GetId() string {
 func (t *Task) GetMetrics() models.Metrics {
 	return t.Metrics
 }
+
+func (t *Task) GetMeta(v string) string {
+	return t.Meta.GetMeta(v)
+}

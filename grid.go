@@ -25,9 +25,11 @@ func RedrawRows(clr bool) {
 		//}
 		for _, s := range cursor.filteredServices {
 			cGrid.AddRows(s.Widgets)
-		}
-		for _, t := range cursor.filteredTasks {
-			cGrid.AddRows(t.Widgets)
+			for _, t := range cursor.filteredTasks {
+				if t.GetMeta("service") == s.Id {
+					cGrid.AddRows(t.Widgets)
+				}
+			}
 		}
 	} else {
 		for _, c := range cursor.filteredContainers {

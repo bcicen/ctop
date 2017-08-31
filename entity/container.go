@@ -66,3 +66,7 @@ func (c *Container) Read(stream chan models.Metrics) {
 	}()
 	log.Infof("reader started for container: %s", c.Id)
 }
+
+func (c *Container) GetMeta(v string) string {
+	return c.Meta.GetMeta(v)
+}

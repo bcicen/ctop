@@ -9,6 +9,7 @@ import (
 const (
 	mark        = string('\u25C9')
 	vBar        = string('\u25AE')
+	service     = string('\u0053')
 	statusWidth = 3
 )
 
@@ -31,12 +32,20 @@ func (s *Status) Set(val string) {
 	color := ui.ColorDefault
 
 	switch val {
-	case "running":
+	case "new":
+		color = ui.ColorCyan
+	case "running", "rollback_completed":
 		color = ui.ColorGreen
-	case "exited":
+	case "rollback_started", "rollback_paused", "updating", "starting", "ready":
+		color = ui.ColorYellow
+	case "exited", "shutdown":
 		color = ui.ColorRed
+	case "failed":
+		color = ui.ColorMagenta
 	case "paused":
 		text = fmt.Sprintf("%s%s", vBar, vBar)
+	case "service":
+		text = fmt.Sprintf("%s", service)
 	}
 
 	s.Text = text
