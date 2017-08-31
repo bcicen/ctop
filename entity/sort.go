@@ -28,6 +28,9 @@ var stateMap = map[string]int{
 
 var idSorter = func(c1, c2 Entity) bool { return c1.GetId() < c2.GetId() }
 var nameSorter = func(c1, c2 Entity) bool {
+	if c1.GetMeta("name") == "" {
+		return idSorter(c1, c2)
+	}
 	return c1.GetMeta("name") < c2.GetMeta("name")
 }
 
