@@ -5,6 +5,7 @@ import (
 	"time"
 
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/config"
 )
 
 type CTopHeader struct {
@@ -58,12 +59,16 @@ func headerBg() *ui.Par {
 	return bg
 }
 
-func (c *CTopHeader) SetCountContainer(container int) {
-	c.Count.Text = fmt.Sprintf("%d containers", container)
-}
-
-func (c *CTopHeader) SetCountSwarm(node int, service int, task int) {
-	c.Count.Text = fmt.Sprintf("Nodes: %s Services: %s Tasks: %s", node, service, task)
+func (c *CTopHeader) SetCount(container int, node int, service int, task int) {
+	if config.GetSwitchVal("swarmMode") {
+		c.Count.Text = fmt.Sprintf("Nodes: %d Services: %d Tasks: %d", node, service, task)
+		c.Count.Width = 400
+		c.Filter.X = 447
+	} else {
+		c.Count.Text = fmt.Sprintf("%d containers", container)
+		c.Count.Width = 20
+		c.Filter.X = 47
+	}
 }
 
 func (c *CTopHeader) SetFilter(val string) {

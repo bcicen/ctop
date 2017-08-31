@@ -63,7 +63,18 @@ func (cm *Docker) watchEvents() {
 	cm.client.AddEventListener(events)
 
 	for e := range events {
-		if config.GetSwitchVal("swarm") {
+		if config.GetSwitchVal("swarmMode") {
+			if e.Type == "node" {
+				log.Debugf("NODE. Action: %s, ID: %s", e.Action, e.ID)
+				cm.needsRefreshNodes <- e.ID
+			} else if e.Type == "service" {
+				log.Debugf("SERVICE. Action: %s, ID: %s", e.Action, e.ID)
+				cm.needsRefreshServices <- e.ID
+			} else if e.Type == "task" {
+				log.Debugf("TASK. Action: %s, ID: %s", e.Action, e.ID)
+				cm.needsRefreshServices <- e.ID
+			}
+		} else {
 			if e.Type == "container" {
 				log.Debugf("Container")
 				actionName := strings.Split(e.Action, ":")[0]
@@ -76,17 +87,6 @@ func (cm *Docker) watchEvents() {
 					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
 					cm.delByIDContainer(e.ID)
 				}
-			}
-		} else {
-			if e.Type == "node" {
-				log.Debugf("NODE. Action: %s, ID: %s", e.Action, e.ID)
-				cm.needsRefreshNodes <- e.ID
-			} else if e.Type == "service" {
-				log.Debugf("SERVICE. Action: %s, ID: %s", e.Action, e.ID)
-				cm.needsRefreshServices <- e.ID
-			} else if e.Type == "task" {
-				log.Debugf("TASK. Action: %s, ID: %s", e.Action, e.ID)
-				cm.needsRefreshServices <- e.ID
 			}
 		}
 	}
@@ -208,6 +208,27 @@ func (cm *Docker) refreshAllContainers() {
 	}
 }
 
+func (cm *Docker) refreshAllNodes() {
+	log.Debugf("Start refreshing Nodes in swarm mode")
+	ctx, cancel := context.WithCancel(context.Background())
+	opt := api.ListNodesOptions{Context: ctx}
+	allNodes, err := cm.client.ListNodes(opt)
+
+	if err != nil {
+		panic(fmt.Sprintf("Refreshing all nodes:%s", err))
+	}
+	for _, i := range allNodes {
+		n := cm.MustGetNode(i.ID)
+		n.SetMeta("name", i.Description.Hostname)
+		cm.needsRefreshNodes <- n.Id
+		log.Debugf("Node resource %s", i.Description.Resources)
+	}
+
+	if cancel != nil {
+		cancel()
+	}
+}
+
 func (cm *Docker) refreshAllServices() {
 	log.Noticef("Refresh service start!!")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -233,27 +254,6 @@ func (cm *Docker) refreshAllServices() {
 	}
 }
 
-func (cm *Docker) refreshAllNodes() {
-	log.Debugf("Start refreshing Nodes in swarm mode")
-	ctx, cancel := context.WithCancel(context.Background())
-	opt := api.ListNodesOptions{Context: ctx}
-	allNodes, err := cm.client.ListNodes(opt)
-
-	if err != nil {
-		panic(fmt.Sprintf("Refreshing all nodes:%s", err))
-	}
-	for _, i := range allNodes {
-		n := cm.MustGetNode(i.ID)
-		n.SetMeta("name", i.Description.Hostname)
-		cm.needsRefreshNodes <- n.Id
-		log.Debugf("Node resource %s", i.Description.Resources)
-	}
-
-	if cancel != nil {
-		cancel()
-	}
-}
-
 func (cm *Docker) refreshAllTasks() {
 	log.Debugf("Start refreshing Task in swarm mode")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -267,6 +267,9 @@ func (cm *Docker) refreshAllTasks() {
 		t := cm.MustGetTask(i.ID)
 
 		t.SetMeta("name", i.Annotations.Name)
+		node := cm.MustGetNode(i.NodeID)
+		t.SetMeta("node", node.GetMeta("name"))
+		t.SetMeta("service", i.ServiceID)
 		cm.needsRefreshTasks <- t.Id
 		log.Debugf("Task: %s", i)
 	}

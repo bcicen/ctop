@@ -14,19 +14,15 @@ func RedrawRows(clr bool) {
 	// build layout
 	y := 1
 	if config.GetSwitchVal("enableHeader") {
-		if config.GetSwitchVal("swarmMode") {
-			header.SetCountContainer(cursor.LenContainers())
-		} else {
-			header.SetCountSwarm(cursor.LenNodes(), cursor.LenServices(), cursor.LenTasks())
-		}
+		header.SetCount(cursor.LenContainers(), cursor.LenNodes(), cursor.LenServices(), cursor.LenTasks())
 		header.SetFilter(config.GetVal("filterStr"))
 		y += header.Height()
 	}
 	cGrid.SetY(y)
 	if config.GetSwitchVal("swarmMode") {
-		for _, n := range cursor.filteredNodes {
-			cGrid.AddRows(n.Widgets)
-		}
+		//for _, n := range cursor.filteredNodes {
+			//cGrid.AddRows(n.Widgets)
+		//}
 		for _, s := range cursor.filteredServices {
 			cGrid.AddRows(s.Widgets)
 		}

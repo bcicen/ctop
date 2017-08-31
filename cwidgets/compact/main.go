@@ -4,6 +4,7 @@ import (
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/models"
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/config"
 )
 
 var log = logging.Init()
@@ -12,6 +13,7 @@ type Compact struct {
 	Status *Status
 	Name   *TextCol
 	Cid    *TextCol
+	Node   *TextCol
 	Cpu    *GaugeCol
 	Mem    *GaugeCol
 	Net    *TextCol
@@ -31,6 +33,7 @@ func NewCompact(id string) *Compact {
 		Status: NewStatus(),
 		Name:   NewTextCol("-"),
 		Cid:    NewTextCol(id),
+		Node:   NewTextCol("-"),
 		Cpu:    NewGaugeCol(),
 		Mem:    NewGaugeCol(),
 		Net:    NewTextCol("-"),
@@ -58,6 +61,8 @@ func (row *Compact) SetMeta(k, v string) {
 		row.Status.Set(v)
 	case "health":
 		row.Name.Color(v)
+	case "node":
+		row.Node.Set(v)
 	}
 }
 
@@ -122,6 +127,7 @@ func (row *Compact) Buffer() ui.Buffer {
 	buf.Merge(row.Status.Buffer())
 	buf.Merge(row.Name.Buffer())
 	buf.Merge(row.Cid.Buffer())
+	buf.Merge(row.Node.Buffer())
 	buf.Merge(row.Cpu.Buffer())
 	buf.Merge(row.Mem.Buffer())
 	buf.Merge(row.Net.Buffer())
@@ -131,14 +137,28 @@ func (row *Compact) Buffer() ui.Buffer {
 }
 
 func (row *Compact) all() []ui.GridBufferer {
-	return []ui.GridBufferer{
-		row.Status,
-		row.Name,
-		row.Cid,
-		row.Cpu,
-		row.Mem,
-		row.Net,
-		row.IO,
-		row.Pids,
+	if config.GetSwitchVal("swarmMode") {
+		return []ui.GridBufferer{
+			row.Status,
+			row.Name,
+			row.Cid,
+			row.Node,
+			row.Cpu,
+			row.Mem,
+			row.Net,
+			row.IO,
+			row.Pids,
+		}
+	} else {
+		return []ui.GridBufferer{
+			row.Status,
+			row.Name,
+			row.Cid,
+			row.Cpu,
+			row.Mem,
+			row.Net,
+			row.IO,
+			row.Pids,
+		}
 	}
 }

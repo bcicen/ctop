@@ -14,6 +14,7 @@ var colWidths = []int{
 	3, // status
 	0, // name
 	0, // cid
+	0, // node
 	0, // cpu
 	0, // memory
 	0, // net

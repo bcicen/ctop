@@ -2,6 +2,7 @@ package compact
 
 import (
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/config"
 )
 
 type CompactHeader struct {
@@ -12,7 +13,12 @@ type CompactHeader struct {
 }
 
 func NewCompactHeader() *CompactHeader {
-	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX", "IO R/W", "PIDS"}
+	var fields []string
+	if config.GetSwitchVal("swarmMode"){
+		fields = []string{"", "NAME", "CID", "NODE", "CPU", "MEM", "NET RX/TX", "IO R/W", "PIDS"}
+	} else {
+		fields = []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX", "IO R/W", "PIDS"}
+	}
 	ch := &CompactHeader{}
 	ch.Height = 2
 	for _, f := range fields {
