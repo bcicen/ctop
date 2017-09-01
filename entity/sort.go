@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/bcicen/ctop/config"
+	"strings"
 )
 
 type sortMethod func(c1, c2 Entity) bool
@@ -27,8 +28,19 @@ var stateMap = map[string]int{
 }
 
 var idSorter = func(c1, c2 Entity) bool { return c1.GetId() < c2.GetId() }
+
 var nameSorter = func(c1, c2 Entity) bool {
-	if c1.GetMeta("name") == "" {
+	name1 := strings.TrimSpace(c1.GetMeta("name"))
+	name1 = strings.Trim(name1, "\\_")
+
+	name2 := strings.TrimSpace(c2.GetMeta("name"))
+	name2 = strings.Trim(name2, "\\_")
+	if name1 == name2 {
+		c1state := c1.GetMeta("state")
+		c2state := c2.GetMeta("state")
+		return stateMap[c1state] > stateMap[c2state]
+	}
+	if name1 == "" || name2 == "" {
 		return idSorter(c1, c2)
 	}
 	return c1.GetMeta("name") < c2.GetMeta("name")
@@ -84,7 +96,6 @@ var Sorters = map[string]sortMethod{
 		return sum1 > sum2
 	},
 	"state": func(c1, c2 Entity) bool {
-		// Use secondary sort method if equal values
 		c1state := c1.GetMeta("state")
 		c2state := c2.GetMeta("state")
 		if c1state == c2state {

@@ -11,6 +11,7 @@ import (
 	"context"
 	"github.com/bcicen/ctop/entity"
 	"github.com/docker/docker/api/types/swarm"
+	"time"
 )
 
 type Docker struct {
@@ -48,9 +49,9 @@ func NewDocker() Connector {
 		go cm.LoopNode()
 		go cm.LoopService()
 		go cm.LoopTask()
+		go cm.LoopDiscoveryTasks()
 		cm.refreshAllNodes()
 		cm.refreshAllServices()
-		cm.refreshAllTasks()
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
@@ -66,40 +67,23 @@ func (cm *Docker) watchEvents() {
 	cm.client.AddEventListener(events)
 
 	for e := range events {
-		if config.GetSwitchVal("swarmMode") {
-			log.Debugf("Action ", e)
-			//if e.Type == "node" {
-			//	log.Debugf("NODE. Action: %s, ID: %s", e.Action, e.ID)
-			//	cm.needsRefreshNodes <- e.ID
-			if e.Type == "service" {
-				log.Debugf("Service")
-				actionName := strings.Split(e.Action, ":")[0]
-				log.Debugf("actionName %s", actionName)
-
-				switch actionName {
-				case "update":
-					cm.needsRefreshServices <- e.ID
-					log.Debugf("SERVICE. Action: %s, ID: %s", e.Action, e.ID)
-					cm.refreshAllTasks()
-					for _, t := range cm.tasks {
-						if t.GetMeta("service") == e.ID {
-							cm.needsRefreshTasks <- t.Id
-						}
-					}
-				}
+		log.Debugf("Action ", e)
+		if e.Type == "service" {
+			actionName := strings.Split(e.Action, ":")[0]
+			switch actionName {
+			case "update":
+				cm.needsRefreshServices <- e.ID
+				log.Debugf("SERVICE. Action: %s, ID: %s", e.Action, e.ID)
 			}
-		} else {
-			if e.Type == "container" {
-				actionName := strings.Split(e.Action, ":")[0]
-
-				switch actionName {
-				case "start", "die", "pause", "unpause", "health_status":
-					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-					cm.needsRefreshContainers <- e.ID
-				case "destroy":
-					log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
-					cm.delByIDContainer(e.ID)
-				}
+		} else if e.Type == "container" {
+			actionName := strings.Split(e.Action, ":")[0]
+			switch actionName {
+			case "start", "die", "pause", "unpause", "health_status":
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+				cm.needsRefreshContainers <- e.ID
+			case "destroy":
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+				cm.delByIDContainer(e.ID)
 			}
 		}
 	}
@@ -140,7 +124,6 @@ func (cm *Docker) refreshContainer(c *entity.Container) {
 }
 
 func (cm *Docker) refreshNode(n *entity.Node) {
-	log.Debugf("1")
 	insp := cm.inspectNode(n.Id)
 	// remove container if no longer exists
 	if insp == nil {
@@ -151,7 +134,7 @@ func (cm *Docker) refreshNode(n *entity.Node) {
 }
 
 func (cm *Docker) refreshService(s *entity.Service) {
-	log.Debugf("2")
+	log.Debugf("1")
 	insp := cm.inspectService(s.Id)
 	// remove container if no longer exists
 	if insp == nil {
@@ -162,14 +145,18 @@ func (cm *Docker) refreshService(s *entity.Service) {
 }
 
 func (cm *Docker) refreshTask(t *entity.Task) {
+	log.Debugf("4")
 	insp := cm.inspectTask(t.Id)
 	// remove task if no longer exists
 	if insp == nil {
+		log.Debugf("Delete task")
 		cm.delByIDTask(t.Id)
 		return
 	}
-	t.SetMeta("name", insp.Annotations.Name)
+	node := cm.MustGetNode(insp.NodeID)
+	t.SetMeta("node", node.GetMeta("name"))
 	t.SetState(fmt.Sprintf("%s", insp.Status.State))
+	t.SetMeta("service", insp.ServiceID)
 }
 
 func (cm *Docker) inspectContainer(id string) *api.Container {
@@ -265,6 +252,7 @@ func (cm *Docker) refreshAllServices() {
 }
 
 func (cm *Docker) refreshAllTasks() {
+	log.Debugf("2")
 	ctx, cancel := context.WithCancel(context.Background())
 	opt := api.ListTasksOptions{Context: ctx}
 	allTasks, err := cm.client.ListTasks(opt)
@@ -272,21 +260,40 @@ func (cm *Docker) refreshAllTasks() {
 	if err != nil {
 		panic(fmt.Sprintf("Refreshing all tasks:%s", err))
 	}
+
+	if len(allTasks) == 0 {
+		cm.tasks = make(map[string]*entity.Task)
+		if cancel != nil {
+			cancel()
+		}
+		return
+	}
+
 	for n, i := range allTasks {
+		log.Debugf("3-%d", n)
 		t := cm.MustGetTask(i.ID)
 
 		node := cm.MustGetNode(i.NodeID)
 		service := cm.MustGetService(i.ServiceID)
-		t.SetMeta("name", "\\"+service.GetMeta("name")+"."+fmt.Sprintf("%d", n))
+		taskState := i.Status.State
+		t.SetMeta("name", service.GetMeta("name")+"."+fmt.Sprintf("%d", i.Slot))
 		t.SetMeta("node", node.GetMeta("name"))
-		t.SetState(fmt.Sprintf("%s", i.Status.State))
+		t.SetState(fmt.Sprintf("%s", taskState))
 		t.SetMeta("service", i.ServiceID)
-		log.Debugf("Service %s Node id %s Node name %s", t.GetMeta("name"), i.NodeID, node.GetMeta("name"))
+		log.Debugf("Service %s Node id %s Node name %s State %s",
+			t.GetMeta("name"), i.NodeID, node.GetMeta("name"), node.GetMeta("state"))
 		cm.needsRefreshTasks <- t.Id
 	}
 
 	if cancel != nil {
 		cancel()
+	}
+}
+
+func (cm *Docker) LoopDiscoveryTasks() {
+	for true {
+		time.Sleep(300 * time.Millisecond)
+		cm.refreshAllTasks()
 	}
 }
 
@@ -330,7 +337,6 @@ func (cm *Docker) MustGetContainer(id string) *entity.Container {
 	}
 	return c
 }
-
 func (cm *Docker) MustGetService(id string) *entity.Service {
 	s, ok := cm.GetService(id)
 
@@ -343,7 +349,6 @@ func (cm *Docker) MustGetService(id string) *entity.Service {
 	}
 	return s
 }
-
 func (cm *Docker) MustGetTask(id string) *entity.Task {
 	n, ok := cm.GetTask(id)
 	if !ok {
@@ -355,7 +360,6 @@ func (cm *Docker) MustGetTask(id string) *entity.Task {
 	}
 	return n
 }
-
 func (cm *Docker) MustGetNode(id string) *entity.Node {
 	n, ok := cm.GetNode(id)
 	if !ok {
@@ -375,21 +379,18 @@ func (cm *Docker) GetContainer(id string) (*entity.Container, bool) {
 	cm.lock.Unlock()
 	return c, ok
 }
-
 func (cm *Docker) GetService(id string) (*entity.Service, bool) {
 	cm.lock.Lock()
 	s, ok := cm.services[id]
 	cm.lock.Unlock()
 	return s, ok
 }
-
 func (cm *Docker) GetTask(id string) (*entity.Task, bool) {
 	cm.lock.Lock()
 	t, ok := cm.tasks[id]
 	cm.lock.Unlock()
 	return t, ok
 }
-
 func (cm *Docker) GetNode(id string) (*entity.Node, bool) {
 	cm.lock.Lock()
 	n, ok := cm.nodes[id]
@@ -404,21 +405,18 @@ func (cm *Docker) delByIDContainer(id string) {
 	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)
 }
-
 func (cm *Docker) delByIDNode(id string) {
 	cm.lock.Lock()
 	delete(cm.nodes, id)
 	cm.lock.Unlock()
 	log.Infof("removed node: %s", id)
 }
-
 func (cm *Docker) delByIDService(id string) {
 	cm.lock.Lock()
 	delete(cm.services, id)
 	cm.lock.Unlock()
 	log.Infof("removed stopped service: %s", id)
 }
-
 func (cm *Docker) delByIDTask(id string) {
 	cm.lock.Lock()
 	delete(cm.tasks, id)
@@ -436,7 +434,6 @@ func (cm *Docker) AllNodes() (nodes entity.Nodes) {
 	cm.lock.Unlock()
 	return nodes
 }
-
 func (cm *Docker) AllServices() (services entity.Services) {
 	cm.lock.Lock()
 	for _, service := range cm.services {
@@ -448,7 +445,6 @@ func (cm *Docker) AllServices() (services entity.Services) {
 	cm.lock.Unlock()
 	return services
 }
-
 func (cm *Docker) AllTasks() (tasks entity.Tasks) {
 	cm.lock.Lock()
 	for _, task := range cm.tasks {
@@ -460,7 +456,6 @@ func (cm *Docker) AllTasks() (tasks entity.Tasks) {
 	cm.lock.Unlock()
 	return tasks
 }
-
 func (cm *Docker) AllContainers() (containers entity.Containers) {
 	cm.lock.Lock()
 	for _, container := range cm.containers {
