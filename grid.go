@@ -19,27 +19,30 @@ func RedrawRows(clr bool) {
 		y += header.Height()
 	}
 	cGrid.SetY(y)
-	for id := range cursor.filteredId {
-		e := cursor.entityById(id)
-		cGrid.AddRows(e.GetMetaEntity().Widgets)
+	//for id := range cursor.filteredId {
+	//	e := cursor.entityById(id)
+	//	if e != nil{
+	//		cGrid.AddRows(e.GetMetaEntity().Widgets)
+	//	}
+	//}
+	cursor.filteredId = []string{}
+	if config.GetSwitchVal("swarmMode") {
+		for _, s := range cursor.filteredServices {
+			cGrid.AddRows(s.Widgets)
+			cursor.AddFilteredId(s)
+			for _, t := range cursor.filteredTasks {
+				if t.GetMeta("service") == s.Id {
+					cGrid.AddRows(t.Widgets)
+					cursor.AddFilteredId(t)
+				}
+			}
+		}
+	} else {
+		for _, c := range cursor.filteredContainers {
+			cGrid.AddRows(c.Widgets)
+			cursor.AddFilteredId(c)
+		}
 	}
-	//if config.GetSwitchVal("swarmMode") {
-		//for _, n := range cursor.filteredNodes {
-	//cGrid.AddRows(n.Widgets)
-		//}
-	//for _, s := range cursor.filteredServices {
-	//	cGrid.AddRows(s.Widgets)
-	//	for _, t := range cursor.filteredTasks {
-	//		if t.GetMeta("service") == s.Id {
-	//			cGrid.AddRows(t.Widgets)
-	//		}
-	//	}
-	//}
-	//} else {
-	//	for _, c := range cursor.filteredContainers {
-	//		cGrid.AddRows(c.Widgets)
-	//	}
-	//}
 
 	if clr {
 		ui.Clear()
