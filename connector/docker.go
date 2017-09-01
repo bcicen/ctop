@@ -125,7 +125,6 @@ func (cm *Docker) refreshContainer(c *entity.Container) {
 
 func (cm *Docker) refreshNode(n *entity.Node) {
 	insp := cm.inspectNode(n.Id)
-	// remove container if no longer exists
 	if insp == nil {
 		cm.delByIDNode(n.Id)
 		return
@@ -135,7 +134,6 @@ func (cm *Docker) refreshNode(n *entity.Node) {
 
 func (cm *Docker) refreshService(s *entity.Service) {
 	insp := cm.inspectService(s.Id)
-	// remove container if no longer exists
 	if insp == nil {
 		cm.delByIDService(s.Id)
 		return
@@ -145,7 +143,6 @@ func (cm *Docker) refreshService(s *entity.Service) {
 
 func (cm *Docker) refreshTask(t *entity.Task) {
 	insp := cm.inspectTask(t.Id)
-	// remove task if no longer exists
 	if insp == nil {
 		log.Debugf("Delete task")
 		cm.delByIDTask(t.Id)
@@ -210,6 +207,7 @@ func (cm *Docker) refreshAllContainers() {
 	}
 }
 
+// Mark all nodes IDs for refresh
 func (cm *Docker) refreshAllNodes() {
 	ctx, cancel := context.WithCancel(context.Background())
 	opt := api.ListNodesOptions{Context: ctx}
@@ -229,6 +227,7 @@ func (cm *Docker) refreshAllNodes() {
 	}
 }
 
+// Mark all services IDs for refresh
 func (cm *Docker) refreshAllServices() {
 	ctx, cancel := context.WithCancel(context.Background())
 	opts := api.ListServicesOptions{Context: ctx}
@@ -249,6 +248,7 @@ func (cm *Docker) refreshAllServices() {
 	}
 }
 
+// Mark all tasks IDs for refresh
 func (cm *Docker) refreshAllTasks() {
 	ctx, cancel := context.WithCancel(context.Background())
 	opt := api.ListTasksOptions{Context: ctx}
@@ -276,8 +276,6 @@ func (cm *Docker) refreshAllTasks() {
 		t.SetMeta("node", node.GetMeta("name"))
 		t.SetState(fmt.Sprintf("%s", taskState))
 		t.SetMeta("service", i.ServiceID)
-		//log.Debugf("Service %s Node id %s Node name %s State %s",
-		//	t.GetMeta("name"), i.NodeID, node.GetMeta("name"), node.GetMeta("state"))
 		cm.needsRefreshTasks <- t.Id
 	}
 
@@ -286,6 +284,7 @@ func (cm *Docker) refreshAllTasks() {
 	}
 }
 
+// Loop for discovery tasks
 func (cm *Docker) LoopDiscoveryTasks() {
 	for true {
 		time.Sleep(300 * time.Millisecond)
@@ -293,24 +292,31 @@ func (cm *Docker) LoopDiscoveryTasks() {
 	}
 }
 
+// Loop for discovery container
 func (cm *Docker) LoopContainer() {
 	for id := range cm.needsRefreshContainers {
 		c := cm.MustGetContainer(id)
 		cm.refreshContainer(c)
 	}
 }
+
+// Loop for discovery node
 func (cm *Docker) LoopNode() {
 	for id := range cm.needsRefreshNodes {
 		n := cm.MustGetNode(id)
 		cm.refreshNode(n)
 	}
 }
+
+// Loop for discovery service
 func (cm *Docker) LoopService() {
 	for id := range cm.needsRefreshServices {
 		s := cm.MustGetService(id)
 		cm.refreshService(s)
 	}
 }
+
+// Loop for discovery task
 func (cm *Docker) LoopTask() {
 	for id := range cm.needsRefreshTasks {
 		t := cm.MustGetTask(id)
@@ -333,6 +339,8 @@ func (cm *Docker) MustGetContainer(id string) *entity.Container {
 	}
 	return c
 }
+
+// Get a single service, creating one anew if not existing
 func (cm *Docker) MustGetService(id string) *entity.Service {
 	s, ok := cm.GetService(id)
 
@@ -345,6 +353,8 @@ func (cm *Docker) MustGetService(id string) *entity.Service {
 	}
 	return s
 }
+
+// Get a single task, creating one anew if not existing
 func (cm *Docker) MustGetTask(id string) *entity.Task {
 	n, ok := cm.GetTask(id)
 	if !ok {
@@ -356,6 +366,8 @@ func (cm *Docker) MustGetTask(id string) *entity.Task {
 	}
 	return n
 }
+
+// Get a single node, creating one anew if not existing
 func (cm *Docker) MustGetNode(id string) *entity.Node {
 	n, ok := cm.GetNode(id)
 	if !ok {
@@ -375,18 +387,24 @@ func (cm *Docker) GetContainer(id string) (*entity.Container, bool) {
 	cm.lock.Unlock()
 	return c, ok
 }
+
+// Get a single service, by ID
 func (cm *Docker) GetService(id string) (*entity.Service, bool) {
 	cm.lock.Lock()
 	s, ok := cm.services[id]
 	cm.lock.Unlock()
 	return s, ok
 }
+
+// Get a single task, by ID
 func (cm *Docker) GetTask(id string) (*entity.Task, bool) {
 	cm.lock.Lock()
 	t, ok := cm.tasks[id]
 	cm.lock.Unlock()
 	return t, ok
 }
+
+// Get a single node, by ID
 func (cm *Docker) GetNode(id string) (*entity.Node, bool) {
 	cm.lock.Lock()
 	n, ok := cm.nodes[id]
@@ -394,25 +412,31 @@ func (cm *Docker) GetNode(id string) (*entity.Node, bool) {
 	return n, ok
 }
 
-//del by id
+//del container by id
 func (cm *Docker) delByIDContainer(id string) {
 	cm.lock.Lock()
 	delete(cm.containers, id)
 	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)
 }
+
+//del node by id
 func (cm *Docker) delByIDNode(id string) {
 	cm.lock.Lock()
 	delete(cm.nodes, id)
 	cm.lock.Unlock()
 	log.Infof("removed node: %s", id)
 }
+
+//del service by id
 func (cm *Docker) delByIDService(id string) {
 	cm.lock.Lock()
 	delete(cm.services, id)
 	cm.lock.Unlock()
 	log.Infof("removed stopped service: %s", id)
 }
+
+//del task by id
 func (cm *Docker) delByIDTask(id string) {
 	cm.lock.Lock()
 	delete(cm.tasks, id)

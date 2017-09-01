@@ -33,35 +33,6 @@ func (gc *GridCursor) Selected() (entity.Entity) {
 	return nil
 }
 
-// Refresh node from source
-//func (gc *GridCursor) RefreshNodes() (lenChanged bool) {
-//	oldLen := gc.LenNodes()
-//
-//	// Containers filtered by display bool
-//	gc.filteredNodes = entity.Nodes{}
-//	var cursorVisible bool
-//	for _, n := range gc.cSource.AllNodes() {
-//		if n.Display {
-//			if n.Id == gc.selectedID {
-//				cursorVisible = true
-//			}
-//			gc.filteredNodes = append(gc.filteredNodes, n)
-//		}
-//	}
-//
-//	if oldLen != gc.LenNodes() {
-//		lenChanged = true
-//	}
-//
-//	if !cursorVisible {
-//		gc.Reset()
-//	}
-//	if gc.selectedID == "" {
-//		gc.Reset()
-//	}
-//	return lenChanged
-//}
-
 func (gc *GridCursor) refreshTasks(cursorVisible bool) bool {
 	gc.filteredTasks = entity.Tasks{}
 	for _, t := range gc.cSource.AllTasks() {
@@ -100,11 +71,9 @@ func (gc *GridCursor) RefreshSwamCluster() (lenChanged bool) {
 
 	if !cursorVisible {
 		gc.Reset()
-		log.Debugf(">>>>>Reset all 1")
 	}
 	if gc.selectedID == "" {
 		gc.Reset()
-		log.Debugf(">>>>>Reset all 2")
 	}
 	return lenChanged
 }
@@ -153,10 +122,6 @@ func (gc *GridCursor) Reset() {
 		for _, c := range gc.cSource.AllContainers() {
 			c.Widgets.Name.UnHighlight()
 		}
-		//if gc.LenContainers() > 0 {
-		//	gc.selectedID = gc.filteredContainers[0].Id
-		//	gc.filteredContainers[0].Widgets.Name.Highlight()
-		//}
 	}
 	if gc.Len() > 0 {
 		gc.selectedID = gc.idByIndex(0)
