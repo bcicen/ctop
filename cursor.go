@@ -11,6 +11,7 @@ import (
 
 type GridCursor struct {
 	selectedID         string // id of currently selected container
+	filteredId         map[string]bool
 	filteredContainers entity.Containers
 	filteredNodes      entity.Nodes
 	filteredServices   entity.Services
@@ -24,53 +25,47 @@ func (gc *GridCursor) LenServices() int   { return len(gc.filteredServices) }
 func (gc *GridCursor) LenTasks() int      { return len(gc.filteredTasks) }
 func (gc *GridCursor) LenContainers() int { return len(gc.filteredContainers) }
 
-func (gc *GridCursor) Selected() (entity.Entity, string) {
-	idx, type_entity := gc.Idx()
-	if idx < gc.LenEntity(type_entity) {
-		return gc.entity(type_entity, idx), type_entity
-	}
-	return nil, type_entity
-}
-
-func (gc *GridCursor) SelectedContainer() *entity.Container {
-	idx, _ := gc.Idx()
-	if idx < gc.LenContainers() {
-		return gc.filteredContainers[idx]
+func (gc *GridCursor) Selected() (entity.Entity) {
+	idx := gc.Idx()
+	log.Debugf(">>>>>IDX: %d, LEN %d", idx, gc.Len())
+	if idx < gc.Len() {
+		return gc.entity(idx)
 	}
 	return nil
 }
 
 // Refresh node from source
-func (gc *GridCursor) RefreshNodes() (lenChanged bool) {
-	oldLen := gc.LenNodes()
-
-	// Containers filtered by display bool
-	gc.filteredNodes = entity.Nodes{}
-	var cursorVisible bool
-	for _, n := range gc.cSource.AllNodes() {
-		if n.Display {
-			if n.Id == gc.selectedID {
-				cursorVisible = true
-			}
-			gc.filteredNodes = append(gc.filteredNodes, n)
-		}
-	}
-
-	if oldLen != gc.LenNodes() {
-		lenChanged = true
-	}
-
-	if !cursorVisible {
-		gc.Reset()
-	}
-	if gc.selectedID == "" {
-		gc.Reset()
-	}
-	return lenChanged
-}
+//func (gc *GridCursor) RefreshNodes() (lenChanged bool) {
+//	oldLen := gc.LenNodes()
+//
+//	// Containers filtered by display bool
+//	gc.filteredNodes = entity.Nodes{}
+//	var cursorVisible bool
+//	for _, n := range gc.cSource.AllNodes() {
+//		if n.Display {
+//			if n.Id == gc.selectedID {
+//				cursorVisible = true
+//			}
+//			gc.filteredNodes = append(gc.filteredNodes, n)
+//		}
+//	}
+//
+//	if oldLen != gc.LenNodes() {
+//		lenChanged = true
+//	}
+//
+//	if !cursorVisible {
+//		gc.Reset()
+//	}
+//	if gc.selectedID == "" {
+//		gc.Reset()
+//	}
+//	return lenChanged
+//}
 
 func (gc *GridCursor) RefreshTasks() (lenChanged bool) {
 	oldLen := gc.LenTasks()
+	gc.checkFilteredId()
 
 	gc.filteredTasks = entity.Tasks{}
 	var cursorVisible bool
@@ -80,6 +75,7 @@ func (gc *GridCursor) RefreshTasks() (lenChanged bool) {
 				cursorVisible = true
 			}
 			gc.filteredTasks = append(gc.filteredTasks, t)
+			gc.addFilteredId(t)
 		}
 	}
 
@@ -98,6 +94,7 @@ func (gc *GridCursor) RefreshTasks() (lenChanged bool) {
 
 func (gc *GridCursor) RefreshServices() (lenChanged bool) {
 	oldLen := gc.LenServices()
+	gc.checkFilteredId()
 
 	gc.filteredServices = entity.Services{}
 	var cursorVisible bool
@@ -107,6 +104,7 @@ func (gc *GridCursor) RefreshServices() (lenChanged bool) {
 				cursorVisible = true
 			}
 			gc.filteredServices = append(gc.filteredServices, s)
+			gc.addFilteredId(s)
 		}
 	}
 
@@ -125,6 +123,7 @@ func (gc *GridCursor) RefreshServices() (lenChanged bool) {
 
 func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	oldLen := gc.LenContainers()
+	gc.checkFilteredId()
 
 	gc.filteredContainers = entity.Containers{}
 	var cursorVisible bool
@@ -134,6 +133,7 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 				cursorVisible = true
 			}
 			gc.filteredContainers = append(gc.filteredContainers, c)
+			gc.addFilteredId(c)
 		}
 	}
 
@@ -150,6 +150,12 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 	return lenChanged
 }
 
+func (gc *GridCursor) checkFilteredId() {
+	if gc.filteredId == nil {
+		gc.filteredId = make(map[string]bool)
+	}
+}
+
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
 	if config.GetSwitchVal("swarmMode") {
@@ -162,48 +168,51 @@ func (gc *GridCursor) Reset() {
 		for _, t := range gc.cSource.AllTasks() {
 			t.Widgets.Name.UnHighlight()
 		}
-		if gc.LenNodes() > 0 {
-			gc.selectedID = gc.filteredNodes[0].Id
-			gc.filteredNodes[0].Widgets.Name.Highlight()
-		}
 	} else {
 		for _, c := range gc.cSource.AllContainers() {
 			c.Widgets.Name.UnHighlight()
 		}
-		if gc.LenContainers() > 0 {
-			gc.selectedID = gc.filteredContainers[0].Id
-			gc.filteredContainers[0].Widgets.Name.Highlight()
-		}
+		//if gc.LenContainers() > 0 {
+		//	gc.selectedID = gc.filteredContainers[0].Id
+		//	gc.filteredContainers[0].Widgets.Name.Highlight()
+		//}
+	}
+	log.Debugf(">>>>>LEN: %d", gc.Len())
+	if gc.Len() > 0 {
+		gc.selectedID = gc.idByIndex(0)
+		gc.entityById(gc.selectedID).GetMetaEntity().Widgets.Name.Highlight()
 	}
 }
 
 // Return current cursor index
-func (gc *GridCursor) Idx() (int, string) {
-	if config.GetSwitchVal("swarmMode") {
-		for n, node := range gc.filteredNodes {
-			if node.Id == gc.selectedID {
-				return n, "node"
-			}
+func (gc *GridCursor) Idx() int {
+	n := 0
+	for k := range gc.filteredId {
+		if k == gc.selectedID {
+			return n
 		}
-		for n, service := range gc.filteredServices {
-			if service.Id == gc.selectedID {
-				return n, "service"
-			}
-		}
-		for n, task := range gc.filteredTasks {
-			if task.Id == gc.selectedID {
-				return n, "task"
-			}
-		}
-	} else {
-		for n, container := range gc.filteredContainers {
-			if container.Id == gc.selectedID {
-				return n, "container"
-			}
-		}
+		n += 1
 	}
 	gc.Reset()
-	return 0, ""
+	return 0
+}
+
+func (gc *GridCursor) idByIndex(i int) string {
+	for k := range gc.filteredId {
+		if i != 0 {
+			i -= 1
+		} else {
+			return k
+		}
+	}
+	return ""
+}
+
+func (gc *GridCursor) addFilteredId(e entity.Entity) {
+	_, ok := gc.filteredId[e.GetId()]
+	if !ok {
+		gc.filteredId[e.GetId()] = true
+	}
 }
 
 func (gc *GridCursor) ScrollPage() {
@@ -213,7 +222,7 @@ func (gc *GridCursor) ScrollPage() {
 		return
 	}
 
-	idx, _ := gc.Idx()
+	idx := gc.Idx()
 
 	// page down
 	if idx >= cGrid.Offset+cGrid.MaxRows() {
@@ -232,12 +241,12 @@ func (gc *GridCursor) Up() {
 	gc.isScrolling = true
 	defer func() { gc.isScrolling = false }()
 
-	idx, entity := gc.Idx()
+	idx := gc.Idx()
 	if idx <= 0 { // already at top
 		return
 	}
-	active := gc.entity(entity, idx)
-	next := gc.entity(entity, idx-1)
+	active := gc.entity(idx)
+	next := gc.entity(idx - 1)
 
 	active.GetMetaEntity().Widgets.Name.UnHighlight()
 	gc.selectedID = next.GetId()
@@ -251,13 +260,13 @@ func (gc *GridCursor) Down() {
 	gc.isScrolling = true
 	defer func() { gc.isScrolling = false }()
 
-	idx, entity := gc.Idx()
-	if idx >= gc.LenEntity(entity)-1 { // already at bottom
+	idx := gc.Idx()
+	if idx >= gc.Len()-1 { // already at bottom
 		return
 	}
 
-	active := gc.entity(entity, idx)
-	next := gc.entity(entity, idx+1)
+	active := gc.entity(idx)
+	next := gc.entity(idx + 1)
 
 	active.GetMetaEntity().Widgets.Name.UnHighlight()
 	gc.selectedID = next.GetId()
@@ -268,7 +277,7 @@ func (gc *GridCursor) Down() {
 }
 
 func (gc *GridCursor) PgUp() {
-	idx, entity := gc.Idx()
+	idx := gc.Idx()
 	if idx <= 0 { // already at top
 		return
 	}
@@ -279,8 +288,8 @@ func (gc *GridCursor) PgUp() {
 			float64(0)))
 	}
 
-	active := gc.entity(entity, idx)
-	next := gc.entity(entity, nextidx)
+	active := gc.entity(idx)
+	next := gc.entity(nextidx)
 
 	active.GetMetaEntity().Widgets.Name.UnHighlight()
 	gc.selectedID = next.GetId()
@@ -291,19 +300,19 @@ func (gc *GridCursor) PgUp() {
 }
 
 func (gc *GridCursor) PgDown() {
-	idx, entity := gc.Idx()
-	if idx >= gc.LenEntity(entity)-1 { // already at bottom
+	idx := gc.Idx()
+	if idx >= gc.Len()-1 { // already at bottom
 		return
 	}
 
-	nextidx := int(math.Min(float64(gc.LenEntity(entity)-1), float64(idx+cGrid.MaxRows())))
+	nextidx := int(math.Min(float64(gc.Len()-1), float64(idx+cGrid.MaxRows())))
 	if gc.pgCount() > 0 {
 		cGrid.Offset = int(math.Min(float64(cGrid.Offset+cGrid.MaxRows()),
-			float64(gc.LenEntity(entity)-cGrid.MaxRows())))
+			float64(gc.Len()-cGrid.MaxRows())))
 	}
 
-	active := gc.entity(entity, idx)
-	next := gc.entity(entity, nextidx)
+	active := gc.entity(idx)
+	next := gc.entity(nextidx)
 
 	active.GetMetaEntity().Widgets.Name.UnHighlight()
 	gc.selectedID = next.GetId()
@@ -328,30 +337,30 @@ func (gc *GridCursor) pgCount() int {
 	return pages
 }
 
-func (gc *GridCursor) entity(t string, id int) entity.Entity {
-	switch t {
-	case "container":
-		return gc.filteredContainers[id]
-	case "node":
-		return gc.filteredNodes[id]
-	case "service":
-		return gc.filteredServices[id]
-	case "task":
-		return gc.filteredTasks[id]
+func (gc *GridCursor) entity(id int) entity.Entity {
+	cid := gc.idByIndex(id)
+	return gc.entityById(cid)
+}
+
+func (gc *GridCursor) entityById(cid string) entity.Entity {
+	for _, s := range gc.filteredServices {
+		if cid == s.Id {
+			return s
+		}
+	}
+	for _, t := range gc.filteredTasks {
+		if cid == t.Id {
+			return t
+		}
+	}
+	for _, c := range gc.filteredContainers {
+		if cid == c.Id {
+			return c
+		}
 	}
 	return nil
 }
 
-func (gc *GridCursor) LenEntity(t string) int {
-	switch t {
-	case "node":
-		return gc.LenNodes()
-	case "service":
-		return gc.LenServices()
-	case "task":
-		return gc.LenTasks()
-	default:
-		return gc.LenContainers()
-	}
-
+func (gc *GridCursor) Len() int {
+	return len(gc.filteredId)
 }

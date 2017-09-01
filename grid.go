@@ -19,23 +19,27 @@ func RedrawRows(clr bool) {
 		y += header.Height()
 	}
 	cGrid.SetY(y)
-	if config.GetSwitchVal("swarmMode") {
-		//for _, n := range cursor.filteredNodes {
-			//cGrid.AddRows(n.Widgets)
-		//}
-		for _, s := range cursor.filteredServices {
-			cGrid.AddRows(s.Widgets)
-			for _, t := range cursor.filteredTasks {
-				if t.GetMeta("service") == s.Id {
-					cGrid.AddRows(t.Widgets)
-				}
-			}
-		}
-	} else {
-		for _, c := range cursor.filteredContainers {
-			cGrid.AddRows(c.Widgets)
-		}
+	for id := range cursor.filteredId {
+		e := cursor.entityById(id)
+		cGrid.AddRows(e.GetMetaEntity().Widgets)
 	}
+	//if config.GetSwitchVal("swarmMode") {
+		//for _, n := range cursor.filteredNodes {
+	//cGrid.AddRows(n.Widgets)
+		//}
+	//for _, s := range cursor.filteredServices {
+	//	cGrid.AddRows(s.Widgets)
+	//	for _, t := range cursor.filteredTasks {
+	//		if t.GetMeta("service") == s.Id {
+	//			cGrid.AddRows(t.Widgets)
+	//		}
+	//	}
+	//}
+	//} else {
+	//	for _, c := range cursor.filteredContainers {
+	//		cGrid.AddRows(c.Widgets)
+	//	}
+	//}
 
 	if clr {
 		ui.Clear()
@@ -78,9 +82,9 @@ func RefreshDisplay() {
 	// skip display refresh during scroll
 	if !cursor.isScrolling {
 		if config.GetSwitchVal("swarmMode") {
-			needsClear := cursor.RefreshNodes()
-			RedrawRows(needsClear)
-			needsClear = cursor.RefreshServices()
+			//needsClear := cursor.RefreshNodes()
+			//RedrawRows(needsClear)
+			needsClear := cursor.RefreshServices()
 			RedrawRows(needsClear)
 			needsClear = cursor.RefreshTasks()
 			RedrawRows(needsClear)
@@ -101,7 +105,7 @@ func Display() bool {
 	// initial draw
 	header.Align()
 	if config.GetSwitchVal("swarmMode") {
-		cursor.RefreshNodes()
+		//cursor.RefreshNodes()
 		cursor.RefreshServices()
 		cursor.RefreshTasks()
 	} else {
@@ -131,7 +135,7 @@ func Display() bool {
 		RefreshDisplay()
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
-		e, _ := cursor.Selected()
+		e := cursor.Selected()
 		dumpContainer(e)
 	})
 	ui.Handle("/sys/kbd/f", func(ui.Event) {
@@ -168,9 +172,8 @@ func Display() bool {
 		return false
 	}
 	if single {
-		c, t := cursor.Selected()
+		c := cursor.Selected()
 		SingleView(c)
-		log.Debugf("Select %s", t)
 		return false
 	}
 	return true

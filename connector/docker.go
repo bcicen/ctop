@@ -134,7 +134,6 @@ func (cm *Docker) refreshNode(n *entity.Node) {
 }
 
 func (cm *Docker) refreshService(s *entity.Service) {
-	log.Debugf("1")
 	insp := cm.inspectService(s.Id)
 	// remove container if no longer exists
 	if insp == nil {
@@ -145,7 +144,6 @@ func (cm *Docker) refreshService(s *entity.Service) {
 }
 
 func (cm *Docker) refreshTask(t *entity.Task) {
-	log.Debugf("4")
 	insp := cm.inspectTask(t.Id)
 	// remove task if no longer exists
 	if insp == nil {
@@ -252,7 +250,6 @@ func (cm *Docker) refreshAllServices() {
 }
 
 func (cm *Docker) refreshAllTasks() {
-	log.Debugf("2")
 	ctx, cancel := context.WithCancel(context.Background())
 	opt := api.ListTasksOptions{Context: ctx}
 	allTasks, err := cm.client.ListTasks(opt)
@@ -269,8 +266,7 @@ func (cm *Docker) refreshAllTasks() {
 		return
 	}
 
-	for n, i := range allTasks {
-		log.Debugf("3-%d", n)
+	for _, i := range allTasks {
 		t := cm.MustGetTask(i.ID)
 
 		node := cm.MustGetNode(i.NodeID)
