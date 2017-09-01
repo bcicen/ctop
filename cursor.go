@@ -62,60 +62,49 @@ func (gc *GridCursor) Selected() (entity.Entity) {
 //	return lenChanged
 //}
 
-func (gc *GridCursor) RefreshTasks() (lenChanged bool) {
-	oldLen := gc.LenTasks()
-	gc.filteredId = []string{}
-
+func (gc *GridCursor) refreshTasks(cursorVisible bool) bool {
 	gc.filteredTasks = entity.Tasks{}
-	var cursorVisible bool
 	for _, t := range gc.cSource.AllTasks() {
 		if t.Display {
 			if t.Id == gc.selectedID {
 				cursorVisible = true
 			}
 			gc.filteredTasks = append(gc.filteredTasks, t)
-			//gc.addFilteredId(t)
 		}
 	}
-
-	if oldLen != gc.LenTasks() {
-		lenChanged = true
-	}
-
-	if !cursorVisible {
-		gc.Reset()
-	}
-	if gc.selectedID == "" {
-		gc.Reset()
-	}
-	return lenChanged
+	return cursorVisible
 }
 
-func (gc *GridCursor) RefreshServices() (lenChanged bool) {
-	oldLen := gc.LenServices()
-	gc.filteredId = []string{}
-
+func (gc *GridCursor) refreshServices(cursorVisible bool) bool {
 	gc.filteredServices = entity.Services{}
-	var cursorVisible bool
 	for _, s := range gc.cSource.AllServices() {
 		if s.Display {
 			if s.Id == gc.selectedID {
 				cursorVisible = true
 			}
 			gc.filteredServices = append(gc.filteredServices, s)
-			//gc.addFilteredId(s)
 		}
 	}
+	return cursorVisible
+}
 
-	if oldLen != gc.LenServices() {
+func (gc *GridCursor) RefreshSwamCluster() (lenChanged bool) {
+	oldLen := gc.LenServices() + gc.LenTasks()
+	var cursorVisible bool
+	cursorVisible = gc.refreshServices(cursorVisible)
+	cursorVisible = gc.refreshTasks(cursorVisible)
+
+	if oldLen != (gc.LenServices() + gc.LenTasks()) {
 		lenChanged = true
 	}
 
 	if !cursorVisible {
 		gc.Reset()
+		log.Debugf(">>>>>Reset all 1")
 	}
 	if gc.selectedID == "" {
 		gc.Reset()
+		log.Debugf(">>>>>Reset all 2")
 	}
 	return lenChanged
 }
@@ -132,7 +121,6 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 				cursorVisible = true
 			}
 			gc.filteredContainers = append(gc.filteredContainers, c)
-			//gc.addFilteredId(c)
 		}
 	}
 
@@ -181,7 +169,6 @@ func (gc *GridCursor) Reset() {
 
 // Return current cursor index
 func (gc *GridCursor) Idx() int {
-	log.Debugf(">>>>>FilteredId %s", gc.filteredId)
 	n := 0
 	for _, k := range gc.filteredId {
 		if k == gc.selectedID {

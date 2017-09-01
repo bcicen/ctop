@@ -85,11 +85,7 @@ func RefreshDisplay() {
 	// skip display refresh during scroll
 	if !cursor.isScrolling {
 		if config.GetSwitchVal("swarmMode") {
-			//needsClear := cursor.RefreshNodes()
-			//RedrawRows(needsClear)
-			needsClear := cursor.RefreshServices()
-			RedrawRows(needsClear)
-			needsClear = cursor.RefreshTasks()
+			needsClear := cursor.RefreshSwamCluster()
 			RedrawRows(needsClear)
 		} else {
 			needsClear := cursor.RefreshContainers()
@@ -108,9 +104,7 @@ func Display() bool {
 	// initial draw
 	header.Align()
 	if config.GetSwitchVal("swarmMode") {
-		//cursor.RefreshNodes()
-		cursor.RefreshServices()
-		cursor.RefreshTasks()
+		cursor.RefreshSwamCluster()
 	} else {
 		cursor.RefreshContainers()
 	}

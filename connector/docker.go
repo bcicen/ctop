@@ -276,8 +276,8 @@ func (cm *Docker) refreshAllTasks() {
 		t.SetMeta("node", node.GetMeta("name"))
 		t.SetState(fmt.Sprintf("%s", taskState))
 		t.SetMeta("service", i.ServiceID)
-		log.Debugf("Service %s Node id %s Node name %s State %s",
-			t.GetMeta("name"), i.NodeID, node.GetMeta("name"), node.GetMeta("state"))
+		//log.Debugf("Service %s Node id %s Node name %s State %s",
+		//	t.GetMeta("name"), i.NodeID, node.GetMeta("name"), node.GetMeta("state"))
 		cm.needsRefreshTasks <- t.Id
 	}
 
