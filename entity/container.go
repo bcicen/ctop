@@ -3,6 +3,7 @@ package entity
 import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/models"
+	"github.com/bcicen/ctop/cwidgets"
 )
 
 // Metrics and metadata representing a container
@@ -51,6 +52,10 @@ func (c *Container) GetMetrics() models.Metrics{
 // Return container log collector
 func (c *Container) Logs() collector.LogCollector {
 	return c.collector.Logs()
+}
+
+func (c *Container) SetUpdater(update cwidgets.WidgetUpdater) {
+	c.Meta.SetUpdater(update)
 }
 
 // Read metric stream, updating widgets

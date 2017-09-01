@@ -48,12 +48,12 @@ func RedrawRows(clr bool) {
 	ui.Render(cGrid)
 }
 
-func SingleView(c *entity.Container) {
+func SingleView(c entity.Entity) {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	ex := single.NewSingle(c.Id)
+	ex := single.NewSingle(c.GetId())
 	c.SetUpdater(ex)
 
 	ex.Align()
@@ -71,7 +71,7 @@ func SingleView(c *entity.Container) {
 	})
 
 	ui.Loop()
-	c.SetUpdater(c.Widgets)
+	c.SetUpdater(c.GetMetaEntity().Widgets)
 }
 
 func RefreshDisplay() {
@@ -169,12 +169,8 @@ func Display() bool {
 	}
 	if single {
 		c, t := cursor.Selected()
-		switch t {
-		case "container":
-			if c != nil {
-				SingleView(cursor.SelectedContainer())
-			}
-		}
+		SingleView(c)
+		log.Debugf("Select %s", t)
 		return false
 	}
 	return true

@@ -3,6 +3,7 @@ package entity
 import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/models"
+	"github.com/bcicen/ctop/cwidgets"
 )
 
 type Service struct {
@@ -52,4 +53,8 @@ func (s *Service) GetMetrics() models.Metrics{
 
 func (s *Service) GetMeta(v string) string {
 	return s.Meta.GetMeta(v)
+}
+
+func (s *Service) SetUpdater(update cwidgets.WidgetUpdater) {
+	s.Meta.SetUpdater(update)
 }
