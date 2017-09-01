@@ -108,10 +108,10 @@ func (row *Compact) SetWidth(width int) {
 	x := row.X
 	autoWidth := calcWidth(width)
 	for n, col := range row.all() {
-		if colWidths[n] != 0 {
+		if colWidths()[n] != 0 {
 			col.SetX(x)
-			col.SetWidth(colWidths[n])
-			x += colWidths[n]
+			col.SetWidth(colWidths()[n])
+			x += colWidths()[n]
 			continue
 		}
 		col.SetX(x)
@@ -124,15 +124,26 @@ func (row *Compact) SetWidth(width int) {
 func (row *Compact) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
 
-	buf.Merge(row.Status.Buffer())
-	buf.Merge(row.Name.Buffer())
-	buf.Merge(row.Cid.Buffer())
-	buf.Merge(row.Node.Buffer())
-	buf.Merge(row.Cpu.Buffer())
-	buf.Merge(row.Mem.Buffer())
-	buf.Merge(row.Net.Buffer())
-	buf.Merge(row.IO.Buffer())
-	buf.Merge(row.Pids.Buffer())
+	if config.GetSwitchVal("swarmMode") {
+		buf.Merge(row.Status.Buffer())
+		buf.Merge(row.Name.Buffer())
+		buf.Merge(row.Cid.Buffer())
+		buf.Merge(row.Node.Buffer())
+		buf.Merge(row.Cpu.Buffer())
+		buf.Merge(row.Mem.Buffer())
+		buf.Merge(row.Net.Buffer())
+		buf.Merge(row.IO.Buffer())
+		buf.Merge(row.Pids.Buffer())
+	} else {
+		buf.Merge(row.Status.Buffer())
+		buf.Merge(row.Name.Buffer())
+		buf.Merge(row.Cid.Buffer())
+		buf.Merge(row.Cpu.Buffer())
+		buf.Merge(row.Mem.Buffer())
+		buf.Merge(row.Net.Buffer())
+		buf.Merge(row.IO.Buffer())
+		buf.Merge(row.Pids.Buffer())
+	}
 	return buf
 }
 

@@ -36,10 +36,10 @@ func (ch *CompactHeader) SetWidth(w int) {
 	autoWidth := calcWidth(w)
 	for n, col := range ch.pars {
 		// set column to static width
-		if colWidths[n] != 0 {
+		if colWidths()[n] != 0 {
 			col.SetX(x)
-			col.SetWidth(colWidths[n])
-			x += colWidths[n]
+			col.SetWidth(colWidths()[n])
+			x += colWidths()[n]
 			continue
 		}
 		col.SetX(x)

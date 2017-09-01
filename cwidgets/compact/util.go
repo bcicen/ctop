@@ -5,12 +5,13 @@ package compact
 import (
 	"fmt"
 	ui "github.com/gizak/termui"
+	"github.com/bcicen/ctop/config"
 )
 
 const colSpacing = 1
 
 // per-column width. 0 == auto width
-var colWidths = []int{
+var colWidthsSwarmMode = []int{
 	3, // status
 	0, // name
 	0, // cid
@@ -21,12 +22,29 @@ var colWidths = []int{
 	0, // io
 	4, // pids
 }
+var colWidthsSimple = []int{
+	3, // status
+	0, // name
+	0, // cid
+	0, // cpu
+	0, // memory
+	0, // net
+	0, // io
+	4, // pids
+}
+
+func colWidths() []int {
+	if config.GetSwitchVal("swarmMode") {
+		return colWidthsSwarmMode
+	}
+	return colWidthsSimple
+}
 
 // Calculate per-column width, given total width
 func calcWidth(width int) int {
-	spacing := colSpacing * len(colWidths)
+	spacing := colSpacing * len(colWidths())
 	var staticCols int
-	for _, w := range colWidths {
+	for _, w := range colWidths() {
 		width -= w
 		if w == 0 {
 			staticCols += 1
