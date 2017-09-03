@@ -33,6 +33,19 @@ func (gc *GridCursor) Selected() (entity.Entity) {
 	return nil
 }
 
+func (gc *GridCursor) refreshNodes(cursorVisible bool) bool {
+	gc.filteredNodes = entity.Nodes{}
+	for _, n := range gc.cSource.AllNodes() {
+		if n.Display {
+			if n.Id == gc.selectedID {
+				cursorVisible = true
+			}
+			gc.filteredNodes = append(gc.filteredNodes, n)
+		}
+	}
+	return cursorVisible
+}
+
 func (gc *GridCursor) refreshTasks(cursorVisible bool) bool {
 	gc.filteredTasks = entity.Tasks{}
 	for _, t := range gc.cSource.AllTasks() {
@@ -62,6 +75,7 @@ func (gc *GridCursor) refreshServices(cursorVisible bool) bool {
 func (gc *GridCursor) RefreshSwamCluster() (lenChanged bool) {
 	oldLen := gc.LenServices() + gc.LenTasks()
 	var cursorVisible bool
+	cursorVisible = gc.refreshNodes(cursorVisible)
 	cursorVisible = gc.refreshServices(cursorVisible)
 	cursorVisible = gc.refreshTasks(cursorVisible)
 

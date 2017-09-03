@@ -15,6 +15,18 @@ docker run -ti --rm \
            quay.io/vektorlab/ctop:latest
 ```
 
+, for `swarm mode` use:
+```bash
+docker run -ti --rm \
+           --name=ctop \
+           -e CTOP_DEBUG=1 \
+           -e CTOP_DEBUG_TCP=1 \
+           -p 9000:9000 \
+           -v /var/run/docker.sock:/var/run/docker.sock \
+           quay.io/vektorlab/ctop:latest -w -I quay.io/vektorlab/ctop:latest
+```
+
+
 Log messages can be followed by connecting to the default listen address:
 ```bash
 curl -s localhost:9000

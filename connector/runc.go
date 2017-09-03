@@ -256,3 +256,7 @@ func runcFailOnErr(err error) {
 		panic(fmt.Errorf("fatal runc error: %s", err))
 	}
 }
+
+func (cm *Runc) DownSwarmMode() {
+	log.Warningf("Call unsupported method, DownSwarmMode()")
+}

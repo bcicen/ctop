@@ -12,10 +12,12 @@ import (
 	"github.com/bcicen/ctop/entity"
 	"github.com/docker/docker/api/types/swarm"
 	"time"
+	"github.com/docker/docker/api/types/mount"
 )
 
 type Docker struct {
 	client                 *api.Client
+	ctops                  []*swarm.Service
 	containers             map[string]*entity.Container
 	services               map[string]*entity.Service
 	nodes                  map[string]*entity.Node
@@ -35,6 +37,7 @@ func NewDocker() Connector {
 	}
 	cm := &Docker{
 		client:                 client,
+		ctops:                  []*swarm.Service{},
 		containers:             make(map[string]*entity.Container),
 		services:               make(map[string]*entity.Service),
 		nodes:                  make(map[string]*entity.Node),
@@ -46,6 +49,7 @@ func NewDocker() Connector {
 		lock:                   sync.RWMutex{},
 	}
 	if config.GetSwitchVal("swarmMode") {
+		go cm.SwarmListen()
 		go cm.LoopNode()
 		go cm.LoopService()
 		go cm.LoopTask()
@@ -491,4 +495,111 @@ func (cm *Docker) AllContainers() (containers entity.Containers) {
 // use primary container name
 func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
+}
+
+func (cm *Docker) SwarmListen() {
+	ctx, cancel := context.WithCancel(context.Background())
+	opt := make(map[string]interface{})
+	opt["scope"] = "swarm"
+	networks, err := cm.client.ListNetworks()
+	if err != nil {
+		log.Error(fmt.Sprintf("Can't load list networks: %s", err))
+	}
+	for _, n := range networks {
+		if n.Name == "ctop_default" {
+			log.Noticef("Remove prev 'ctop_default' network %s", n.ID)
+			cm.client.RemoveNetwork(n.ID)
+		}
+	}
+	networkOpt := api.CreateNetworkOptions{
+		Name:    "ctop_default",
+		Driver:  "overlay",
+		Options: opt,
+		Context: ctx,
+	}
+	net, err := cm.client.CreateNetwork(networkOpt)
+	if err != nil {
+		log.Error(fmt.Sprintf("%s", err))
+		return
+	}
+	net.Scope = "swarm"
+	netConfig := swarm.NetworkAttachmentConfig{
+		Target:  net.ID,
+		Aliases: []string{"ctop"},
+	}
+	log.Noticef("Create 'ctop_default' network: %s", net)
+	cont := swarm.ContainerSpec{
+		Image: config.Get("image").Val,
+		Mounts: []mount.Mount{
+			{
+				Type:        mount.TypeBind,
+				Source:      "/var/run/docker.sock",
+				Target:      "/var/run/docker.sock",
+				ReadOnly:    true,
+				Consistency: mount.ConsistencyDefault,
+			},
+		},
+		Command: []string{"/ctop", "-H"},
+	}
+	serviceSpec := swarm.ServiceSpec{
+		Annotations: swarm.Annotations{Name: "CTOP_swarm", Labels: make(map[string]string)},
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: cont,
+			Networks:      []swarm.NetworkAttachmentConfig{netConfig},
+		},
+		Networks: []swarm.NetworkAttachmentConfig{netConfig},
+		Mode:     swarm.ServiceMode{Global: &swarm.GlobalService{}},
+		UpdateConfig: &swarm.UpdateConfig{Parallelism: 1,
+			Delay: time.Duration(10),
+			Monitor: time.Duration(60),
+			MaxFailureRatio: 0.5,
+		},
+		RollbackConfig: &swarm.UpdateConfig{Parallelism: 1,
+			Delay: time.Duration(10),
+			Monitor: time.Duration(60),
+			MaxFailureRatio: 0.5,
+		},
+		EndpointSpec: &swarm.EndpointSpec{
+			Mode: swarm.ResolutionModeVIP,
+			Ports: []swarm.PortConfig{
+				{
+					Name:          "tcp4",
+					Protocol:      swarm.PortConfigProtocolTCP,
+					TargetPort:    9001,
+					PublishedPort: 9001,
+					PublishMode:   swarm.PortConfigPublishModeHost,
+				},
+			},
+		},
+	}
+	serviceOpt := api.CreateServiceOptions{
+		ServiceSpec: serviceSpec,
+		Context:     ctx,
+	}
+	s, err := cm.client.CreateService(serviceOpt)
+	if err != nil {
+		log.Error(fmt.Sprintf("Error create service:\n %s", err))
+	}
+	cm.ctops = append(cm.ctops, s)
+	connectNetworkOpt := api.NetworkConnectionOptions{}
+	cm.client.ConnectNetwork(net.ID, connectNetworkOpt)
+	if cancel != nil {
+		cancel()
+	}
+}
+
+func (cm *Docker) DownSwarmMode() {
+	ctx, cancel := context.WithCancel(context.Background())
+	for _, s := range cm.services {
+		if s.GetMeta("name") == "CTOP_swarm" {
+			opt := api.RemoveServiceOptions{
+				ID:      s.GetId(),
+				Context: ctx,
+			}
+			cm.client.RemoveService(opt)
+		}
+	}
+	if cancel != nil {
+		cancel()
+	}
 }

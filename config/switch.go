@@ -22,6 +22,11 @@ var switches = []*Switch{
 		Val:	false,
 		Label:	"Enable Swarm Mode",
 	},
+	&Switch{
+		Key:   "hideDisplay",
+		Val:   true,
+		Label: "disable display for service ctop in swarm mode",
+	},
 }
 
 type Switch struct {

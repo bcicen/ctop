@@ -12,6 +12,11 @@ var params = []*Param{
 		Val:   "state",
 		Label: "Container Sort Field",
 	},
+	&Param{
+		Key:   "image",
+		Val:   "quay.io/vektorlab/ctop:latest",
+		Label: "Image for create service ctop in Swarm Mode",
+	},
 }
 
 type Param struct {

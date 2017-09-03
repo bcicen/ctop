@@ -14,6 +14,7 @@ import (
 	ui "github.com/gizak/termui"
 	tm "github.com/nsf/termbox-go"
 	"github.com/bcicen/ctop/entity"
+	"github.com/bcicen/ctop/network"
 )
 
 var (
@@ -41,6 +42,8 @@ func main() {
 	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
 	var invertFlag = flag.Bool("i", false, "invert default colors")
 	var swarmFlag = flag.Bool("w", false, "enable s(W)arm mode")
+	var imageFlag = flag.String("I", "", "name images for build service in swarm mode")
+	var displayFlag = flag.Bool("H", false, "enable/disable display for service in swarm mode")
 	var connectorFlag = flag.String("connector", "docker", "container connector to use")
 	flag.Parse()
 
@@ -87,9 +90,22 @@ func main() {
 		config.Toggle("swarmMode")
 	}
 
-	ui.ColorMap = ColorMap // override default colormap
-	if err := ui.Init(); err != nil {
-		panic(fmt.Sprintf("Ui error: %s:",err))
+	if *imageFlag != "" {
+		config.Update("image", *imageFlag)
+	}
+
+	if *displayFlag {
+		fmt.Printf("Start mode withou output.... CTRL+C for exit.")
+		config.Toggle("hideDisplay")
+	}
+
+	if config.GetSwitchVal("hideDisplay") {
+		ui.ColorMap = ColorMap // override default colormap
+		if err := ui.Init(); err != nil {
+			panic(fmt.Sprintf("Ui error: %s:", err))
+		}
+	} else {
+		network.Main()
 	}
 
 	defer Shutdown()
@@ -103,14 +119,19 @@ func main() {
 	header = widgets.NewCTopHeader()
 
 	for {
-		exit := Display()
-		if exit {
-			return
+		if config.GetSwitchVal("hideDisplay") {
+			exit := Display()
+			if exit {
+				return
+			}
 		}
 	}
 }
 
 func Shutdown() {
+	if config.GetSwitchVal("swarmMode") {
+		cursor.cSource.DownSwarmMode()
+	}
 	log.Notice("shutting down")
 	log.Exit()
 	if tm.IsInit {

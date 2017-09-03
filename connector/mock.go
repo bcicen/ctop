@@ -135,3 +135,7 @@ func makeState() string {
 	}
 	return "running"
 }
+
+func (cm *Mock) DownSwarmMode() {
+	log.Warningf("Call unsupported method, DownSwarmMode()")
+}

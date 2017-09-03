@@ -27,4 +27,5 @@ type Connector interface {
 	AllTasks() entity.Tasks
 	GetContainer(string) (*entity.Container, bool)
 	GetService(string) (*entity.Service, bool)
+	DownSwarmMode()
 }
