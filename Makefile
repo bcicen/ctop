@@ -8,7 +8,7 @@ clean:
 	rm -rf _build/ release/
 
 build:
-	glide install
+	dep ensure
 	CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o ctop
 
 build-dev:
