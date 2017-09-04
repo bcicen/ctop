@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/opencontainers/runc/libcontainer"
@@ -71,12 +70,12 @@ func NewRunc() Connector {
 		lock:          sync.RWMutex{},
 	}
 
-	go func() {
-		for {
-			cm.refreshAllContainers()
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	//go func() {
+	//	for {
+	//		cm.refreshAllContainers()
+	//		time.Sleep(5 * time.Second)
+	//	}
+	//}()
 	go cm.Loop()
 
 	return cm

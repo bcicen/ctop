@@ -8,27 +8,24 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/models"
-	api "github.com/fsouza/go-dockerclient"
+	"github.com/moby/moby/client"
+	"github.com/docker/docker/api/types"
 )
 
 type DockerLogs struct {
 	id     string
-	client *api.Client
+	client *client.Client
 	done   chan bool
 }
 
 func (l *DockerLogs) Stream() chan models.Log {
-	r, w := io.Pipe()
+	r, _ := io.Pipe()
 	logCh := make(chan models.Log)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	opts := api.LogsOptions{
-		Context:      ctx,
-		Container:    l.id,
-		OutputStream: w,
-		ErrorStream:  w,
-		Stdout:       true,
-		Stderr:       true,
+	opts := types.ContainerLogsOptions{
+		ShowStdout:   true,
+		ShowStderr:   true,
 		Tail:         "10",
 		Follow:       true,
 		Timestamps:   true,
@@ -46,7 +43,7 @@ func (l *DockerLogs) Stream() chan models.Log {
 
 	// connect to container log stream
 	go func() {
-		err := l.client.Logs(opts)
+		_, err := l.client.ContainerLogs(ctx, l.id, opts)
 		if err != nil {
 			log.Errorf("error reading container logs: %s", err)
 		}

@@ -4,20 +4,25 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"context"
+	"time"
+	"regexp"
 
 	"github.com/bcicen/ctop/connector/collector"
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/bcicen/ctop/config"
-	"context"
 	"github.com/bcicen/ctop/entity"
 	"github.com/docker/docker/api/types/swarm"
-	"time"
 	"github.com/docker/docker/api/types/mount"
+	mynet "github.com/bcicen/ctop/network"
+	"github.com/docker/docker/api/types"
+	"github.com/moby/moby/client"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/go-connections/nat"
 )
 
 type Docker struct {
-	client                 *api.Client
-	ctops                  []*swarm.Service
+	client                 *client.Client
 	containers             map[string]*entity.Container
 	services               map[string]*entity.Service
 	nodes                  map[string]*entity.Node
@@ -31,13 +36,12 @@ type Docker struct {
 
 func NewDocker() Connector {
 	// init docker client
-	client, err := api.NewClientFromEnv()
+	client, err := client.NewEnvClient()
 	if err != nil {
 		panic(fmt.Sprintf("NewDocker err:%s", err))
 	}
 	cm := &Docker{
 		client:                 client,
-		ctops:                  []*swarm.Service{},
 		containers:             make(map[string]*entity.Container),
 		services:               make(map[string]*entity.Service),
 		nodes:                  make(map[string]*entity.Node),
@@ -56,6 +60,7 @@ func NewDocker() Connector {
 		go cm.LoopDiscoveryTasks()
 		cm.refreshAllNodes()
 		cm.refreshAllServices()
+		go mynet.TestDockerNetwork(cm.tasks)
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
@@ -67,10 +72,10 @@ func NewDocker() Connector {
 // Docker events watcher
 func (cm *Docker) watchEvents() {
 	log.Info("docker event listener starting")
-	events := make(chan *api.APIEvents)
-	cm.client.AddEventListener(events)
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute)
+	messages, _ := cm.client.Events(ctx, types.EventsOptions{})
 
-	for e := range events {
+	for e := range messages {
 		log.Debugf("Action ", e)
 		if e.Type == "service" {
 			actionName := strings.Split(e.Action, ":")[0]
@@ -93,7 +98,7 @@ func (cm *Docker) watchEvents() {
 	}
 }
 
-func portsFormat(ports map[api.Port][]api.PortBinding) string {
+func portsFormat(ports nat.PortMap) string {
 	var exposed []string
 	var published []string
 
@@ -122,7 +127,7 @@ func (cm *Docker) refreshContainer(c *entity.Container) {
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
-	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
+	c.SetMeta("created", insp.Created)
 	c.SetMeta("health", insp.State.Health.Status)
 	c.SetState(insp.State.Status)
 }
@@ -158,47 +163,46 @@ func (cm *Docker) refreshTask(t *entity.Task) {
 	t.SetMeta("service", insp.ServiceID)
 }
 
-func (cm *Docker) inspectContainer(id string) *api.Container {
-	c, err := cm.client.InspectContainer(id)
+func (cm *Docker) inspectContainer(id string) *types.ContainerJSON {
+	c, err := cm.client.ContainerInspect(context.Background(), id)
 	if err != nil {
 		if _, ok := err.(*api.NoSuchContainer); ok == false {
 			log.Errorf(err.Error())
 		}
 	}
-	return c
+	return &c
 }
 func (cm *Docker) inspectNode(id string) *swarm.Node {
-	n, err := cm.client.InspectNode(id)
+	n, _, err := cm.client.NodeInspectWithRaw(context.Background(), id)
 	if err != nil {
 		if _, ok := err.(*api.NoSuchContainer); ok == false {
 			log.Errorf(err.Error())
 		}
 	}
-	return n
+	return &n
 }
 func (cm *Docker) inspectService(id string) *swarm.Service {
-	s, err := cm.client.InspectService(id)
+	s, _, err := cm.client.ServiceInspectWithRaw(context.Background(), id, types.ServiceInspectOptions{})
 	if err != nil {
 		if _, ok := err.(*api.NoSuchService); ok == false {
 			log.Errorf(err.Error())
 		}
 	}
-	return s
+	return &s
 }
 func (cm *Docker) inspectTask(id string) *swarm.Task {
-	s, err := cm.client.InspectTask(id)
+	s, _, err := cm.client.TaskInspectWithRaw(context.Background(), id)
 	if err != nil {
 		if _, ok := err.(*api.NoSuchTask); ok == false {
 			log.Errorf(err.Error())
 		}
 	}
-	return s
+	return &s
 }
 
 // Mark all container IDs for refresh
 func (cm *Docker) refreshAllContainers() {
-	opts := api.ListContainersOptions{All: true}
-	allContainers, err := cm.client.ListContainers(opts)
+	allContainers, err := cm.client.ContainerList(context.Background(), types.ContainerListOptions{All: true})
 	if err != nil {
 		panic(fmt.Sprintf("Refreshing all containers:%s", err))
 	}
@@ -214,8 +218,7 @@ func (cm *Docker) refreshAllContainers() {
 // Mark all nodes IDs for refresh
 func (cm *Docker) refreshAllNodes() {
 	ctx, cancel := context.WithCancel(context.Background())
-	opt := api.ListNodesOptions{Context: ctx}
-	allNodes, err := cm.client.ListNodes(opt)
+	allNodes, err := cm.client.NodeList(ctx, types.NodeListOptions{})
 
 	if err != nil {
 		panic(fmt.Sprintf("Refreshing all nodes:%s", err))
@@ -234,8 +237,7 @@ func (cm *Docker) refreshAllNodes() {
 // Mark all services IDs for refresh
 func (cm *Docker) refreshAllServices() {
 	ctx, cancel := context.WithCancel(context.Background())
-	opts := api.ListServicesOptions{Context: ctx}
-	allServices, err := cm.client.ListServices(opts)
+	allServices, err := cm.client.ServiceList(ctx, types.ServiceListOptions{})
 
 	if err != nil {
 		panic(fmt.Sprintf("Refreshing all services:%s", err))
@@ -244,6 +246,7 @@ func (cm *Docker) refreshAllServices() {
 		s := cm.MustGetService(i.ID)
 
 		s.SetMeta("name", i.Spec.Annotations.Name)
+		s.SetMeta("mode", modeService(fmt.Sprintf("%s", i.Spec.Mode)))
 		s.SetState("service")
 		cm.needsRefreshServices <- s.Id
 	}
@@ -255,8 +258,8 @@ func (cm *Docker) refreshAllServices() {
 // Mark all tasks IDs for refresh
 func (cm *Docker) refreshAllTasks() {
 	ctx, cancel := context.WithCancel(context.Background())
-	opt := api.ListTasksOptions{Context: ctx}
-	allTasks, err := cm.client.ListTasks(opt)
+	opt := types.TaskListOptions{}
+	allTasks, err := cm.client.TaskList(ctx, opt)
 
 	if err != nil {
 		panic(fmt.Sprintf("Refreshing all tasks:%s", err))
@@ -276,9 +279,14 @@ func (cm *Docker) refreshAllTasks() {
 		node := cm.MustGetNode(i.NodeID)
 		service := cm.MustGetService(i.ServiceID)
 		taskState := i.Status.State
-		t.SetMeta("name", service.GetMeta("name")+"."+fmt.Sprintf("%d", i.Slot))
+		if service.GetMeta("mode") == "replicas" {
+			t.SetMeta("name", service.GetMeta("name")+"."+fmt.Sprintf("%d", i.Slot))
+		} else {
+			t.SetMeta("name", service.GetMeta("name")+"."+fmt.Sprintf("%s", i.NodeID))
+		}
 		t.SetMeta("node", node.GetMeta("name"))
 		t.SetState(fmt.Sprintf("%s", taskState))
+		t.SetMeta("addr", strings.Join(i.NetworksAttachments[0].Addresses, " | "))
 		t.SetMeta("service", i.ServiceID)
 		cm.needsRefreshTasks <- t.Id
 	}
@@ -497,32 +505,46 @@ func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
 }
 
+func modeService(mode string) string {
+	pattern, err := regexp.Compile("Replicated")
+	if err != nil {
+		log.Error(fmt.Sprintf("Error build regexp: %s", err))
+	}
+	find := pattern.FindAllString(mode, 1)
+	if len(find) > 0 {
+		return "replicas"
+	} else {
+		return "global"
+	}
+}
+
 func (cm *Docker) SwarmListen() {
 	ctx, cancel := context.WithCancel(context.Background())
-	opt := make(map[string]interface{})
-	opt["scope"] = "swarm"
-	networks, err := cm.client.ListNetworks()
+	//opt := make(map[string]interface{})
+	//opt["Scope"] = "swarm"
+	opt := types.NetworkListOptions{
+
+	}
+
+	networks, err := cm.client.NetworkList(ctx, opt)
 	if err != nil {
 		log.Error(fmt.Sprintf("Can't load list networks: %s", err))
 	}
 	for _, n := range networks {
 		if n.Name == "ctop_default" {
 			log.Noticef("Remove prev 'ctop_default' network %s", n.ID)
-			cm.client.RemoveNetwork(n.ID)
+			cm.client.NetworkRemove(ctx, n.ID)
 		}
 	}
-	networkOpt := api.CreateNetworkOptions{
-		Name:    "ctop_default",
-		Driver:  "overlay",
-		Options: opt,
-		Context: ctx,
+	networkOpt := types.NetworkCreate{
+		Driver:     "overlay",
+		Attachable: true,
 	}
-	net, err := cm.client.CreateNetwork(networkOpt)
+	net, err := cm.client.NetworkCreate(ctx, "ctop_default", networkOpt)
 	if err != nil {
 		log.Error(fmt.Sprintf("%s", err))
 		return
 	}
-	net.Scope = "swarm"
 	netConfig := swarm.NetworkAttachmentConfig{
 		Target:  net.ID,
 		Aliases: []string{"ctop"},
@@ -544,7 +566,7 @@ func (cm *Docker) SwarmListen() {
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{Name: "CTOP_swarm", Labels: make(map[string]string)},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: cont,
+			ContainerSpec: &cont,
 			Networks:      []swarm.NetworkAttachmentConfig{netConfig},
 		},
 		Networks: []swarm.NetworkAttachmentConfig{netConfig},
@@ -572,17 +594,17 @@ func (cm *Docker) SwarmListen() {
 			},
 		},
 	}
-	serviceOpt := api.CreateServiceOptions{
-		ServiceSpec: serviceSpec,
-		Context:     ctx,
-	}
-	s, err := cm.client.CreateService(serviceOpt)
+	serviceOpt := types.ServiceCreateOptions{}
+	s, err := cm.client.ServiceCreate(ctx, serviceSpec, serviceOpt)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error create service:\n %s", err))
 	}
-	cm.ctops = append(cm.ctops, s)
-	connectNetworkOpt := api.NetworkConnectionOptions{}
-	cm.client.ConnectNetwork(net.ID, connectNetworkOpt)
+	cm.refreshAllContainers()
+
+	err = cm.client.NetworkConnect(ctx, net.ID, s.ID, &network.EndpointSettings{})
+	if err != nil {
+		log.Error(fmt.Sprintf("Can't connect to \n %s \n, with err:\n %s", net, err))
+	}
 	if cancel != nil {
 		cancel()
 	}
@@ -592,11 +614,7 @@ func (cm *Docker) DownSwarmMode() {
 	ctx, cancel := context.WithCancel(context.Background())
 	for _, s := range cm.services {
 		if s.GetMeta("name") == "CTOP_swarm" {
-			opt := api.RemoveServiceOptions{
-				ID:      s.GetId(),
-				Context: ctx,
-			}
-			cm.client.RemoveService(opt)
+			cm.client.ServiceRemove(ctx, s.GetId())
 		}
 	}
 	if cancel != nil {

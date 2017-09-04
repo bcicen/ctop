@@ -126,4 +126,8 @@ imports:
   subpackages:
   - unix
   - windows
+- name: github.com/moby/moby
+  version: 9b4a616e4b3819ef062780b5fd854616be2c22bb
+  subpackages:
+  - client
 testImports: []

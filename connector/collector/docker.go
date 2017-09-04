@@ -3,13 +3,15 @@ package collector
 import (
 	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
+	"github.com/moby/moby/client"
+	"context"
 )
 
 // Docker collector
 type Docker struct {
 	models.Metrics
 	id         string
-	client     *api.Client
+	client     *client.Client
 	running    bool
 	stream     chan models.Metrics
 	done       chan bool
@@ -17,7 +19,7 @@ type Docker struct {
 	lastSysCpu float64
 }
 
-func NewDocker(client *api.Client, id string) *Docker {
+func NewDocker(client *client.Client, id string) *Docker {
 	return &Docker{
 		Metrics: models.Metrics{},
 		id:      id,
@@ -31,13 +33,7 @@ func (c *Docker) Start() {
 	stats := make(chan *api.Stats)
 
 	go func() {
-		opts := api.StatsOptions{
-			ID:     c.id,
-			Stats:  stats,
-			Stream: true,
-			Done:   c.done,
-		}
-		c.client.Stats(opts)
+		c.client.ContainerStats(context.Background(), c.id, true)
 		c.running = false
 	}()
 
