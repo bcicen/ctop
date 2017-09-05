@@ -3,7 +3,7 @@ package collector
 import (
 	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
-	"github.com/moby/moby/client"
+	"github.com/docker/docker/client"
 	"context"
 )
 

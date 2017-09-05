@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/models"
-	"github.com/moby/moby/client"
+	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
 )
 

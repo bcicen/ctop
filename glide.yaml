@@ -14,7 +14,5 @@ import:
 - package: github.com/jgautheron/codename-generator
 - package: github.com/nu7hatch/gouuid
 - package: github.com/c9s/goprocinfo/linux
-- package: github.com/moby/moby
-  version: ^17.03.2-ce
 - package: github.com/op/go-logging
   version: ^1.0.0

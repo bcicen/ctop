@@ -12,13 +12,13 @@ import (
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/entity"
+	mynet "github.com/bcicen/ctop/network"
+
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/mount"
-	mynet "github.com/bcicen/ctop/network"
-	"github.com/docker/docker/api/types"
-	"github.com/moby/moby/client"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/go-connections/nat"
+	"github.com/docker/docker/client"
 )
 
 type Docker struct {
@@ -32,6 +32,7 @@ type Docker struct {
 	needsRefreshTasks      chan string // task IDs requiring refresh
 	needsRefreshServices   chan string // container IDs requiring refresh
 	lock                   sync.RWMutex
+	networkSwarmId         string
 }
 
 func NewDocker() Connector {
@@ -51,6 +52,7 @@ func NewDocker() Connector {
 		needsRefreshServices:   make(chan string, 60),
 		needsRefreshTasks:      make(chan string, 60),
 		lock:                   sync.RWMutex{},
+		networkSwarmId:         "",
 	}
 	if config.GetSwitchVal("swarmMode") {
 		go cm.SwarmListen()
@@ -98,11 +100,11 @@ func (cm *Docker) watchEvents() {
 	}
 }
 
-func portsFormat(ports nat.PortMap) string {
+func portsFormat(container *types.ContainerJSON) string {
 	var exposed []string
 	var published []string
 
-	for k, v := range ports {
+	for k, v := range container.NetworkSettings.Ports {
 		if len(v) == 0 {
 			exposed = append(exposed, string(k))
 			continue
@@ -126,7 +128,7 @@ func (cm *Docker) refreshContainer(c *entity.Container) {
 	}
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
-	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
+	c.SetMeta("ports", portsFormat(insp))
 	c.SetMeta("created", insp.Created)
 	c.SetMeta("health", insp.State.Health.Status)
 	c.SetState(insp.State.Status)
@@ -286,7 +288,7 @@ func (cm *Docker) refreshAllTasks() {
 		}
 		t.SetMeta("node", node.GetMeta("name"))
 		t.SetState(fmt.Sprintf("%s", taskState))
-		t.SetMeta("addr", strings.Join(i.NetworksAttachments[0].Addresses, " | "))
+		t.SetMeta("addr", strings.Split(i.NetworksAttachments[0].Addresses[0], "/")[0])
 		t.SetMeta("service", i.ServiceID)
 		cm.needsRefreshTasks <- t.Id
 	}
@@ -545,8 +547,9 @@ func (cm *Docker) SwarmListen() {
 		log.Error(fmt.Sprintf("%s", err))
 		return
 	}
+	cm.networkSwarmId = net.ID
 	netConfig := swarm.NetworkAttachmentConfig{
-		Target:  net.ID,
+		Target:  cm.networkSwarmId,
 		Aliases: []string{"ctop"},
 	}
 	log.Noticef("Create 'ctop_default' network: %s", net)
@@ -566,7 +569,7 @@ func (cm *Docker) SwarmListen() {
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{Name: "CTOP_swarm", Labels: make(map[string]string)},
 		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: &cont,
+			ContainerSpec: cont,
 			Networks:      []swarm.NetworkAttachmentConfig{netConfig},
 		},
 		Networks: []swarm.NetworkAttachmentConfig{netConfig},
@@ -595,13 +598,19 @@ func (cm *Docker) SwarmListen() {
 		},
 	}
 	serviceOpt := types.ServiceCreateOptions{}
-	s, err := cm.client.ServiceCreate(ctx, serviceSpec, serviceOpt)
+	_, err = cm.client.ServiceCreate(ctx, serviceSpec, serviceOpt)
 	if err != nil {
 		log.Error(fmt.Sprintf("Error create service:\n %s", err))
 	}
 	cm.refreshAllContainers()
+	var containerID string
+	for _, c := range cm.containers {
+		if c.GetMeta("name") == "ctop" {
+			containerID = c.GetId()
+		}
+	}
 
-	err = cm.client.NetworkConnect(ctx, net.ID, s.ID, &network.EndpointSettings{})
+	err = cm.client.NetworkConnect(ctx, net.ID, containerID, &network.EndpointSettings{})
 	if err != nil {
 		log.Error(fmt.Sprintf("Can't connect to \n %s \n, with err:\n %s", net, err))
 	}
@@ -615,6 +624,7 @@ func (cm *Docker) DownSwarmMode() {
 	for _, s := range cm.services {
 		if s.GetMeta("name") == "CTOP_swarm" {
 			cm.client.ServiceRemove(ctx, s.GetId())
+			cm.client.NetworkRemove(ctx, cm.networkSwarmId)
 		}
 	}
 	if cancel != nil {
