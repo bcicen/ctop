@@ -26,7 +26,7 @@ func (n *Node) SetState(val string) {
 	n.Meta.SetMeta("state", val)
 	// start collector, if needed
 	if val == "running" && !n.collector.Running() {
-		n.collector.Start()
+		n.collector.Start(n.Id)
 		//s.Read(s.collector.Stream())
 	}
 	// stop collector, if needed

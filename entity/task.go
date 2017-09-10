@@ -26,7 +26,7 @@ func (t *Task) SetState(val string) {
 	t.Meta.SetMeta("state", val)
 	// start collector, if needed
 	if val == "running" && !t.collector.Running() {
-		t.collector.Start()
+		t.collector.Start(t.Id)
 		//s.Read(s.collector.Stream())
 	}
 	// stop collector, if needed

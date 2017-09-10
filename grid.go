@@ -5,6 +5,7 @@ import (
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 	"github.com/bcicen/ctop/entity"
+	"time"
 )
 
 func RedrawRows(clr bool) {
@@ -13,18 +14,12 @@ func RedrawRows(clr bool) {
 
 	// build layout
 	y := 1
-	if config.GetSwitchVal("enableHeader") {
+	if config.GetSwitchVal("enableHeader") && config.GetSwitchVal("enableDisplay") {
 		header.SetCount(cursor.LenContainers(), cursor.LenNodes(), cursor.LenServices(), cursor.LenTasks())
 		header.SetFilter(config.GetVal("filterStr"))
 		y += header.Height()
 	}
 	cGrid.SetY(y)
-	//for id := range cursor.filteredId {
-	//	e := cursor.entityById(id)
-	//	if e != nil{
-	//		cGrid.AddRows(e.GetMetaEntity().Widgets)
-	//	}
-	//}
 	cursor.filteredId = []string{}
 	if config.GetSwitchVal("swarmMode") {
 		for _, s := range cursor.filteredServices {
@@ -43,16 +38,17 @@ func RedrawRows(clr bool) {
 			cursor.AddFilteredId(c)
 		}
 	}
-
-	if clr {
-		ui.Clear()
-		log.Debugf("screen cleared")
+	if config.GetSwitchVal("enableDisplay") {
+		if clr {
+			ui.Clear()
+			log.Debugf("screen cleared")
+		}
+		if config.GetSwitchVal("enableHeader") {
+			ui.Render(header)
+		}
+		cGrid.Align()
+		ui.Render(cGrid)
 	}
-	if config.GetSwitchVal("enableHeader") {
-		ui.Render(header)
-	}
-	cGrid.Align()
-	ui.Render(cGrid)
 }
 
 func SingleView(c entity.Entity) {
@@ -97,12 +93,13 @@ func RefreshDisplay() {
 func Display() bool {
 	var menu func()
 	var single bool
+	if config.GetSwitchVal("enableDispalay") {
+		cGrid.SetWidth(ui.TermWidth())
+		ui.DefaultEvtStream.Hook(logEvent)
+		// initial draw
+		header.Align()
+	}
 
-	cGrid.SetWidth(ui.TermWidth())
-	ui.DefaultEvtStream.Hook(logEvent)
-
-	// initial draw
-	header.Align()
 	if config.GetSwitchVal("swarmMode") {
 		cursor.RefreshSwamCluster()
 	} else {
@@ -111,67 +108,75 @@ func Display() bool {
 
 	RedrawRows(true)
 
-	HandleKeys("up", cursor.Up)
-	HandleKeys("down", cursor.Down)
+	if config.GetSwitchVal("enableDisplay") {
+		HandleKeys("up", cursor.Up)
+		HandleKeys("down", cursor.Down)
 
-	HandleKeys("pgup", cursor.PgUp)
-	HandleKeys("pgdown", cursor.PgDown)
+		HandleKeys("pgup", cursor.PgUp)
+		HandleKeys("pgdown", cursor.PgDown)
 
-	HandleKeys("exit", ui.StopLoop)
-	HandleKeys("help", func() {
-		menu = HelpMenu
-		ui.StopLoop()
-	})
+		HandleKeys("exit", ui.StopLoop)
+		HandleKeys("help", func() {
+			menu = HelpMenu
+			ui.StopLoop()
+		})
 
-	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		single = true
-		ui.StopLoop()
-	})
-	ui.Handle("/sys/kbd/a", func(ui.Event) {
-		config.Toggle("allContainers")
-		RefreshDisplay()
-	})
-	ui.Handle("/sys/kbd/D", func(ui.Event) {
-		e := cursor.Selected()
-		dumpContainer(e)
-	})
-	ui.Handle("/sys/kbd/f", func(ui.Event) {
-		menu = FilterMenu
-		ui.StopLoop()
-	})
-	ui.Handle("/sys/kbd/H", func(ui.Event) {
-		config.Toggle("enableHeader")
-		RedrawRows(true)
-	})
-	ui.Handle("/sys/kbd/r", func(e ui.Event) {
-		config.Toggle("sortReversed")
-	})
-	ui.Handle("/sys/kbd/s", func(ui.Event) {
-		menu = SortMenu
-		ui.StopLoop()
-	})
+		ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+			single = true
+			ui.StopLoop()
+		})
+		ui.Handle("/sys/kbd/a", func(ui.Event) {
+			config.Toggle("allContainers")
+			RefreshDisplay()
+		})
+		ui.Handle("/sys/kbd/D", func(ui.Event) {
+			e := cursor.Selected()
+			dumpContainer(e)
+		})
+		ui.Handle("/sys/kbd/f", func(ui.Event) {
+			menu = FilterMenu
+			ui.StopLoop()
+		})
+		ui.Handle("/sys/kbd/H", func(ui.Event) {
+			config.Toggle("enableHeader")
+			RedrawRows(true)
+		})
+		ui.Handle("/sys/kbd/r", func(e ui.Event) {
+			config.Toggle("sortReversed")
+		})
+		ui.Handle("/sys/kbd/s", func(ui.Event) {
+			menu = SortMenu
+			ui.StopLoop()
+		})
 
-	ui.Handle("/timer/1s", func(e ui.Event) {
-		RefreshDisplay()
-	})
+		ui.Handle("/timer/1s", func(e ui.Event) {
+			RefreshDisplay()
+		})
 
-	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
-		header.Align()
-		cursor.ScrollPage()
-		cGrid.SetWidth(ui.TermWidth())
-		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, cGrid.MaxRows())
-		RedrawRows(true)
-	})
+		ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+			header.Align()
+			cursor.ScrollPage()
+			cGrid.SetWidth(ui.TermWidth())
+			log.Infof("resize: width=%v max-rows=%v", cGrid.Width, cGrid.MaxRows())
+			RedrawRows(true)
+		})
 
-	ui.Loop()
-	if menu != nil {
-		menu()
+		ui.Loop()
+		if menu != nil {
+			menu()
+			return false
+		}
+		if single {
+			c := cursor.Selected()
+			SingleView(c)
+			return false
+		}
+		return true
+	} else {
+		go func() {
+			RefreshDisplay()
+			time.Sleep(time.Second)
+		}()
 		return false
 	}
-	if single {
-		c := cursor.Selected()
-		SingleView(c)
-		return false
-	}
-	return true
 }

@@ -43,8 +43,9 @@ func main() {
 	var invertFlag = flag.Bool("i", false, "invert default colors")
 	var swarmFlag = flag.Bool("w", false, "enable s(W)arm mode")
 	var imageFlag = flag.String("I", "", "name images for build service in swarm mode")
-	var displayFlag = flag.Bool("H", false, "enable/disable display for service in swarm mode")
+	var disableDisplayFlag = flag.Bool("D", false, "disable display for service in swarm mode")
 	var connectorFlag = flag.String("connector", "docker", "container connector to use")
+	var hostFlag = flag.String("host", "", "host where run manager node and ctop")
 	flag.Parse()
 
 	if *versionFlag {
@@ -94,18 +95,21 @@ func main() {
 		config.Update("image", *imageFlag)
 	}
 
-	if *displayFlag {
-		fmt.Printf("Start mode withou output.... CTRL+C for exit.")
-		config.Toggle("hideDisplay")
+	if *hostFlag != "" {
+		config.Update("host", *hostFlag)
 	}
 
-	if config.GetSwitchVal("hideDisplay") {
+	if *disableDisplayFlag {
+		fmt.Printf("Start mode withou output.... CTRL+C for exit.")
+		config.Toggle("enableDisplay")
+	}
+
+	if config.GetSwitchVal("enableDisplay") {
 		ui.ColorMap = ColorMap // override default colormap
 		if err := ui.Init(); err != nil {
 			panic(fmt.Sprintf("Ui error: %s:", err))
 		}
-	} else {
-		network.Main()
+		go network.Main()
 	}
 
 	defer Shutdown()
@@ -116,14 +120,14 @@ func main() {
 	}
 	cursor = &GridCursor{cSource: conn}
 	cGrid = compact.NewCompactGrid()
-	header = widgets.NewCTopHeader()
+	if config.GetSwitchVal("enableDisplay") {
+		header = widgets.NewCTopHeader()
+	}
 
 	for {
-		if config.GetSwitchVal("hideDisplay") {
-			exit := Display()
-			if exit {
-				return
-			}
+		exit := Display()
+		if exit {
+			return
 		}
 	}
 }

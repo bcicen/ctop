@@ -5,6 +5,10 @@ import (
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/docker/docker/client"
 	"context"
+	"github.com/bcicen/ctop/config"
+	swarmnet "github.com/bcicen/ctop/network"
+	"github.com/docker/docker/api/types"
+	"io/ioutil"
 )
 
 // Docker collector
@@ -27,23 +31,41 @@ func NewDocker(client *client.Client, id string) *Docker {
 	}
 }
 
-func (c *Docker) Start() {
+type bc struct {
+	stats types.ContainerStats
+	err   error
+}
+
+func (c *Docker) Start(id string) {
+	if config.GetSwitchVal("swarmMode") {
+		return
+	}
 	c.done = make(chan bool)
 	c.stream = make(chan models.Metrics)
-	stats := make(chan *api.Stats)
-
+	stats := make(chan bc)
 	go func() {
-		c.client.ContainerStats(context.Background(), c.id, true)
-		c.running = false
+		ctx, cl := context.WithCancel(context.Background())
+		resp, err := c.client.ContainerStats(ctx, id, false)
+		stats <- bc{resp, err}
+		defer cl()
+		defer func() { c.running = false }()
 	}()
 
 	go func() {
 		defer close(c.stream)
 		for s := range stats {
-			c.ReadCPU(s)
-			c.ReadMem(s)
-			c.ReadNet(s)
-			c.ReadIO(s)
+			//c.ReadCPU(s)
+			//c.ReadMem(s)
+			//c.ReadNet(s)
+			//c.ReadIO(s)
+			if s.err != nil {
+				continue
+				log.Errorf("%s", s.err)
+			}
+			b, _ := ioutil.ReadAll(s.stats.Body)
+			log.Infof("%s", string(b))
+			s.stats.Body.Close()
+			swarmnet.TestDockerNetwork(&c.Metrics)
 			c.stream <- c.Metrics
 		}
 		log.Infof("collector stopped for container: %s", c.id)

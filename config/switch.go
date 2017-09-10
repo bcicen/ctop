@@ -23,7 +23,7 @@ var switches = []*Switch{
 		Label:	"Enable Swarm Mode",
 	},
 	&Switch{
-		Key:   "hideDisplay",
+		Key:   "enableDisplay",
 		Val:   true,
 		Label: "disable display for service ctop in swarm mode",
 	},

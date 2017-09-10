@@ -28,7 +28,7 @@ func (c *Container) SetState(val string) {
 	c.Meta.SetMeta("state", val)
 	// start collector, if needed
 	if val == "running" && !c.collector.Running() {
-		c.collector.Start()
+		c.collector.Start(c.Id)
 		c.Read(c.collector.Stream())
 	}
 	// stop collector, if needed

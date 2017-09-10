@@ -3,12 +3,12 @@ package network
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/bcicen/ctop/models"
-	"github.com/bcicen/ctop/entity"
-	"github.com/bcicen/ctop/logging"
 	"fmt"
-	"time"
-	//"strings"
+	"bytes"
+
+	"github.com/bcicen/ctop/models"
+	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/config"
 )
 
 var (
@@ -16,43 +16,41 @@ var (
 )
 
 func Main() {
+	log.Infof("start HTTP server, listen :9001/metrics")
 	http.HandleFunc("/metrics", Metrics)
 	http.ListenAndServe(":9001", nil)
 }
 
 func Metrics(w http.ResponseWriter, r *http.Request) {
-	metric := &models.Metrics{CPUUtil: 1,
-		NetTx: 1,
-		NetRx: 1,
-		MemLimit: 2,
-		MemPercent: 2,
-		MemUsage: 2,
-		IOBytesRead: 3,
-		IOBytesWrite: 3,
-		Pids: 4}
-	js, err := json.Marshal(metric)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	switch r.Method {
+	case "GET":
+		log.Infof("GET")
+	case "POST":
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "Hello, POT method. ParseForm() err: %v", err)
+			return
+		}
+		decoder := json.NewDecoder(r.Body)
+		defer r.Body.Close()
+		var metrics models.Metrics
+		if err := decoder.Decode(&metrics); err != nil {
+			log.Error(fmt.Sprintf("Can't decode Metrics %s", err))
+		}
+		log.Infof("POST Metrics: %s", metrics)
+	default:
+		log.Infof("Sorry, only GET and POST methods are supported.")
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
 }
 
-func TestDockerNetwork(services map[string]*entity.Task) {
-	for {
-		for k, v := range services {
-			log.Debugf("Get service id " + k)
-			//if !strings.Contains(v.GetMeta("name"), "CTOP_swarm"){
-			//	continue
-			//}
-			url := "http://" + v.GetMeta("addr") + ":9001/metrics"
-			r, err := http.Get(url)
-			if err != nil {
-				log.Error(fmt.Sprintf("Can't HTTP-GET %s, with error: %s", url, err))
-			}
-			log.Infof("Get response from %s. Response: \n %s", url, r)
-		}
-		time.Sleep(5 * time.Second)
+func TestDockerNetwork(metric *models.Metrics) {
+	log.Infof("send test docker")
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(metric)
+	res, err := http.Post("http://"+config.GetVal("host")+":9001/metrics", "application/json; charset=utf-8", b)
+	defer res.Body.Close()
+	if err != nil {
+		log.Error(fmt.Sprintf("Cna't POST %s", err))
+		return
 	}
+	log.Infof("Response: %s", res.Body)
 }

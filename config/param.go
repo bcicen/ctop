@@ -17,6 +17,11 @@ var params = []*Param{
 		Val:   "quay.io/vektorlab/ctop:latest",
 		Label: "Image for create service ctop in Swarm Mode",
 	},
+	&Param{
+		Key:   "host",
+		Val:   "localhost",
+		Label: "Host where run manager node and ctop",
+	},
 }
 
 type Param struct {

@@ -26,7 +26,7 @@ func (s *Service) SetState(val string) {
 	s.Meta.SetMeta("state", val)
 	// start collector, if needed
 	if val == "running" && !s.collector.Running() {
-		s.collector.Start()
+		s.collector.Start(s.Id)
 		//s.Read(s.collector.Stream())
 	}
 	// stop collector, if needed
