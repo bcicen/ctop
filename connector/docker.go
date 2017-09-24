@@ -67,6 +67,11 @@ func NewDocker() Connector {
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
+		//go func() {
+		//	for {
+		//		time.Sleep(time.Second)
+		//	}
+		//}()
 	}
 	go cm.watchEvents()
 	return cm

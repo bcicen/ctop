@@ -47,10 +47,12 @@ func TestDockerNetwork(metric *models.Metrics) {
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(metric)
 	res, err := http.Post("http://"+config.GetVal("host")+":9001/metrics", "application/json; charset=utf-8", b)
-	defer res.Body.Close()
 	if err != nil {
 		log.Error(fmt.Sprintf("Cna't POST %s", err))
 		return
 	}
-	log.Infof("Response: %s", res.Body)
+	if res != nil {
+		log.Infof("Response: %s", res.Body)
+		defer res.Body.Close()
+	}
 }

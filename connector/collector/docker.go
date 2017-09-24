@@ -6,9 +6,11 @@ import (
 	"github.com/docker/docker/client"
 	"context"
 	"github.com/bcicen/ctop/config"
-	swarmnet "github.com/bcicen/ctop/network"
+	//swarmnet "github.com/bcicen/ctop/network"
 	"github.com/docker/docker/api/types"
 	"io/ioutil"
+	"encoding/json"
+	"time"
 )
 
 // Docker collector
@@ -44,28 +46,40 @@ func (c *Docker) Start(id string) {
 	c.stream = make(chan models.Metrics)
 	stats := make(chan bc)
 	go func() {
-		ctx, cl := context.WithCancel(context.Background())
-		resp, err := c.client.ContainerStats(ctx, id, false)
-		stats <- bc{resp, err}
-		defer cl()
+		ctx, closeCtx := context.WithCancel(context.Background())
+		for {
+			resp, err := c.client.ContainerStats(ctx, id, false)
+			stats <- bc{resp, err}
+			time.Sleep(time.Microsecond)
+			if <-c.done {
+				break
+			}
+		}
+		defer close(stats)
+		defer closeCtx()
 		defer func() { c.running = false }()
 	}()
 
 	go func() {
 		defer close(c.stream)
 		for s := range stats {
-			//c.ReadCPU(s)
-			//c.ReadMem(s)
-			//c.ReadNet(s)
-			//c.ReadIO(s)
 			if s.err != nil {
 				continue
 				log.Errorf("%s", s.err)
 			}
 			b, _ := ioutil.ReadAll(s.stats.Body)
-			log.Infof("%s", string(b))
 			s.stats.Body.Close()
-			swarmnet.TestDockerNetwork(&c.Metrics)
+			var apiStats api.Stats
+			if err := json.Unmarshal(b, &apiStats); err != nil {
+				log.Errorf("Unmarshal Stats error. err: %s", err)
+			}
+			log.Debugf("Api stats. %s", apiStats)
+			c.ReadCPU(&apiStats)
+			c.ReadMem(&apiStats)
+			c.ReadNet(&apiStats)
+			c.ReadIO(&apiStats)
+			//go swarmnet.TestDockerNetwork(&c.Metrics)
+			c.done <- false
 			c.stream <- c.Metrics
 		}
 		log.Infof("collector stopped for container: %s", c.id)
