@@ -6,11 +6,14 @@ import (
 	"github.com/docker/docker/client"
 	"context"
 	"github.com/bcicen/ctop/config"
-	//swarmnet "github.com/bcicen/ctop/network"
 	"github.com/docker/docker/api/types"
 	"io/ioutil"
 	"encoding/json"
 	"time"
+	"bytes"
+	"net/http"
+	"html/template"
+	url2 "net/url"
 )
 
 // Docker collector
@@ -78,9 +81,10 @@ func (c *Docker) Start(id string) {
 			c.ReadMem(&apiStats)
 			c.ReadNet(&apiStats)
 			c.ReadIO(&apiStats)
-			//go swarmnet.TestDockerNetwork(&c.Metrics)
+			c.Metrics.Id = id
 			c.done <- false
 			c.stream <- c.Metrics
+			go sendMetrics(&c.Metrics)
 		}
 		log.Infof("collector stopped for container: %s", c.id)
 	}()
@@ -146,4 +150,24 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 		}
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
+}
+
+func sendMetrics(metric *models.Metrics) {
+	if config.GetSwitchVal("enableDisplay") {
+		return
+	}
+	log.Infof("Send test docker")
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(metric)
+
+	url := "http://" + config.GetVal("host") + ":9001/metrics"
+	res, err := http.Post(url, "application/json; charset=utf-8", b)
+	if err != nil {
+		log.Errorf("Can't %s", err)
+		return
+	}
+	if res != nil {
+		log.Debugf("Response: %s", res.Body)
+	}
+	defer res.Body.Close()
 }

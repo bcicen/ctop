@@ -5,6 +5,7 @@ import (
 
 	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/models"
 )
 
 var log = logging.Init()
@@ -28,4 +29,5 @@ type Connector interface {
 	GetContainer(string) (*entity.Container, bool)
 	GetService(string) (*entity.Service, bool)
 	DownSwarmMode()
+	SetMetrics(metrics models.Metrics)
 }

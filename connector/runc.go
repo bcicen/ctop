@@ -13,6 +13,7 @@ import (
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 	"github.com/bcicen/ctop/entity"
+	"github.com/bcicen/ctop/models"
 )
 
 type RuncOpts struct {
@@ -152,7 +153,7 @@ func (cm *Runc) refreshAllContainers() {
 	}
 
 	// queue all existing containers for refresh
-	for id, _ := range cm.containers {
+	for id := range cm.containers {
 		cm.needsRefresh <- id
 	}
 	log.Debugf("queued %d containers for refresh", len(cm.containers))
@@ -258,4 +259,10 @@ func runcFailOnErr(err error) {
 
 func (cm *Runc) DownSwarmMode() {
 	log.Warningf("Call unsupported method, DownSwarmMode()")
+}
+
+func (cm *Runc) SetMetrics(metrics models.Metrics) {
+	if cont, ok := cm.GetContainer(metrics.Id); ok {
+		cont.SetMetrics(metrics)
+	}
 }

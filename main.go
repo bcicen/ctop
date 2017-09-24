@@ -14,7 +14,6 @@ import (
 	ui "github.com/gizak/termui"
 	tm "github.com/nsf/termbox-go"
 	"github.com/bcicen/ctop/entity"
-	"github.com/bcicen/ctop/network"
 )
 
 var (
@@ -109,7 +108,6 @@ func main() {
 		if err := ui.Init(); err != nil {
 			panic(fmt.Sprintf("Ui error: %s:", err))
 		}
-		go network.Main()
 	}
 
 	defer Shutdown()

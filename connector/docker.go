@@ -18,6 +18,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/bcicen/ctop/models"
 )
 
 type Docker struct {
@@ -64,14 +65,10 @@ func NewDocker() Connector {
 		go cm.LoopDiscoveryTasks()
 		cm.refreshAllNodes()
 		cm.refreshAllServices()
+		go StartListen(cm)
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
-		//go func() {
-		//	for {
-		//		time.Sleep(time.Second)
-		//	}
-		//}()
 	}
 	go cm.watchEvents()
 	return cm
@@ -633,4 +630,9 @@ func (cm *Docker) DownSwarmMode() {
 	if cm.cancel != nil {
 		cm.cancel()
 	}
+}
+
+func (cm *Docker) SetMetrics(metrics models.Metrics) {
+	cont := cm.MustGetContainer(metrics.Id)
+	cont.SetMetrics(metrics)
 }

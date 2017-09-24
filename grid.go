@@ -5,7 +5,6 @@ import (
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 	"github.com/bcicen/ctop/entity"
-	"time"
 )
 
 func RedrawRows(clr bool) {
@@ -93,7 +92,7 @@ func RefreshDisplay() {
 func Display() bool {
 	var menu func()
 	var single bool
-	if config.GetSwitchVal("enableDispalay") {
+	if config.GetSwitchVal("enableDisplay") {
 		cGrid.SetWidth(ui.TermWidth())
 		ui.DefaultEvtStream.Hook(logEvent)
 		// initial draw
@@ -173,10 +172,6 @@ func Display() bool {
 		}
 		return true
 	} else {
-		go func() {
-			RefreshDisplay()
-			time.Sleep(time.Second)
-		}()
 		return false
 	}
 }

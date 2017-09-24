@@ -37,7 +37,7 @@ func (c *Container) SetState(val string) {
 	}
 }
 
-func (c *Container) GetMetaEntity() Meta{
+func (c *Container) GetMetaEntity() Meta {
 	return c.Meta
 }
 
@@ -45,7 +45,7 @@ func (c *Container) GetId() string {
 	return c.Id
 }
 
-func (c *Container) GetMetrics() models.Metrics{
+func (c *Container) GetMetrics() models.Metrics {
 	return c.Metrics
 }
 
@@ -62,8 +62,7 @@ func (c *Container) SetUpdater(update cwidgets.WidgetUpdater) {
 func (c *Container) Read(stream chan models.Metrics) {
 	go func() {
 		for metrics := range stream {
-			c.Metrics = metrics
-			c.Meta.updater.SetMetrics(metrics)
+			c.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
 		c.Metrics = models.NewMetrics()
@@ -74,4 +73,8 @@ func (c *Container) Read(stream chan models.Metrics) {
 
 func (c *Container) GetMeta(v string) string {
 	return c.Meta.GetMeta(v)
+}
+
+func (c *Container) SetMetrics(metrics models.Metrics) {
+	c.Meta.updater.SetMetrics(metrics)
 }
