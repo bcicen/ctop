@@ -66,6 +66,9 @@ Option | Description
 -s  | select initial container sort field
 -w  | enable s(W)arm mode
 -v	| output version information and exit
+-I <string> | image name for ctop worker 
+-D  | disable display
+--host <string> | set host for ctop manager
 
 ### Keybindings
 

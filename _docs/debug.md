@@ -23,8 +23,11 @@ docker run -ti --rm \
            -e CTOP_DEBUG_TCP=1 \
            -p 9000:9000 \
            -v /var/run/docker.sock:/var/run/docker.sock \
-           quay.io/vektorlab/ctop:latest -w -I quay.io/vektorlab/ctop:latest
+           quay.io/vektorlab/ctop:latest -w -I quay.io/vektorlab/ctop --host 123.123.123.123
 ```
+`-w` - swarm Mode
+`-I` - image name for ctop worker
+`--host` - host name where run ctop manager with http server.
 
 
 Log messages can be followed by connecting to the default listen address:
