@@ -58,3 +58,7 @@ func (t *Task) GetMeta(v string) string {
 func (t *Task) SetUpdater(update cwidgets.WidgetUpdater) {
 	t.Meta.SetUpdater(update)
 }
+
+func (t *Task) SetMetrics(metrics models.Metrics) {
+	t.Meta.updater.SetMetrics(metrics)
+}

@@ -12,8 +12,7 @@ import (
 	"time"
 	"bytes"
 	"net/http"
-	"html/template"
-	url2 "net/url"
+	"strings"
 )
 
 // Docker collector
@@ -36,9 +35,11 @@ func NewDocker(client *client.Client, id string) *Docker {
 	}
 }
 
-type bc struct {
-	stats types.ContainerStats
-	err   error
+type containerStats struct {
+	stats   types.ContainerStats
+	cont    types.ContainerJSON
+	err     error
+	errCont error
 }
 
 func (c *Docker) Start(id string) {
@@ -47,12 +48,13 @@ func (c *Docker) Start(id string) {
 	}
 	c.done = make(chan bool)
 	c.stream = make(chan models.Metrics)
-	stats := make(chan bc)
+	stats := make(chan containerStats)
 	go func() {
 		ctx, closeCtx := context.WithCancel(context.Background())
 		for {
 			resp, err := c.client.ContainerStats(ctx, id, false)
-			stats <- bc{resp, err}
+			contJson, errCont := c.client.ContainerInspect(ctx, id)
+			stats <- containerStats{resp, contJson, err, errCont}
 			time.Sleep(time.Microsecond)
 			if <-c.done {
 				break
@@ -81,7 +83,13 @@ func (c *Docker) Start(id string) {
 			c.ReadMem(&apiStats)
 			c.ReadNet(&apiStats)
 			c.ReadIO(&apiStats)
-			c.Metrics.Id = id
+
+			nameWords := strings.Split(s.cont.ContainerJSONBase.Name, ".")
+			if len(nameWords) == 3 {
+				c.Metrics.Id = nameWords[2]
+			} else {
+				c.Metrics.Id = id
+			}
 			c.done <- false
 			c.stream <- c.Metrics
 			go sendMetrics(&c.Metrics)

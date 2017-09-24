@@ -6,7 +6,6 @@ import (
 	"sync"
 	"context"
 	"time"
-	"regexp"
 
 	"github.com/bcicen/ctop/connector/collector"
 	api "github.com/fsouza/go-dockerclient"
@@ -254,7 +253,7 @@ func (cm *Docker) refreshAllServices() {
 		s := cm.MustGetService(i.ID)
 
 		s.SetMeta("name", i.Spec.Annotations.Name)
-		s.SetMeta("mode", modeService(fmt.Sprintf("%s", i.Spec.Mode)))
+		s.SetMeta("mode", modeService(i.Spec.Mode))
 		s.SetState("service")
 		cm.needsRefreshServices <- s.Id
 	}
@@ -505,13 +504,8 @@ func shortName(name string) string {
 	return strings.Replace(name, "/", "", 1)
 }
 
-func modeService(mode string) string {
-	pattern, err := regexp.Compile("Replicated")
-	if err != nil {
-		log.Error(fmt.Sprintf("Error build regexp: %s", err))
-	}
-	find := pattern.FindAllString(mode, 1)
-	if len(find) > 0 {
+func modeService(mode swarm.ServiceMode) string {
+	if mode.Global == nil {
 		return "replicas"
 	} else {
 		return "global"
@@ -633,6 +627,11 @@ func (cm *Docker) DownSwarmMode() {
 }
 
 func (cm *Docker) SetMetrics(metrics models.Metrics) {
-	cont := cm.MustGetContainer(metrics.Id)
-	cont.SetMetrics(metrics)
+	if config.GetSwitchVal("swarmMode") {
+		task := cm.MustGetTask(metrics.Id)
+		task.SetMetrics(metrics)
+	} else {
+		cont := cm.MustGetContainer(metrics.Id)
+		cont.SetMetrics(metrics)
+	}
 }
