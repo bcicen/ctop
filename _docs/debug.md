@@ -22,6 +22,7 @@ docker run -ti --rm \
            -e CTOP_DEBUG=1 \
            -e CTOP_DEBUG_TCP=1 \
            -p 9000:9000 \
+           -p 9001:9001 \
            -v /var/run/docker.sock:/var/run/docker.sock \
            quay.io/vektorlab/ctop:latest -w -I quay.io/vektorlab/ctop --host 123.123.123.123
 ```
