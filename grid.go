@@ -5,6 +5,7 @@ import (
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 	"github.com/bcicen/ctop/entity"
+	"time"
 )
 
 func RedrawRows(clr bool) {
@@ -172,6 +173,7 @@ func Display() bool {
 		}
 		return true
 	} else {
+		time.Sleep(1 * time.Second)
 		return false
 	}
 }

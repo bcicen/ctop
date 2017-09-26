@@ -25,13 +25,17 @@ type Docker struct {
 	done       chan bool
 	lastCpu    float64
 	lastSysCpu float64
+	httpClient http.Client
+	url        string
 }
 
 func NewDocker(client *client.Client, id string) *Docker {
 	return &Docker{
-		Metrics: models.Metrics{},
-		id:      id,
-		client:  client,
+		Metrics:    models.Metrics{},
+		id:         id,
+		client:     client,
+		httpClient: http.Client{},
+		url:        "http://" + config.GetVal("host") + ":9001/metrics",
 	}
 }
 
@@ -92,7 +96,7 @@ func (c *Docker) Start(id string) {
 			}
 			c.done <- false
 			c.stream <- c.Metrics
-			go sendMetrics(&c.Metrics)
+			go c.sendMetrics(&c.Metrics)
 		}
 		log.Infof("collector stopped for container: %s", c.id)
 	}()
@@ -160,18 +164,22 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 	c.IOBytesRead, c.IOBytesWrite = read, write
 }
 
-func sendMetrics(metric *models.Metrics) {
+func (c *Docker) sendMetrics(metric *models.Metrics) {
 	if config.GetSwitchVal("enableDisplay") {
 		return
 	}
-	log.Infof("Send test docker")
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(metric)
-
-	url := "http://" + config.GetVal("host") + ":9001/metrics"
-	res, err := http.Post(url, "application/json; charset=utf-8", b)
+	req, err := http.NewRequest("POST", c.url, b)
 	if err != nil {
-		log.Errorf("Can't %s", err)
+		log.Errorf("%s", err)
+	}
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Errorf("%s", err)
 		return
 	}
 	if res != nil {
