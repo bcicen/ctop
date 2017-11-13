@@ -1,4 +1,4 @@
-baseurl = "http://ctop.sh"
+baseurl = "https://ctop.sh"
 languageCode = "en-us"
 title = "ctop"
 theme = "hugo-creative-theme"
@@ -18,7 +18,6 @@ googleAnalytics = "UA-93338213-1"
 
 	# Hero section
 	[params.hero]
-		# To change the background of the hero section, replace the 'header.jpg' at './static/img' with your own.
 		slogan     = ""
 		subtitle   = "concise commandline monitoring for containers"
 		buttonText = "get ctop"
