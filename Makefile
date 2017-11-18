@@ -15,11 +15,12 @@ build-dev:
 	go build -ldflags "-w -X main.version=$(VERSION)-dev -X main.build=$(BUILD) -extldflags=$(EXT_LD_FLAGS)"
 
 build-all:
-	mkdir -p build
+	mkdir -p _build
 	GOOS=darwin GOARCH=amd64 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-darwin-amd64
 	GOOS=linux  GOARCH=amd64 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-amd64
 	GOOS=linux  GOARCH=arm   go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-arm
 	GOOS=linux  GOARCH=arm64 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-arm64
+	cd _build; sha256sum * > sha256sums.txt
 
 image:
 	docker build -t ctop -f Dockerfile .
