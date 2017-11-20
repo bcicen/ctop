@@ -93,6 +93,10 @@ func Display() bool {
 		ui.StopLoop()
 	})
 
+	ui.Handle("/sys/kbd/m", func(ui.Event) {
+		menu = ContainerMenu
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		single = true
 		ui.StopLoop()

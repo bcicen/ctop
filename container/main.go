@@ -6,6 +6,7 @@ import (
 	"github.com/bcicen/ctop/cwidgets/compact"
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/models"
+	"github.com/bcicen/ctop/connector/manager"
 )
 
 var (
@@ -21,9 +22,10 @@ type Container struct {
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
 	collector collector.Collector
+	manager   manager.Manager
 }
 
-func New(id string, collector collector.Collector) *Container {
+func New(id string, collector collector.Collector, manager manager.Manager) *Container {
 	widgets := compact.NewCompact(id)
 	return &Container{
 		Metrics:   models.NewMetrics(),
@@ -32,6 +34,7 @@ func New(id string, collector collector.Collector) *Container {
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
+		manager:   manager,
 	}
 }
 
@@ -84,4 +87,32 @@ func (c *Container) Read(stream chan models.Metrics) {
 		c.Widgets.Reset()
 	}()
 	log.Infof("reader started for container: %s", c.Id)
+}
+
+func (c *Container) Start() {
+	if c.Meta["state"] != "running" {
+		if err := c.manager.Start(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			return
+		}
+		c.SetState("running")
+	}
+}
+
+func (c *Container) Stop() {
+	if c.Meta["state"] == "running" {
+		if err := c.manager.Stop(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			return
+		}
+		c.SetState("exited")
+	}
+}
+
+func (c *Container) Remove() {
+	if c.Meta["state"] == "exited" {
+		if err := c.manager.Remove(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+		}
+	}
 }
