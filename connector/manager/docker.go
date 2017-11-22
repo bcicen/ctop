@@ -1,19 +1,19 @@
 package manager
 
 import (
-	api "github.com/fsouza/go-dockerclient"
 	"fmt"
+	api "github.com/fsouza/go-dockerclient"
 )
 
 type Docker struct {
-	id         string
-	client     *api.Client
+	id     string
+	client *api.Client
 }
 
 func NewDocker(client *api.Client, id string) *Docker {
 	return &Docker{
-		id:      id,
-		client:  client,
+		id:     id,
+		client: client,
 	}
 }
 

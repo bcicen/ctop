@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
+	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/container"
 	"github.com/jgautheron/codename-generator"
 	"github.com/nu7hatch/gouuid"
-	"github.com/bcicen/ctop/connector/manager"
 )
 
 type Mock struct {

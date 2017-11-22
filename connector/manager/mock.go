@@ -1,6 +1,6 @@
 package manager
 
-type Mock struct {}
+type Mock struct{}
 
 func NewMock() *Mock {
 	return &Mock{}
