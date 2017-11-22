@@ -8,6 +8,7 @@ import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/container"
 	api "github.com/fsouza/go-dockerclient"
+	"github.com/bcicen/ctop/connector/manager"
 )
 
 type Docker struct {
@@ -132,8 +133,10 @@ func (cm *Docker) MustGet(id string) *container.Container {
 	if !ok {
 		// create collector
 		collector := collector.NewDocker(cm.client, id)
+		// create manager
+		manager := manager.NewDocker(cm.client, id)
 		// create container
-		c = container.New(id, collector)
+		c = container.New(id, collector, manager)
 		cm.lock.Lock()
 		cm.containers[id] = c
 		cm.lock.Unlock()
