@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
+	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/container"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
@@ -175,7 +176,8 @@ func (cm *Runc) MustGet(id string) *container.Container {
 		collector := collector.NewRunc(libc)
 
 		// create container
-		c = container.New(id, collector)
+		manager := manager.NewRunc()
+		c = container.New(id, collector, manager)
 
 		name := libc.ID()
 		// set initial metadata
