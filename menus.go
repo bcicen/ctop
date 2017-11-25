@@ -144,3 +144,47 @@ func ContainerMenu() {
 	})
 	ui.Loop()
 }
+
+func LogMenu() {
+
+	c := cursor.Selected()
+	if c == nil {
+		return
+	}
+
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	logs, quit := logReader(c)
+	m := widgets.NewTextView(logs)
+	m.BorderLabel = "Logs"
+	ui.Render(m)
+
+	ui.Handle("/sys/kbd/", func(ui.Event) {
+		quit <- true
+		ui.StopLoop()
+	})
+	ui.Loop()
+}
+
+func logReader(container *container.Container) (logs chan string, quit chan bool) {
+
+	logCollector := container.Logs()
+	stream := logCollector.Stream()
+	logs = make(chan string)
+	quit = make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case log := <- stream:
+				logs <- log.Message
+			case <- quit:
+				logCollector.Stop()
+				close(logs)
+				return
+			}
+		}
+	}()
+	return
+}

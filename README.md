@@ -76,6 +76,8 @@ H | Toggle ctop header
 h | Open help dialog
 s | Select container sort field
 r | Reverse container sort order
+m | Manage container (start, stop and/or remove)
+l | View container logs
 q | Quit ctop
 
 [build]: _docs/build.md
