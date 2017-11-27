@@ -25,10 +25,10 @@ func (w *GaugeCol) Reset() {
 
 func colorScale(n int) ui.Attribute {
 	if n > 70 {
-		return ui.ColorRed
+		return ui.ThemeAttr("status.danger")
 	}
 	if n > 30 {
-		return ui.ColorYellow
+		return ui.ThemeAttr("status.warn")
 	}
-	return ui.ColorGreen
+	return ui.ThemeAttr("status.ok")
 }

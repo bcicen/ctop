@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
+	"github.com/bcicen/ctop/connector/manager"
+	"github.com/bcicen/ctop/container"
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/entity"
@@ -344,6 +346,9 @@ func (cm *Docker) MustGetContainer(id string) *entity.Container {
 		collector := collector.NewDocker(cm.client, id)
 		// create container
 		c = entity.NewContainer(id, collector)
+		// create manager
+		//manager := manager.NewDocker(cm.client, id)
+		//c = container.New(id, collector, manager)
 		cm.lock.Lock()
 		cm.containers[id] = c
 		cm.lock.Unlock()

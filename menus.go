@@ -95,3 +95,97 @@ func SortMenu() {
 	ui.Render(m)
 	ui.Loop()
 }
+
+func ContainerMenu() {
+
+	c := cursor.Selected()
+	if c == nil {
+		return
+	}
+
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	m := menu.NewMenu()
+	m.Selectable = true
+
+	m.BorderLabel = "Menu"
+	var items []menu.Item
+	if c.Meta["state"] == "running" {
+		items = append(items, menu.Item{Val: "stop", Label: "stop"})
+	}
+	if c.Meta["state"] == "exited" {
+		items = append(items, menu.Item{Val: "start", Label: "start"})
+		items = append(items, menu.Item{Val: "remove", Label: "remove"})
+	}
+	items = append(items, menu.Item{Val: "cancel", Label: "cancel"})
+
+	m.AddItems(items...)
+	ui.Render(m)
+
+	HandleKeys("up", m.Up)
+	HandleKeys("down", m.Down)
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+		switch m.SelectedItem().Val {
+		case "start":
+			c.Start()
+			ui.StopLoop()
+		case "stop":
+			c.Stop()
+			ui.StopLoop()
+		case "remove":
+			c.Remove()
+			ui.StopLoop()
+		case "cancel":
+			ui.StopLoop()
+		}
+	})
+	ui.Handle("/sys/kbd/", func(ui.Event) {
+		ui.StopLoop()
+	})
+	ui.Loop()
+}
+
+func LogMenu() {
+
+	c := cursor.Selected()
+	if c == nil {
+		return
+	}
+
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	logs, quit := logReader(c)
+	m := widgets.NewTextView(logs)
+	m.BorderLabel = "Logs"
+	ui.Render(m)
+
+	ui.Handle("/sys/kbd/", func(ui.Event) {
+		quit <- true
+		ui.StopLoop()
+	})
+	ui.Loop()
+}
+
+func logReader(container *container.Container) (logs chan string, quit chan bool) {
+
+	logCollector := container.Logs()
+	stream := logCollector.Stream()
+	logs = make(chan string)
+	quit = make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case log := <- stream:
+				logs <- log.Message
+			case <- quit:
+				logCollector.Stop()
+				close(logs)
+				return
+			}
+		}
+	}()
+	return
+}

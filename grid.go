@@ -121,33 +121,39 @@ func Display() bool {
 			ui.StopLoop()
 		})
 
-		ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-			single = true
-			ui.StopLoop()
-		})
-		ui.Handle("/sys/kbd/a", func(ui.Event) {
-			config.Toggle("allContainers")
-			RefreshDisplay()
-		})
-		ui.Handle("/sys/kbd/D", func(ui.Event) {
-			e := cursor.Selected()
-			dumpContainer(e)
-		})
-		ui.Handle("/sys/kbd/f", func(ui.Event) {
-			menu = FilterMenu
-			ui.StopLoop()
-		})
-		ui.Handle("/sys/kbd/H", func(ui.Event) {
-			config.Toggle("enableHeader")
-			RedrawRows(true)
-		})
-		ui.Handle("/sys/kbd/r", func(e ui.Event) {
-			config.Toggle("sortReversed")
-		})
-		ui.Handle("/sys/kbd/s", func(ui.Event) {
-			menu = SortMenu
-			ui.StopLoop()
-		})
+	ui.Handle("/sys/kbd/m", func(ui.Event) {
+		menu = ContainerMenu
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/l", func(ui.Event) {
+		menu = LogMenu
+		ui.StopLoop()
+	})ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+		single = true
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/a", func(ui.Event) {
+		config.Toggle("allContainers")
+		RefreshDisplay()
+	})
+	ui.Handle("/sys/kbd/D", func(ui.Event) {
+		e :=cursor.Selected()dumpContainer(e)
+	})
+	ui.Handle("/sys/kbd/f", func(ui.Event) {
+		menu = FilterMenu
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/H", func(ui.Event) {
+		config.Toggle("enableHeader")
+		RedrawRows(true)
+	})
+	ui.Handle("/sys/kbd/r", func(e ui.Event) {
+		config.Toggle("sortReversed")
+	})
+	ui.Handle("/sys/kbd/s", func(ui.Event) {
+		menu = SortMenu
+		ui.StopLoop()
+	})
 
 		ui.Handle("/timer/1s", func(e ui.Event) {
 			RefreshDisplay()

@@ -1,6 +1,6 @@
 # Build
 
-To build `ctop` from source, ensure you have a recent version of [glide](https://github.com/Masterminds/glide) installed and run:
+To build `ctop` from source, ensure you have [dep](https://github.com/golang/dep) installed and run:
 
 ```bash
 go get github.com/bcicen/ctop && \
