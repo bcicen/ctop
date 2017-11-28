@@ -1,13 +1,14 @@
 package widgets
 
 import (
-	ui "github.com/gizak/termui"
 	"fmt"
+
+	ui "github.com/gizak/termui"
 )
 
 type TextView struct {
 	ui.Block
-	inputStream <- chan string
+	inputStream <-chan string
 	render      chan bool
 	Text        []string // all the text
 	TextOut     []string // text to be displayed
@@ -16,7 +17,7 @@ type TextView struct {
 	padding     Padding
 }
 
-func NewTextView(lines <- chan string) *TextView {
+func NewTextView(lines <-chan string) *TextView {
 	i := &TextView{
 		Block:       *ui.NewBlock(),
 		inputStream: lines,
@@ -67,12 +68,12 @@ func (i *TextView) renderLoop() {
 			if size > len(i.Text) {
 				size = len(i.Text)
 			}
-			i.TextOut = i.Text[len(i.Text) - size:]
+			i.TextOut = i.Text[len(i.Text)-size:]
 
 			width := i.Width - (i.padding[0] * 2)
 			for n := range i.TextOut {
 				if len(i.TextOut[n]) > width {
-					i.TextOut[n] = fmt.Sprintf("%s...", i.TextOut[n][:width - 3])
+					i.TextOut[n] = fmt.Sprintf("%s...", i.TextOut[n][:width-3])
 				}
 			}
 			ui.Render(i)

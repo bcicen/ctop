@@ -177,9 +177,9 @@ func logReader(container *container.Container) (logs chan string, quit chan bool
 	go func() {
 		for {
 			select {
-			case log := <- stream:
+			case log := <-stream:
 				logs <- log.Message
-			case <- quit:
+			case <-quit:
 				logCollector.Stop()
 				close(logs)
 				return
