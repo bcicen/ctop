@@ -66,7 +66,7 @@ func (c *Docker) Stream() chan models.Metrics {
 }
 
 func (c *Docker) Logs() LogCollector {
-	return &DockerLogs{c.id, c.client, make(chan bool)}
+	return NewDockerLogs(c.id, c.client)
 }
 
 // Stop collector

@@ -17,6 +17,14 @@ type DockerLogs struct {
 	done   chan bool
 }
 
+func NewDockerLogs(id string, client *api.Client) *DockerLogs {
+	return &DockerLogs{
+		id:     id,
+		client: client,
+		done:   make(chan bool),
+	}
+}
+
 func (l *DockerLogs) Stream() chan models.Log {
 	r, w := io.Pipe()
 	logCh := make(chan models.Log)
