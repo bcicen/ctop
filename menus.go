@@ -160,6 +160,10 @@ func LogMenu() {
 	m.BorderLabel = "Logs"
 	ui.Render(m)
 
+	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		m.Resize()
+		ui.Render(m)
+	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		quit <- true
 		ui.StopLoop()

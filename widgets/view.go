@@ -32,13 +32,17 @@ func NewTextView(lines <-chan string) *TextView {
 	i.BorderFg = ui.ThemeAttr("menu.border.fg")
 	i.BorderLabelFg = ui.ThemeAttr("menu.label.fg")
 
-	ui.Clear()
-	i.Height = ui.TermHeight()
-	i.Width = ui.TermWidth()
+	i.Resize()
 
 	i.readInputLoop()
 	i.renderLoop()
 	return i
+}
+
+func (i *TextView) Resize() {
+	ui.Clear()
+	i.Height = ui.TermHeight()
+	i.Width = ui.TermWidth()
 }
 
 func (i *TextView) Buffer() ui.Buffer {
@@ -49,7 +53,13 @@ func (i *TextView) Buffer() ui.Buffer {
 	x := i.Block.X + i.padding[0]
 	y := i.Block.Y + i.padding[1]
 
+	maxWidth := i.Width - (i.padding[0] * 2)
+
 	for _, line := range i.TextOut {
+		// truncate lines longer than maxWidth
+		if len(line) > maxWidth {
+			line = fmt.Sprintf("%s...", line[:maxWidth-3])
+		}
 		for _, ch := range line {
 			cell = ui.Cell{Ch: ch, Fg: i.TextFgColor, Bg: i.TextBgColor}
 			buf.Set(x, y, cell)
@@ -70,12 +80,6 @@ func (i *TextView) renderLoop() {
 			}
 			i.TextOut = i.Text[len(i.Text)-size:]
 
-			width := i.Width - (i.padding[0] * 2)
-			for n := range i.TextOut {
-				if len(i.TextOut[n]) > width {
-					i.TextOut[n] = fmt.Sprintf("%s...", i.TextOut[n][:width-3])
-				}
-			}
 			ui.Render(i)
 		}
 	}()
