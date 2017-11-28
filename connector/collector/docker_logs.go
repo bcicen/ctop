@@ -58,6 +58,7 @@ func (l *DockerLogs) Stream() chan models.Log {
 		if err != nil {
 			log.Errorf("error reading container logs: %s", err)
 		}
+		log.Infof("log reader stopped for container: %s", l.id)
 	}()
 
 	go func() {
@@ -67,6 +68,7 @@ func (l *DockerLogs) Stream() chan models.Log {
 		}
 	}()
 
+	log.Infof("log reader started for container: %s", l.id)
 	return logCh
 }
 
