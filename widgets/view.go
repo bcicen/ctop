@@ -93,14 +93,17 @@ func (t *TextView) readInputLoop() {
 }
 
 func splitLine(line string, lineSize int) []string {
+	if line == "" {
+		return []string{}
+	}
+
 	var lines []string
 	for {
-		if len(line) < lineSize {
+		if len(line) <= lineSize {
 			lines = append(lines, line)
 			return lines
 		}
 		lines = append(lines, line[:lineSize])
 		line = line[lineSize:]
 	}
-	return lines
 }
