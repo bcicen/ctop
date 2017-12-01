@@ -1,25 +1,24 @@
 package connector
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
-	"context"
 	"time"
 
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/container"
-	api "github.com/fsouza/go-dockerclient"
-	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/entity"
+	api "github.com/fsouza/go-dockerclient"
 
+	"github.com/bcicen/ctop/models"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
-	"github.com/bcicen/ctop/models"
 )
 
 type Docker struct {
@@ -196,7 +195,7 @@ func (cm *Docker) inspectNode(id string) *swarm.Node {
 	return &n
 }
 func (cm *Docker) inspectService(id string) *swarm.Service {
-	s, _, err := cm.client.ServiceInspectWithRaw(context.Background(), id, types.ServiceInspectOptions{})
+	s, _, err := cm.client.ServiceInspectWithRaw(context.Background(), id)
 	if err != nil {
 		if _, ok := err.(*api.NoSuchService); ok == false {
 			log.Errorf(err.Error())
@@ -344,11 +343,10 @@ func (cm *Docker) MustGetContainer(id string) *entity.Container {
 	if !ok {
 		// create collector
 		collector := collector.NewDocker(cm.client, id)
-		// create container
-		c = entity.NewContainer(id, collector)
 		// create manager
-		//manager := manager.NewDocker(cm.client, id)
-		//c = container.New(id, collector, manager)
+		manager := manager.NewDocker(cm.client, id)
+		// create container
+		c = entity.NewContainer(id, collector, manager)
 		cm.lock.Lock()
 		cm.containers[id] = c
 		cm.lock.Unlock()
@@ -555,11 +553,10 @@ func (cm *Docker) SwarmListen() {
 		Image: config.Get("image").Val,
 		Mounts: []mount.Mount{
 			{
-				Type:        mount.TypeBind,
-				Source:      "/var/run/docker.sock",
-				Target:      "/var/run/docker.sock",
-				ReadOnly:    true,
-				Consistency: mount.ConsistencyDefault,
+				Type:     mount.TypeBind,
+				Source:   "/var/run/docker.sock",
+				Target:   "/var/run/docker.sock",
+				ReadOnly: true,
 			},
 		},
 		Env:     []string{"CTOP_DEBUG=1", "CTOP_DEBUG_TCP=1"},
@@ -574,13 +571,8 @@ func (cm *Docker) SwarmListen() {
 		Networks: []swarm.NetworkAttachmentConfig{netConfig},
 		Mode:     swarm.ServiceMode{Global: &swarm.GlobalService{}},
 		UpdateConfig: &swarm.UpdateConfig{Parallelism: 1,
-			Delay: time.Duration(10),
-			Monitor: time.Duration(60),
-			MaxFailureRatio: 0.5,
-		},
-		RollbackConfig: &swarm.UpdateConfig{Parallelism: 1,
-			Delay: time.Duration(10),
-			Monitor: time.Duration(60),
+			Delay:           time.Duration(10),
+			Monitor:         time.Duration(60),
 			MaxFailureRatio: 0.5,
 		},
 		EndpointSpec: &swarm.EndpointSpec{

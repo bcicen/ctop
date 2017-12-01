@@ -4,6 +4,7 @@ import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/models"
 	"github.com/bcicen/ctop/cwidgets"
+	"github.com/bcicen/ctop/connector/manager"
 )
 
 // Metrics and metadata representing a container
@@ -12,15 +13,17 @@ type Container struct {
 	Meta
 	Id        string
 	collector collector.Collector
+	manager   manager.Manager
 }
 
-func NewContainer(id string, collector collector.Collector) *Container {
+func NewContainer(id string, collector collector.Collector, manager manager.Manager) *Container {
 
 	return &Container{
 		Metrics:   models.NewMetrics(),
 		Meta:      NewMeta(id),
 		Id:        id,
 		collector: collector,
+		manager:   manager,
 	}
 }
 
@@ -77,4 +80,32 @@ func (c *Container) GetMeta(v string) string {
 
 func (c *Container) SetMetrics(metrics models.Metrics) {
 	c.Meta.updater.SetMetrics(metrics)
+}
+
+func (c *Container) Start() {
+	if c.GetMeta("state") != "running" {
+		if err := c.manager.Start(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			return
+		}
+		c.SetState("running")
+	}
+}
+
+func (c *Container) Stop() {
+	if c.GetMeta("state") == "running" {
+		if err := c.manager.Stop(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			return
+		}
+		c.SetState("exited")
+	}
+}
+
+func (c *Container) Remove() {
+	if c.GetMeta("state") == "exited" {
+		if err := c.manager.Remove(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+		}
+	}
 }

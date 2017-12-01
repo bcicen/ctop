@@ -128,7 +128,8 @@ func Display() bool {
 	ui.Handle("/sys/kbd/l", func(ui.Event) {
 		menu = LogMenu
 		ui.StopLoop()
-	})ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+	})
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		single = true
 		ui.StopLoop()
 	})
@@ -137,7 +138,8 @@ func Display() bool {
 		RefreshDisplay()
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
-		e :=cursor.Selected()dumpContainer(e)
+		e :=cursor.Selected()
+		dumpContainer(e)
 	})
 	ui.Handle("/sys/kbd/f", func(ui.Event) {
 		menu = FilterMenu

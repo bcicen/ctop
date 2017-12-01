@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
-	"github.com/bcicen/ctop/entity"
 )
 
 var helpDialog = []menu.Item{
@@ -17,6 +17,7 @@ var helpDialog = []menu.Item{
 	menu.Item{"[w] - toggle swarm mode", ""},
 	menu.Item{"[r] - reverse container sort order", ""},
 	menu.Item{"[q] - exit ctop", ""},
+	menu.Item{"[m] - open menu container", ""},
 }
 
 func HelpMenu() {
@@ -97,6 +98,9 @@ func SortMenu() {
 }
 
 func ContainerMenu() {
+	if config.GetSwitchVal("swarMode") {
+		return
+	}
 
 	c := cursor.Selected()
 	if c == nil {
@@ -111,10 +115,10 @@ func ContainerMenu() {
 
 	m.BorderLabel = "Menu"
 	var items []menu.Item
-	if c.Meta["state"] == "running" {
+	if c.GetMeta("state") == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 	}
-	if c.Meta["state"] == "exited" {
+	if c.GetMeta("state") == "exited" {
 		items = append(items, menu.Item{Val: "start", Label: "start"})
 		items = append(items, menu.Item{Val: "remove", Label: "remove"})
 	}
@@ -128,13 +132,13 @@ func ContainerMenu() {
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		switch m.SelectedItem().Val {
 		case "start":
-			c.Start()
+			c.(*entity.Container).Start()
 			ui.StopLoop()
 		case "stop":
-			c.Stop()
+			c.(*entity.Container).Stop()
 			ui.StopLoop()
 		case "remove":
-			c.Remove()
+			c.(*entity.Container).Remove()
 			ui.StopLoop()
 		case "cancel":
 			ui.StopLoop()
@@ -147,6 +151,9 @@ func ContainerMenu() {
 }
 
 func LogMenu() {
+	if config.GetSwitchVal("swarmMode") {
+		return
+	}
 
 	c := cursor.Selected()
 	if c == nil {
@@ -156,7 +163,7 @@ func LogMenu() {
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	logs, quit := logReader(c)
+	logs, quit := logReader(c.(*entity.Container))
 	m := widgets.NewTextView(logs)
 	m.BorderLabel = "Logs"
 	ui.Render(m)
@@ -168,7 +175,7 @@ func LogMenu() {
 	ui.Loop()
 }
 
-func logReader(container *container.Container) (logs chan string, quit chan bool) {
+func logReader(container *entity.Container) (logs chan string, quit chan bool) {
 
 	logCollector := container.Logs()
 	stream := logCollector.Stream()
@@ -178,9 +185,9 @@ func logReader(container *container.Container) (logs chan string, quit chan bool
 	go func() {
 		for {
 			select {
-			case log := <- stream:
+			case log := <-stream:
 				logs <- log.Message
-			case <- quit:
+			case <-quit:
 				logCollector.Stop()
 				close(logs)
 				return
