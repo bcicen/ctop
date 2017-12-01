@@ -1,13 +1,14 @@
 package widgets
 
 import (
-	ui "github.com/gizak/termui"
 	"fmt"
+
+	ui "github.com/gizak/termui"
 )
 
 type TextView struct {
 	ui.Block
-	inputStream <- chan string
+	inputStream <-chan string
 	render      chan bool
 	Text        []string // all the text
 	TextOut     []string // text to be displayed
@@ -16,7 +17,7 @@ type TextView struct {
 	padding     Padding
 }
 
-func NewTextView(lines <- chan string) *TextView {
+func NewTextView(lines <-chan string) *TextView {
 	i := &TextView{
 		Block:       *ui.NewBlock(),
 		inputStream: lines,
@@ -31,13 +32,17 @@ func NewTextView(lines <- chan string) *TextView {
 	i.BorderFg = ui.ThemeAttr("menu.border.fg")
 	i.BorderLabelFg = ui.ThemeAttr("menu.label.fg")
 
-	ui.Clear()
-	i.Height = ui.TermHeight()
-	i.Width = ui.TermWidth()
+	i.Resize()
 
 	i.readInputLoop()
 	i.renderLoop()
 	return i
+}
+
+func (i *TextView) Resize() {
+	ui.Clear()
+	i.Height = ui.TermHeight()
+	i.Width = ui.TermWidth()
 }
 
 func (i *TextView) Buffer() ui.Buffer {
@@ -48,7 +53,13 @@ func (i *TextView) Buffer() ui.Buffer {
 	x := i.Block.X + i.padding[0]
 	y := i.Block.Y + i.padding[1]
 
+	maxWidth := i.Width - (i.padding[0] * 2)
+
 	for _, line := range i.TextOut {
+		// truncate lines longer than maxWidth
+		if len(line) > maxWidth {
+			line = fmt.Sprintf("%s...", line[:maxWidth-3])
+		}
 		for _, ch := range line {
 			cell = ui.Cell{Ch: ch, Fg: i.TextFgColor, Bg: i.TextBgColor}
 			buf.Set(x, y, cell)
@@ -67,14 +78,8 @@ func (i *TextView) renderLoop() {
 			if size > len(i.Text) {
 				size = len(i.Text)
 			}
-			i.TextOut = i.Text[len(i.Text) - size:]
+			i.TextOut = i.Text[len(i.Text)-size:]
 
-			width := i.Width - (i.padding[0] * 2)
-			for n := range i.TextOut {
-				if len(i.TextOut[n]) > width {
-					i.TextOut[n] = fmt.Sprintf("%s...", i.TextOut[n][:width - 3])
-				}
-			}
 			ui.Render(i)
 		}
 	}()

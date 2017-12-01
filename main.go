@@ -9,11 +9,11 @@ import (
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/connector"
 	"github.com/bcicen/ctop/cwidgets/compact"
+	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/widgets"
 	ui "github.com/gizak/termui"
 	tm "github.com/nsf/termbox-go"
-	"github.com/bcicen/ctop/entity"
 )
 
 var (
@@ -33,18 +33,20 @@ func main() {
 	defer panicExit()
 
 	// parse command line arguments
-	var versionFlag = flag.Bool("v", false, "output version information and exit")
-	var helpFlag = flag.Bool("h", false, "display this help dialog")
-	var filterFlag = flag.String("f", "", "filter containers")
-	var activeOnlyFlag = flag.Bool("a", false, "show active containers only")
-	var sortFieldFlag = flag.String("s", "", "select container sort field")
-	var reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
-	var invertFlag = flag.Bool("i", false, "invert default colors")
-	var swarmFlag = flag.Bool("w", false, "enable s(W)arm mode")
-	var imageFlag = flag.String("I", "", "name images for build service in swarm mode")
-	var disableDisplayFlag = flag.Bool("D", false, "disable display for service in swarm mode")
-	var connectorFlag = flag.String("connector", "docker", "container connector to use")
-	var hostFlag = flag.String("host", "", "host where run manager node and ctop")
+	var (
+		versionFlag        = flag.Bool("v", false, "output version information and exit")
+		helpFlag           = flag.Bool("h", false, "display this help dialog")
+		filterFlag         = flag.String("f", "", "filter containers")
+		activeOnlyFlag     = flag.Bool("a", false, "show active containers only")
+		sortFieldFlag      = flag.String("s", "", "select container sort field")
+		reverseSortFlag    = flag.Bool("r", false, "reverse container sort order")
+		invertFlag         = flag.Bool("i", false, "invert default colors")
+		swarmFlag          = flag.Bool("w", false, "enable s(W)arm mode")
+		imageFlag          = flag.String("I", "", "name images for build service in swarm mode")
+		disableDisplayFlag = flag.Bool("D", false, "disable display for service in swarm mode")
+		connectorFlag      = flag.String("connector", "docker", "container connector to use")
+		hostFlag           = flag.String("host", "", "host where run manager node and ctop")
+	)
 	flag.Parse()
 
 	if *versionFlag {
