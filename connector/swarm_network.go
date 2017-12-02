@@ -1,26 +1,35 @@
 package connector
 
 import (
-	"net/http"
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
+	"io/ioutil"
 
 	"github.com/bcicen/ctop/models"
-	"io/ioutil"
 )
 
 var (
-	conn Connector
+	conn      Connector
+	DoneServe = make(chan bool)
 )
 
-func StartListen(current Connector) {
+func Serve(current Connector) {
+	defer close(DoneServe)
 	conn = current
 	server := &http.Server{Addr: ":9001", Handler: nil}
 	server.SetKeepAlivesEnabled(false)
 	http.HandleFunc("/metrics", Metrics)
 	log.Infof("start HTTP server, listen :9001/metrics")
+	go func() {
+		select {
+		case <-DoneServe:
+			server.Shutdown(context.Background())
+		}
+	}()
 	server.ListenAndServe()
-	//http.ListenAndServe(":9001", nil)
 }
 
 func Metrics(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +38,7 @@ func Metrics(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			fmt.Fprintf(w, "Hello, POT method. ParseForm() err: %s", err)
+			fmt.Fprintf(w, "Hello, POST method. ParseForm() err: %s", err)
 			return
 		}
 		var metrics models.Metrics

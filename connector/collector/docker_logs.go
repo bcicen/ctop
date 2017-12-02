@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/models"
-	"github.com/docker/docker/client"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 type DockerLogs struct {
@@ -18,7 +18,7 @@ type DockerLogs struct {
 	done   chan bool
 }
 
-func NewDockerLogs(id string, client *api.Client) *DockerLogs {
+func NewDockerLogs(id string, client *client.Client) *DockerLogs {
 	return &DockerLogs{
 		id:     id,
 		client: client,
@@ -32,11 +32,11 @@ func (l *DockerLogs) Stream() chan models.Log {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	opts := types.ContainerLogsOptions{
-		ShowStdout:   true,
-		ShowStderr:   true,
-		Tail:         "10",
-		Follow:       true,
-		Timestamps:   true,
+		ShowStdout: true,
+		ShowStderr: true,
+		Tail:       "10",
+		Follow:     true,
+		Timestamps: true,
 	}
 
 	// read io pipe into channel

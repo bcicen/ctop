@@ -11,11 +11,10 @@ import (
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/container"
-	"github.com/opencontainers/runc/libcontainer"
-	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/models"
+	"github.com/opencontainers/runc/libcontainer"
+	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 )
 
 type RuncOpts struct {
@@ -177,9 +176,8 @@ func (cm *Runc) MustGet(id string) *entity.Container {
 		collector := collector.NewRunc(libc)
 
 		// create container
-		c = entity.NewContainer(id, collector)
-		//manager := manager.NewRunc()
-		//c = container.New(id, collector, manager)
+		manager := manager.NewRunc()
+		c = entity.NewContainer(id, collector, manager)
 
 		name := libc.ID()
 		// set initial metadata

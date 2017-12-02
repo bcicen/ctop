@@ -4,7 +4,7 @@ RUN apk add --no-cache make
 
 COPY Gopkg.* /go/src/github.com/bcicen/ctop/
 WORKDIR /go/src/github.com/bcicen/ctop/
-#RUN dep ensure -vendor-only
+RUN dep ensure -vendor-only -v
 
 COPY . /go/src/github.com/bcicen/ctop
 RUN make build && \

@@ -1,8 +1,11 @@
 package connector
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -15,10 +18,16 @@ import (
 
 	"github.com/bcicen/ctop/models"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+)
+
+var (
+	ctopSwarm   = "CTOP_swarm"
+	ctopNetwork = "ctop_default"
 )
 
 type Docker struct {
@@ -35,6 +44,11 @@ type Docker struct {
 	networkSwarmId         string
 	currentContext         context.Context
 	cancel                 context.CancelFunc
+	// sync swarm channels
+	doneNode      chan bool
+	doneService   chan bool
+	doneTask      chan bool
+	doneDiscovery chan bool
 }
 
 func NewDocker() Connector {
@@ -55,6 +69,11 @@ func NewDocker() Connector {
 		needsRefreshTasks:      make(chan string, 60),
 		lock:                   sync.RWMutex{},
 		networkSwarmId:         "",
+
+		doneNode:      make(chan bool),
+		doneService:   make(chan bool),
+		doneTask:      make(chan bool),
+		doneDiscovery: make(chan bool),
 	}
 	cm.currentContext, cm.cancel = context.WithCancel(context.Background())
 	if config.GetSwitchVal("swarmMode") {
@@ -65,7 +84,7 @@ func NewDocker() Connector {
 		go cm.LoopDiscoveryTasks()
 		cm.refreshAllNodes()
 		cm.refreshAllServices()
-		go StartListen(cm)
+		go Serve(cm)
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
@@ -298,9 +317,15 @@ func (cm *Docker) refreshAllTasks() {
 
 // Loop for discovery tasks
 func (cm *Docker) LoopDiscoveryTasks() {
+	defer close(cm.doneDiscovery)
 	for {
-		time.Sleep(time.Second)
-		cm.refreshAllTasks()
+		select {
+		case <-cm.doneDiscovery:
+			return
+		default:
+			time.Sleep(time.Second)
+			cm.refreshAllTasks()
+		}
 	}
 }
 
@@ -314,25 +339,50 @@ func (cm *Docker) LoopContainer() {
 
 // Loop for discovery node
 func (cm *Docker) LoopNode() {
-	for id := range cm.needsRefreshNodes {
-		n := cm.MustGetNode(id)
-		cm.refreshNode(n)
+	var id string
+	defer close(cm.needsRefreshNodes)
+	defer close(cm.doneNode)
+	for {
+		select {
+		case id = <-cm.needsRefreshNodes:
+			cm.refreshNode(cm.MustGetNode(id))
+			break
+		case <-cm.doneNode:
+			return
+		}
+		runtime.Gosched()
 	}
 }
 
 // Loop for discovery service
 func (cm *Docker) LoopService() {
-	for id := range cm.needsRefreshServices {
-		s := cm.MustGetService(id)
-		cm.refreshService(s)
+	var id string
+	defer close(cm.needsRefreshServices)
+	defer close(cm.doneService)
+	for {
+		select {
+		case id = <-cm.needsRefreshServices:
+			cm.refreshService(cm.MustGetService(id))
+		case <-cm.doneService:
+			return
+		}
+		runtime.Gosched()
 	}
 }
 
 // Loop for discovery task
 func (cm *Docker) LoopTask() {
-	for id := range cm.needsRefreshTasks {
-		t := cm.MustGetTask(id)
-		cm.refreshTask(t)
+	var id string
+	defer close(cm.needsRefreshTasks)
+	defer close(cm.doneTask)
+	for {
+		select {
+		case id = <-cm.needsRefreshTasks:
+			cm.refreshTask(cm.MustGetTask(id))
+		case <-cm.doneTask:
+			return
+		}
+		runtime.Gosched()
 	}
 }
 
@@ -515,17 +565,51 @@ func modeService(mode swarm.ServiceMode) string {
 	}
 }
 
+func (cm *Docker) stopSwarm() {
+	cm.doneNode <- true
+	cm.doneService <- true
+	cm.doneTask <- true
+	cm.doneDiscovery <- true
+	DoneServe <- true
+	go cm.LoopContainer()
+	cm.refreshAllContainers()
+}
+
 func (cm *Docker) SwarmListen() {
 	//opt := make(map[string]interface{})
 	//opt["Scope"] = "swarm"
+	filter := fmt.Sprintf(`{"name":{"%s":true}}`, ctopSwarm)
+	args, err := filters.FromParam(filter)
+	if err != nil {
+		log.Errorf("Can't parser filter %s for finding service: %s", filter, err.Error())
+	}
+	ctopService := types.ServiceListOptions{
+		Filters: args,
+	}
+	services, err := cm.client.ServiceList(cm.currentContext, ctopService)
+	if err != nil {
+		log.Errorf("Can't find service: %s", err.Error())
+	}
+	if len(services) == 0 {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Deploy listeners to swarm cluster (yes/NO): ")
+		a, _ := reader.ReadString('\n')
+		a = strings.ToLower(a)
+		if a == "n" || a == "no" {
+			config.Toggle("swarmMode")
+			cm.stopSwarm()
+			return
+		}
+	}
+
 	networks, err := cm.client.NetworkList(cm.currentContext, types.NetworkListOptions{})
 	if err != nil {
-		log.Error(fmt.Sprintf("Can't load list networks: %s", err))
+		log.Errorf("Can't load list networks: %s", err.Error())
 	}
 
 	cm.networkSwarmId = ""
 	for _, n := range networks {
-		if n.Name == "ctop_default" {
+		if n.Name == ctopNetwork {
 			cm.networkSwarmId = n.ID
 		}
 	}
@@ -536,13 +620,13 @@ func (cm *Docker) SwarmListen() {
 			Driver:     "overlay",
 			Attachable: true,
 		}
-		net, err := cm.client.NetworkCreate(cm.currentContext, "ctop_default", networkOpt)
+		net, err := cm.client.NetworkCreate(cm.currentContext, ctopNetwork, networkOpt)
 		if err != nil {
 			log.Error(fmt.Sprintf("%s", err))
 			return
 		}
 		cm.networkSwarmId = net.ID
-		log.Noticef("Create 'ctop_default' network: %s", net)
+		log.Noticef("Create '%s' network: %s", ctopNetwork, net)
 	}
 
 	netConfig := swarm.NetworkAttachmentConfig{
@@ -563,7 +647,7 @@ func (cm *Docker) SwarmListen() {
 		Command: []string{"/ctop", "-D", "-host", config.GetVal("host")},
 	}
 	serviceSpec := swarm.ServiceSpec{
-		Annotations: swarm.Annotations{Name: "CTOP_swarm", Labels: make(map[string]string)},
+		Annotations: swarm.Annotations{Name: ctopSwarm, Labels: make(map[string]string)},
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: cont,
 			Networks:      []swarm.NetworkAttachmentConfig{netConfig},
