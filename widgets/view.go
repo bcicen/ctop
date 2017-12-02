@@ -1,8 +1,6 @@
 package widgets
 
 import (
-	"fmt"
-
 	ui "github.com/gizak/termui"
 )
 
@@ -18,7 +16,7 @@ type TextView struct {
 }
 
 func NewTextView(lines <-chan string) *TextView {
-	i := &TextView{
+	t := &TextView{
 		Block:       *ui.NewBlock(),
 		inputStream: lines,
 		render:      make(chan bool),
@@ -29,68 +27,83 @@ func NewTextView(lines <-chan string) *TextView {
 		padding:     Padding{4, 2},
 	}
 
-	i.BorderFg = ui.ThemeAttr("menu.border.fg")
-	i.BorderLabelFg = ui.ThemeAttr("menu.label.fg")
+	t.BorderFg = ui.ThemeAttr("menu.border.fg")
+	t.BorderLabelFg = ui.ThemeAttr("menu.label.fg")
+	t.Height = ui.TermHeight()
+	t.Width = ui.TermWidth()
 
-	i.Resize()
-
-	i.readInputLoop()
-	i.renderLoop()
-	return i
+	t.readInputLoop()
+	t.renderLoop()
+	return t
 }
 
-func (i *TextView) Resize() {
+func (t *TextView) Resize() {
 	ui.Clear()
-	i.Height = ui.TermHeight()
-	i.Width = ui.TermWidth()
+	t.Height = ui.TermHeight()
+	t.Width = ui.TermWidth()
+	t.render <- true
 }
 
-func (i *TextView) Buffer() ui.Buffer {
-
+func (t *TextView) Buffer() ui.Buffer {
 	var cell ui.Cell
-	buf := i.Block.Buffer()
+	buf := t.Block.Buffer()
 
-	x := i.Block.X + i.padding[0]
-	y := i.Block.Y + i.padding[1]
+	x := t.Block.X + t.padding[0]
+	y := t.Block.Y + t.padding[1]
 
-	maxWidth := i.Width - (i.padding[0] * 2)
-
-	for _, line := range i.TextOut {
-		// truncate lines longer than maxWidth
-		if len(line) > maxWidth {
-			line = fmt.Sprintf("%s...", line[:maxWidth-3])
-		}
+	for _, line := range t.TextOut {
 		for _, ch := range line {
-			cell = ui.Cell{Ch: ch, Fg: i.TextFgColor, Bg: i.TextBgColor}
+			cell = ui.Cell{Ch: ch, Fg: t.TextFgColor, Bg: t.TextBgColor}
 			buf.Set(x, y, cell)
 			x++
 		}
-		x = i.Block.X + i.padding[0]
+		x = t.Block.X + t.padding[0]
 		y++
 	}
 	return buf
 }
 
-func (i *TextView) renderLoop() {
+func (t *TextView) renderLoop() {
 	go func() {
-		for range i.render {
-			size := i.Height - (i.padding[1] * 2)
-			if size > len(i.Text) {
-				size = len(i.Text)
+		for range t.render {
+			maxWidth := t.Width - (t.padding[0] * 2)
+			height := t.Height - (t.padding[1] * 2)
+			t.TextOut = []string{}
+			for i := len(t.Text) - 1; i >= 0; i-- {
+				lines := splitLine(t.Text[i], maxWidth)
+				t.TextOut = append(lines, t.TextOut...)
+				if len(t.TextOut) > height {
+					t.TextOut = t.TextOut[:height]
+					break
+				}
 			}
-			i.TextOut = i.Text[len(i.Text)-size:]
-
-			ui.Render(i)
+			ui.Render(t)
 		}
 	}()
 }
 
-func (i *TextView) readInputLoop() {
+func (t *TextView) readInputLoop() {
 	go func() {
-		for line := range i.inputStream {
-			i.Text = append(i.Text, line)
-			i.render <- true
+		for line := range t.inputStream {
+			t.Text = append(t.Text, line)
+			t.render <- true
 		}
-		close(i.render)
+		close(t.render)
 	}()
+}
+
+func splitLine(line string, lineSize int) []string {
+	if line == "" {
+		return []string{}
+	}
+
+	var lines []string
+	for {
+		if len(line) <= lineSize {
+			lines = append(lines, line)
+			return lines
+		}
+		lines = append(lines, line[:lineSize])
+		line = line[lineSize:]
+	}
 }
