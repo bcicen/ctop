@@ -26,20 +26,33 @@ case $KERNEL in
     ;;
 esac
 
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/ctop.XXXXX")
+cd ${TMP}
+
 echo "fetching latest release info"
 resp=$(curl -s https://api.github.com/repos/bcicen/ctop/releases/latest)
 
-#TODO add checksum validation
-#echo "fetching release checksums"
-#checksum_url=$(extract_url sha256sums.txt "$resp")
-#wget -q $checksum_url
+echo "fetching release checksums"
+checksum_url=$(extract_url sha256sums.txt "$resp")
+wget -q $checksum_url -O sha256sums.txt
+
+# skip if latest already installed
+cur_ctop=$(which ctop 2> /dev/null)
+if [[ -n "$cur_ctop" ]]; then
+  cur_sum=$(sha256sum $cur_ctop | sed 's/ .*//')
+  (grep -q $cur_sum sha256sums.txt) && {
+    echo "already up-to-date"
+    exit 0
+  }
+fi
 
 echo "fetching latest ctop"
 url=$(extract_url $MATCH_BUILD "$resp")
-wget -q --show-progress $url -O ctop
+wget -q --show-progress $url
+(sha256sum -c --quiet --ignore-missing sha256sums.txt) || exit 1
 
 echo "installing to /usr/local/bin"
-chmod +x ctop
-sudo mv -v ctop /usr/local/bin/ctop
+chmod +x ctop-*
+sudo mv ctop-* /usr/local/bin/ctop
 
 echo "done"
