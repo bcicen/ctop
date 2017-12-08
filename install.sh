@@ -3,6 +3,8 @@
 
 KERNEL=$(uname -s)
 
+function output() { echo -e "\033[32mctop-install\033[0m $@"; }
+
 # extract github download url matching pattern
 function extract_url() {
   match=$1; shift
@@ -29,10 +31,10 @@ esac
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/ctop.XXXXX")
 cd ${TMP}
 
-echo "fetching latest release info"
+output "fetching latest release info"
 resp=$(curl -s https://api.github.com/repos/bcicen/ctop/releases/latest)
 
-echo "fetching release checksums"
+output "fetching release checksums"
 checksum_url=$(extract_url sha256sums.txt "$resp")
 wget -q $checksum_url -O sha256sums.txt
 
@@ -41,18 +43,18 @@ cur_ctop=$(which ctop 2> /dev/null)
 if [[ -n "$cur_ctop" ]]; then
   cur_sum=$(sha256sum $cur_ctop | sed 's/ .*//')
   (grep -q $cur_sum sha256sums.txt) && {
-    echo "already up-to-date"
+    output "already up-to-date"
     exit 0
   }
 fi
 
-echo "fetching latest ctop"
+output "fetching latest ctop"
 url=$(extract_url $MATCH_BUILD "$resp")
 wget -q --show-progress $url
 (sha256sum -c --quiet --ignore-missing sha256sums.txt) || exit 1
 
-echo "installing to /usr/local/bin"
+output "installing to /usr/local/bin"
 chmod +x ctop-*
 sudo mv ctop-* /usr/local/bin/ctop
 
-echo "done"
+output "done!"
