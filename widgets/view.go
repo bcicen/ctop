@@ -4,23 +4,29 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+type ToggleText interface {
+	// returns text for toggle on/off
+	Toggle(on bool) string
+}
+
 type TextView struct {
 	ui.Block
-	inputStream <-chan string
+	inputStream <-chan ToggleText
 	render      chan bool
-	Text        []string // all the text
-	TextOut     []string // text to be displayed
+	toggleState bool
+	Text        []ToggleText // all the text
+	TextOut     []string     // text to be displayed
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
 	padding     Padding
 }
 
-func NewTextView(lines <-chan string) *TextView {
+func NewTextView(lines <-chan ToggleText) *TextView {
 	t := &TextView{
 		Block:       *ui.NewBlock(),
 		inputStream: lines,
 		render:      make(chan bool),
-		Text:        []string{},
+		Text:        []ToggleText{},
 		TextOut:     []string{},
 		TextFgColor: ui.ThemeAttr("menu.text.fg"),
 		TextBgColor: ui.ThemeAttr("menu.text.bg"),
@@ -37,10 +43,19 @@ func NewTextView(lines <-chan string) *TextView {
 	return t
 }
 
+// Adjusts text inside this view according to the window size. No need to call ui.Render(...)
+// after calling this method, it is called automatically
 func (t *TextView) Resize() {
 	ui.Clear()
 	t.Height = ui.TermHeight()
 	t.Width = ui.TermWidth()
+	t.render <- true
+}
+
+// Toggles text inside this view. No need to call ui.Render(...) after calling this method,
+// it is called automatically
+func (t *TextView) Toggle() {
+	t.toggleState = !t.toggleState
 	t.render <- true
 }
 
@@ -70,7 +85,7 @@ func (t *TextView) renderLoop() {
 			height := t.Height - (t.padding[1] * 2)
 			t.TextOut = []string{}
 			for i := len(t.Text) - 1; i >= 0; i-- {
-				lines := splitLine(t.Text[i], maxWidth)
+				lines := splitLine(t.Text[i].Toggle(t.toggleState), maxWidth)
 				t.TextOut = append(lines, t.TextOut...)
 				if len(t.TextOut) > height {
 					t.TextOut = t.TextOut[:height]
