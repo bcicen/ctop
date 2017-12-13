@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
-	"time"
-	"fmt"
 )
 
 var helpDialog = []menu.Item{
