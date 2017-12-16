@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
@@ -9,16 +13,16 @@ import (
 )
 
 var helpDialog = []menu.Item{
-	menu.Item{"[a] - toggle display of all containers", ""},
-	menu.Item{"[f] - filter displayed containers", ""},
-	menu.Item{"[h] - open this help dialog", ""},
-	menu.Item{"[H] - toggle ctop header", ""},
-	menu.Item{"[s] - select container sort field", ""},
-	menu.Item{"[w] - toggle swarm mode", ""},
-	menu.Item{"[r] - reverse container sort order", ""},
-	menu.Item{"[q] - exit ctop", ""},
-	menu.Item{"[m] - show menu container", ""},
-	menu.Item{"[l] - show container log menu", ""},
+	{"[a] - toggle display of all containers", ""},
+	{"[f] - filter displayed containers", ""},
+	{"[h] - open this help dialog", ""},
+	{"[H] - toggle ctop header", ""},
+	{"[s] - select container sort field", ""},
+	{"[w] - toggle swarm mode", ""},
+	{"[r] - reverse container sort order", ""},
+	{"[m] - Manage container (start, stop and/or remove)", ""},
+	{"[l] - View container logs ([t] to toggle timestamp when open)", ""},
+	{"[q] - exit ctop", ""},
 }
 
 func HelpMenu() {
@@ -171,7 +175,9 @@ func LogMenu() {
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		m.Resize()
-		ui.Render(m)
+	})
+	ui.Handle("/sys/kbd/t", func(ui.Event) {
+		m.Toggle()
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		quit <- true
@@ -180,18 +186,30 @@ func LogMenu() {
 	ui.Loop()
 }
 
-func logReader(container *entity.Container) (logs chan string, quit chan bool) {
+type toggleLog struct {
+	timestamp time.Time
+	message   string
+}
+
+func (t *toggleLog) Toggle(on bool) string {
+	if on {
+		return fmt.Sprintf("%s %s", t.timestamp.Format("2006-01-02T15:04:05.999Z07:00"), t.message)
+	}
+	return t.message
+}
+
+func logReader(container *container.Container) (logs chan widgets.ToggleText, quit chan bool) {
 
 	logCollector := container.Logs()
 	stream := logCollector.Stream()
-	logs = make(chan string)
+	logs = make(chan widgets.ToggleText)
 	quit = make(chan bool)
 
 	go func() {
 		for {
 			select {
 			case log := <-stream:
-				logs <- log.Message
+				logs <- &toggleLog{timestamp: log.Timestamp, message: log.Message}
 			case <-quit:
 				logCollector.Stop()
 				close(logs)
