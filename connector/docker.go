@@ -1,10 +1,8 @@
 package connector
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -14,6 +12,7 @@ import (
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/entity"
+	"github.com/bcicen/ctop/widgets"
 	api "github.com/fsouza/go-dockerclient"
 
 	"github.com/bcicen/ctop/models"
@@ -76,6 +75,7 @@ func NewDocker() Connector {
 		doneDiscovery: make(chan bool),
 	}
 	cm.currentContext, cm.cancel = context.WithCancel(context.Background())
+	cm.checkLoadedSwarm()
 	if config.GetSwitchVal("swarmMode") {
 		go cm.SwarmListen()
 		go cm.LoopNode()
@@ -565,7 +565,7 @@ func modeService(mode swarm.ServiceMode) string {
 	}
 }
 
-func (cm *Docker) stopSwarm() {
+func (cm *Docker) StopSwarm() {
 	cm.doneNode <- true
 	cm.doneService <- true
 	cm.doneTask <- true
@@ -575,9 +575,11 @@ func (cm *Docker) stopSwarm() {
 	cm.refreshAllContainers()
 }
 
-func (cm *Docker) SwarmListen() {
-	//opt := make(map[string]interface{})
-	//opt["Scope"] = "swarm"
+func (cm *Docker) checkLoadedSwarm() {
+	if !config.GetSwitchVal("swarmMode") {
+		return
+	}
+
 	filter := fmt.Sprintf(`{"name":{"%s":true}}`, ctopSwarm)
 	args, err := filters.FromParam(filter)
 	if err != nil {
@@ -587,21 +589,17 @@ func (cm *Docker) SwarmListen() {
 		Filters: args,
 	}
 	services, err := cm.client.ServiceList(cm.currentContext, ctopService)
+	log.Debugf("Found services: %+v", services)
 	if err != nil {
 		log.Errorf("Can't find service: %s", err.Error())
 	}
-	if len(services) == 0 {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Deploy listeners to swarm cluster (yes/NO): ")
-		a, _ := reader.ReadString('\n')
-		a = strings.ToLower(a)
-		if a == "n" || a == "no" {
-			config.Toggle("swarmMode")
-			cm.stopSwarm()
-			return
-		}
+	if len(services) > 0 {
+		return
 	}
+	widgets.ShowNotifiation()
+}
 
+func (cm *Docker) SwarmListen() {
 	networks, err := cm.client.NetworkList(cm.currentContext, types.NetworkListOptions{})
 	if err != nil {
 		log.Errorf("Can't load list networks: %s", err.Error())

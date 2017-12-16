@@ -88,10 +88,6 @@ func main() {
 		InvertColorMap()
 	}
 
-	if *swarmFlag {
-		config.Toggle("swarmMode")
-	}
-
 	if *imageFlag != "" {
 		config.Update("image", *imageFlag)
 	}
@@ -112,12 +108,17 @@ func main() {
 		}
 	}
 
+	if *swarmFlag {
+		config.Toggle("swarmMode")
+	}
+
 	defer Shutdown()
 	// init grid, cursor, header
 	conn, err := connector.ByName(*connectorFlag)
 	if err != nil {
 		panic(fmt.Sprintf("Init grid, cursor, header: %s", err))
 	}
+
 	cursor = &GridCursor{cSource: conn}
 	cGrid = compact.NewCompactGrid()
 	if config.GetSwitchVal("enableDisplay") {

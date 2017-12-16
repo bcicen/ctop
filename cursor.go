@@ -3,10 +3,10 @@ package main
 import (
 	"math"
 
-	"github.com/bcicen/ctop/connector"
-	ui "github.com/gizak/termui"
-	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/connector"
+	"github.com/bcicen/ctop/entity"
+	ui "github.com/gizak/termui"
 )
 
 type GridCursor struct {
@@ -25,7 +25,7 @@ func (gc *GridCursor) LenServices() int   { return len(gc.filteredServices) }
 func (gc *GridCursor) LenTasks() int      { return len(gc.filteredTasks) }
 func (gc *GridCursor) LenContainers() int { return len(gc.filteredContainers) }
 
-func (gc *GridCursor) Selected() (entity.Entity) {
+func (gc *GridCursor) Selected() entity.Entity {
 	idx := gc.Idx()
 	if idx < gc.Len() {
 		return gc.entity(idx)
@@ -73,6 +73,7 @@ func (gc *GridCursor) refreshServices(cursorVisible bool) bool {
 }
 
 func (gc *GridCursor) RefreshSwamCluster() (lenChanged bool) {
+
 	oldLen := gc.LenServices() + gc.LenTasks()
 	var cursorVisible bool
 	cursorVisible = gc.refreshNodes(cursorVisible)

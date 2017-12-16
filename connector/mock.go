@@ -8,17 +8,15 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/container"
+	"github.com/bcicen/ctop/entity"
 	"github.com/jgautheron/codename-generator"
 	"github.com/nu7hatch/gouuid"
-	"github.com/bcicen/ctop/entity"
 )
 
 type Mock struct {
 	containers entity.Containers
-	services entity.Services
-	nodes entity.Nodes
+	services   entity.Services
+	nodes      entity.Nodes
 }
 
 func NewMock() *Mock {
@@ -76,17 +74,17 @@ func (cs *Mock) GetContainer(id string) (*entity.Container, bool) {
 }
 
 // Return array of all containers, sorted by field
-func (cs *Mock) AllNodes() (entity.Nodes) {
+func (cs *Mock) AllNodes() entity.Nodes {
 	//cs.nodes.Sort()
 	//cs.nodes.Filter()
 	return cs.nodes
 }
-func (cs *Mock) AllServices() (entity.Services) {
+func (cs *Mock) AllServices() entity.Services {
 	//cs.services.Sort()
 	//cs.services.Filter()
 	return cs.services
 }
-func (cs *Mock) AllContainers() (entity.Containers) {
+func (cs *Mock) AllContainers() entity.Containers {
 	cs.containers.Sort()
 	cs.containers.Filter()
 	return cs.containers

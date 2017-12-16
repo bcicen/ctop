@@ -151,37 +151,6 @@ func ContainerMenu() {
 	ui.Loop()
 }
 
-func StartSwarm(start func(), cancel func()) {
-	if !config.GetSwitchVal("swarMode") {
-		return
-	}
-	ui.DefaultEvtStream.ResetHandlers()
-	defer ui.DefaultEvtStream.ResetHandlers()
-
-	m := menu.NewMenu()
-	m.Selectable = true
-	ui.StopLoop()
-
-	m.BorderLabel = "Start swarm listeners"
-	var items []menu.Item
-	items = append(items, menu.Item{Val: "start", Label: "start"})
-	items = append(items, menu.Item{Val: "cancel", Label: "cancel"})
-
-	m.AddItems(items...)
-	ui.Render(m)
-
-	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		switch m.SelectedItem().Val {
-		case "start":
-			start()
-		case "cancel":
-			cancel()
-		}
-	})
-
-	ui.Loop()
-}
-
 func LogMenu() {
 	if config.GetSwitchVal("swarmMode") {
 		return

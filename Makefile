@@ -7,8 +7,8 @@ LD_FLAGS="-w -X main.version=$(VERSION) -X main.build=$(BUILD) -extldflags=$(EXT
 clean:
 	rm -rf _build/ release/
 
+	#dep ensure
 build:
-	dep ensure -v
 	CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o ctop
 
 build-dev:
