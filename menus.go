@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
@@ -198,7 +197,7 @@ func (t *toggleLog) Toggle(on bool) string {
 	return t.message
 }
 
-func logReader(container *container.Container) (logs chan widgets.ToggleText, quit chan bool) {
+func logReader(container *entity.Container) (logs chan widgets.ToggleText, quit chan bool) {
 
 	logCollector := container.Logs()
 	stream := logCollector.Stream()
