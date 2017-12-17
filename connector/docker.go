@@ -3,6 +3,7 @@ package connector
 import (
 	"context"
 	"fmt"
+	"net"
 	"runtime"
 	"strings"
 	"sync"
@@ -77,14 +78,16 @@ func NewDocker() Connector {
 	cm.currentContext, cm.cancel = context.WithCancel(context.Background())
 	cm.checkLoadedSwarm()
 	if config.GetSwitchVal("swarmMode") {
-		go cm.SwarmListen()
+		cm.SwarmListen()
 		go cm.LoopNode()
 		go cm.LoopService()
 		go cm.LoopTask()
 		go cm.LoopDiscoveryTasks()
 		cm.refreshAllNodes()
 		cm.refreshAllServices()
-		go Serve(cm)
+		if len(config.GetVal("host")) > 0 {
+			go Serve(cm)
+		}
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
@@ -631,8 +634,12 @@ func (cm *Docker) SwarmListen() {
 		Target:  cm.networkSwarmId,
 		Aliases: []string{"ctop"},
 	}
+	command := []string{"/ctop", "-D"}
+	if len(config.GetVal("host")) > 0 {
+		command = []string{"/ctop", "-D", "-host", config.GetVal("host")}
+	}
 	cont := swarm.ContainerSpec{
-		Image: config.Get("image").Val,
+		Image: config.GetVal("image"),
 		Mounts: []mount.Mount{
 			{
 				Type:     mount.TypeBind,
@@ -642,7 +649,7 @@ func (cm *Docker) SwarmListen() {
 			},
 		},
 		Env:     []string{"CTOP_DEBUG=1", "CTOP_DEBUG_TCP=1"},
-		Command: []string{"/ctop", "-D", "-host", config.GetVal("host")},
+		Command: command,
 	}
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{Name: ctopSwarm, Labels: make(map[string]string)},
@@ -680,6 +687,7 @@ func (cm *Docker) SwarmListen() {
 	for _, c := range cm.containers {
 		if c.GetMeta("name") == "ctop" {
 			containerID = c.GetId()
+			break
 		}
 	}
 	log.Debugf(fmt.Sprintf("Container %s", containerID))
@@ -690,11 +698,17 @@ func (cm *Docker) SwarmListen() {
 	if err != nil {
 		log.Error(fmt.Sprintf("Can't connect to \n %s \n, with err:\n %s", cm.networkSwarmId, err))
 	}
+	go func() {
+		for {
+			cm.collectMetrics()
+			time.Sleep(time.Second)
+		}
+	}()
 }
 
 func (cm *Docker) DownSwarmMode() {
 	for _, s := range cm.services {
-		if s.GetMeta("name") == "CTOP_swarm" {
+		if s.GetMeta("name") == ctopSwarm {
 			log.Infof("Down services.")
 			cm.client.ServiceRemove(cm.currentContext, s.GetId())
 			cm.client.NetworkRemove(cm.currentContext, cm.networkSwarmId)
@@ -709,8 +723,18 @@ func (cm *Docker) SetMetrics(metrics models.Metrics) {
 	if config.GetSwitchVal("swarmMode") {
 		task := cm.MustGetTask(metrics.Id)
 		task.SetMetrics(metrics)
-	} else {
-		cont := cm.MustGetContainer(metrics.Id)
-		cont.SetMetrics(metrics)
+		return
+	}
+	cont := cm.MustGetContainer(metrics.Id)
+	cont.SetMetrics(metrics)
+}
+
+func (cm *Docker) collectMetrics() {
+	ips, err := net.LookupIP("tasks." + ctopSwarm)
+	if err != nil {
+		log.Errorf("Errors: %s", err.Error())
+	}
+	for _, ip := range ips {
+		log.Debugf("ip: %s", ip)
 	}
 }

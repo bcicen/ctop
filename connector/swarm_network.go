@@ -8,6 +8,7 @@ import (
 
 	"io/ioutil"
 
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
 )
 
@@ -34,7 +35,12 @@ func Serve(current Connector) {
 
 func Metrics(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
+	case "GET":
+
 	case "POST":
+		if len(config.GetVal("host")) == 0 {
+			return
+		}
 		defer r.Body.Close()
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -52,6 +58,10 @@ func Metrics(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		}
 	default:
+		if len(config.GetVal("host")) == 0 {
+			log.Infof("Sorry, only GET methods are supported.")
+			return
+		}
 		log.Infof("Sorry, only POST methods are supported.")
 	}
 }

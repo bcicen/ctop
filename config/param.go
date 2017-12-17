@@ -19,7 +19,7 @@ var params = []*Param{
 	},
 	&Param{
 		Key:   "host",
-		Val:   "localhost",
+		Val:   "",
 		Label: "Host where run manager node and ctop",
 	},
 }
