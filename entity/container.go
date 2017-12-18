@@ -2,9 +2,9 @@ package entity
 
 import (
 	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/models"
-	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/connector/manager"
+	"github.com/bcicen/ctop/cwidgets"
+	"github.com/bcicen/ctop/models"
 )
 
 // Metrics and metadata representing a container
@@ -78,8 +78,16 @@ func (c *Container) GetMeta(v string) string {
 	return c.Meta.GetMeta(v)
 }
 
+func (c *Container) Collector() chan models.Metrics {
+	return c.collector.Stream()
+}
+
 func (c *Container) SetMetrics(metrics models.Metrics) {
 	c.Meta.updater.SetMetrics(metrics)
+}
+
+func (c *Container) LastMetrics() models.Metrics {
+	return c.collector.LastMetrics()
 }
 
 func (c *Container) Start() {

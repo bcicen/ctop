@@ -81,3 +81,7 @@ func (c *Mock) run() {
 
 	c.running = false
 }
+
+func (c *Mock) LastMetrics() models.Metrics {
+	return c.Metrics
+}

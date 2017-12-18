@@ -126,3 +126,7 @@ func (c *Runc) ReadIO(stats *cgroups.Stats) {
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
 }
+
+func (c *Runc) LastMetrics() models.Metrics {
+	return c.Metrics
+}

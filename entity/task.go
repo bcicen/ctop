@@ -1,9 +1,9 @@
 package entity
 
 import (
-	"github.com/bcicen/ctop/models"
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/cwidgets"
+	"github.com/bcicen/ctop/models"
 )
 
 type Task struct {
@@ -48,7 +48,7 @@ func (t *Task) GetId() string {
 }
 
 func (t *Task) GetMetrics() models.Metrics {
-	return t.Metrics
+	return t.collector.LastMetrics()
 }
 
 func (t *Task) GetMeta(v string) string {

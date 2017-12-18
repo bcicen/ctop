@@ -73,6 +73,10 @@ func (cs *Mock) GetContainer(id string) (*entity.Container, bool) {
 	return nil, false
 }
 
+func (cs *Mock) GetTask(id string) (*eneity.Task, bool) {
+	return nil, false
+}
+
 // Return array of all containers, sorted by field
 func (cs *Mock) AllNodes() entity.Nodes {
 	//cs.nodes.Sort()

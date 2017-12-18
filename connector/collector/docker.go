@@ -1,32 +1,34 @@
 package collector
 
 import (
-	"github.com/bcicen/ctop/models"
-	api "github.com/fsouza/go-dockerclient"
-	"github.com/docker/docker/client"
-	"context"
-	"github.com/bcicen/ctop/config"
-	"github.com/docker/docker/api/types"
-	"io/ioutil"
-	"encoding/json"
-	"time"
 	"bytes"
+	"context"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/models"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	api "github.com/fsouza/go-dockerclient"
 )
 
 // Docker collector
 type Docker struct {
 	models.Metrics
-	id         string
-	client     *client.Client
-	running    bool
-	stream     chan models.Metrics
-	done       chan bool
-	lastCpu    float64
-	lastSysCpu float64
-	httpClient http.Client
-	url        string
+	id          string
+	client      *client.Client
+	running     bool
+	stream      chan models.Metrics
+	done        chan bool
+	lastCpu     float64
+	lastSysCpu  float64
+	httpClient  http.Client
+	url         string
+	lastMetrics models.Metrics
 }
 
 func NewDocker(client *client.Client, id string) *Docker {
@@ -96,7 +98,7 @@ func (c *Docker) Start(id string) {
 			}
 			c.done <- false
 			c.stream <- c.Metrics
-			go c.sendMetrics(&c.Metrics)
+			go c.sendMetrics(c.Metrics)
 		}
 		log.Infof("collector stopped for container: %s", c.id)
 	}()
@@ -164,8 +166,12 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 	c.IOBytesRead, c.IOBytesWrite = read, write
 }
 
-func (c *Docker) sendMetrics(metric *models.Metrics) {
+func (c *Docker) sendMetrics(metric models.Metrics) {
+	c.lastMetrics = metric
 	if config.GetSwitchVal("enableDisplay") {
+		return
+	}
+	if len(config.GetVal("host")) == 0 {
 		return
 	}
 	b := new(bytes.Buffer)
@@ -186,4 +192,8 @@ func (c *Docker) sendMetrics(metric *models.Metrics) {
 		log.Debugf("Response: %s", res.Body)
 	}
 	defer res.Body.Close()
+}
+
+func (c *Docker) LastMetrics() models.Metrics {
+	return c.lastMetrics
 }

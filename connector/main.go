@@ -28,6 +28,7 @@ type Connector interface {
 	AllTasks() entity.Tasks
 	GetContainer(string) (*entity.Container, bool)
 	GetService(string) (*entity.Service, bool)
+	GetTask(string) (*entity.Task, bool)
 	DownSwarmMode()
 	SetMetrics(metrics models.Metrics)
 }

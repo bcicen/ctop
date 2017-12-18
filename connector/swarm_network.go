@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -36,11 +37,38 @@ func Serve(current Connector) {
 func Metrics(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-
-	case "POST":
-		if len(config.GetVal("host")) == 0 {
+		keys, ok := r.URL.Query()["id"]
+		if !ok || len(keys) < 1 {
+			log.Errorf("Url Param 'id' is missing")
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		log.Debugf("Get metrics for task id %s", keys[0])
+		if keys[0] == "" {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		docker, ok := conn.(*Docker)
+		metrics, ok := docker.GetTaskMetrics(keys[0])
+		if !ok {
+			log.Errorf("Not found task with id %s", keys[0])
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(metrics)
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		status, err := w.Write(b.Bytes())
+		if err != nil {
+			log.Error("Cant write response: %d, err: %s", status, err.Error())
+			return
+		}
+		log.Debugf("Successful response: %d", status)
+
+	case "POST":
 		defer r.Body.Close()
 		bytes, err := ioutil.ReadAll(r.Body)
 		if err != nil {

@@ -2,8 +2,11 @@ package connector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"runtime"
 	"strings"
 	"sync"
@@ -85,13 +88,11 @@ func NewDocker() Connector {
 		go cm.LoopDiscoveryTasks()
 		cm.refreshAllNodes()
 		cm.refreshAllServices()
-		if len(config.GetVal("host")) > 0 {
-			go Serve(cm)
-		}
 	} else {
 		go cm.LoopContainer()
 		cm.refreshAllContainers()
 	}
+	go Serve(cm)
 	go cm.watchEvents()
 	return cm
 }
@@ -471,6 +472,22 @@ func (cm *Docker) GetTask(id string) (*entity.Task, bool) {
 	return t, ok
 }
 
+func (cm *Docker) GetTaskMetrics(id string) (m models.Metrics, ok bool) {
+	if config.GetSwitchVal("enableDisplay") {
+		return
+	}
+	for _, container := range cm.containers {
+		nameWords := strings.Split(container.GetMeta("name"), ".")
+		size := len(nameWords)
+		if size == 3 && id == nameWords[size-1] {
+			log.Debugf("LastMetrics %+v", container.LastMetrics())
+			m, ok = container.LastMetrics(), true
+			return
+		}
+	}
+	return
+}
+
 // Get a single node, by ID
 func (cm *Docker) GetNode(id string) (*entity.Node, bool) {
 	cm.lock.Lock()
@@ -701,7 +718,7 @@ func (cm *Docker) SwarmListen() {
 	go func() {
 		for {
 			cm.collectMetrics()
-			time.Sleep(time.Second)
+			time.Sleep(time.Millisecond)
 		}
 	}()
 }
@@ -734,7 +751,39 @@ func (cm *Docker) collectMetrics() {
 	if err != nil {
 		log.Errorf("Errors: %s", err.Error())
 	}
-	for _, ip := range ips {
-		log.Debugf("ip: %s", ip)
+	for id, _ := range cm.tasks {
+		if len(id) == 0 {
+			continue
+		}
+		for _, ip := range ips {
+			go func() {
+				if id == "" {
+					return
+				}
+				log.Debugf("ip: %s, task: %s", ip, id)
+				resp, err := http.Get(fmt.Sprintf("http://%s:9001/metrics?id=%s", ip, id))
+				if err != nil {
+					log.Debugf("bad request: %s", err.Error())
+					return
+				}
+				if resp.StatusCode != http.StatusOK {
+					log.Debugf("Bad status: %d", resp.StatusCode)
+					return
+				}
+				defer resp.Body.Close()
+				bytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					log.Debugf("Cannon read bytes from body %s", err.Error())
+				}
+				var metrics models.Metrics
+				err = json.Unmarshal(bytes, &metrics)
+				if err != nil {
+					log.Debugf("Can't decode Metrics %s", err.Error())
+					return
+				}
+				conn.SetMetrics(metrics)
+				log.Debugf("Metrics: %+v", metrics)
+			}()
+		}
 	}
 }

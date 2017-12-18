@@ -205,6 +205,10 @@ func (cm *Runc) GetContainer(id string) (*entity.Container, bool) {
 	return c, ok
 }
 
+func (cm *Runc) GetTask(id string) (*entity.Task, bool) {
+	return nil, false
+}
+
 func (cm *Runc) GetService(id string) (s *entity.Service, ok bool) {
 	return s, ok
 }
