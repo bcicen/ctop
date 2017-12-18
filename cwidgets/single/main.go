@@ -91,9 +91,6 @@ func (e *Single) Align() {
 	log.Debugf("align: width=%v left-col=%v right-col=%v", e.Width, colWidth[0], colWidth[1])
 }
 
-func calcWidth(w int) {
-}
-
 func (e *Single) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
 	if e.Width < (colWidth[0] + colWidth[1]) {

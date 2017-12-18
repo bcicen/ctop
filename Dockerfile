@@ -1,10 +1,10 @@
-FROM quay.io/vektorcloud/go:1.8
+FROM quay.io/vektorcloud/go:1.9
 
 RUN apk add --no-cache make
 
-COPY glide.* /go/src/github.com/bcicen/ctop/
+COPY Gopkg.* /go/src/github.com/bcicen/ctop/
 WORKDIR /go/src/github.com/bcicen/ctop/
-RUN glide install
+RUN dep ensure -vendor-only
 
 COPY . /go/src/github.com/bcicen/ctop
 RUN make build && \
