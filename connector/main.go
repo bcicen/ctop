@@ -3,8 +3,9 @@ package connector
 import (
 	"fmt"
 
-	"github.com/bcicen/ctop/container"
+	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/models"
 )
 
 var log = logging.Init()
@@ -21,6 +22,13 @@ func ByName(s string) (Connector, error) {
 }
 
 type Connector interface {
-	All() container.Containers
-	Get(string) (*container.Container, bool)
+	AllNodes() entity.Nodes
+	AllServices() entity.Services
+	AllContainers() entity.Containers
+	AllTasks() entity.Tasks
+	GetContainer(string) (*entity.Container, bool)
+	GetService(string) (*entity.Service, bool)
+	GetTask(string) (*entity.Task, bool)
+	DownSwarmMode()
+	SetMetrics(metrics models.Metrics)
 }

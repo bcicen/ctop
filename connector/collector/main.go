@@ -16,9 +16,10 @@ type LogCollector interface {
 
 type Collector interface {
 	Stream() chan models.Metrics
+	LastMetrics() models.Metrics
 	Logs() LogCollector
 	Running() bool
-	Start()
+	Start(id string)
 	Stop()
 }
 

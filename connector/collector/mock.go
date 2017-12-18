@@ -31,7 +31,7 @@ func (c *Mock) Running() bool {
 	return c.running
 }
 
-func (c *Mock) Start() {
+func (c *Mock) Start(id string) {
 	c.done = false
 	c.stream = make(chan models.Metrics)
 	go c.run()
@@ -80,4 +80,8 @@ func (c *Mock) run() {
 	}
 
 	c.running = false
+}
+
+func (c *Mock) LastMetrics() models.Metrics {
+	return c.Metrics
 }

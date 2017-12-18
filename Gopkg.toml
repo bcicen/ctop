@@ -26,6 +26,10 @@
   revision = "318513eb1ab27495afbc67f671ba1080513d8aa0"
 
 [[constraint]]
+  name = "github.com/docker/docker"
+  version = "v17.03.2-ce"
+
+[[constraint]]
   branch = "barchart-numfmt"
   name = "github.com/gizak/termui"
   source = "https://github.com/bcicen/termui"

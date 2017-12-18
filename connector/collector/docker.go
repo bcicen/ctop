@@ -1,54 +1,104 @@
 package collector
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	api "github.com/fsouza/go-dockerclient"
 )
 
 // Docker collector
 type Docker struct {
 	models.Metrics
-	id         string
-	client     *api.Client
-	running    bool
-	stream     chan models.Metrics
-	done       chan bool
-	lastCpu    float64
-	lastSysCpu float64
+	id          string
+	client      *client.Client
+	running     bool
+	stream      chan models.Metrics
+	done        chan bool
+	lastCpu     float64
+	lastSysCpu  float64
+	httpClient  http.Client
+	url         string
+	lastMetrics models.Metrics
 }
 
-func NewDocker(client *api.Client, id string) *Docker {
+func NewDocker(client *client.Client, id string) *Docker {
 	return &Docker{
-		Metrics: models.Metrics{},
-		id:      id,
-		client:  client,
+		Metrics:    models.Metrics{},
+		id:         id,
+		client:     client,
+		httpClient: http.Client{},
+		url:        "http://" + config.GetVal("host") + ":9001/metrics",
 	}
 }
 
-func (c *Docker) Start() {
+type containerStats struct {
+	stats   types.ContainerStats
+	cont    types.ContainerJSON
+	err     error
+	errCont error
+}
+
+func (c *Docker) Start(id string) {
+	if config.GetSwitchVal("swarmMode") {
+		return
+	}
 	c.done = make(chan bool)
 	c.stream = make(chan models.Metrics)
-	stats := make(chan *api.Stats)
-
+	stats := make(chan containerStats)
 	go func() {
-		opts := api.StatsOptions{
-			ID:     c.id,
-			Stats:  stats,
-			Stream: true,
-			Done:   c.done,
+		ctx, closeCtx := context.WithCancel(context.Background())
+		for {
+			resp, err := c.client.ContainerStats(ctx, id, false)
+			contJson, errCont := c.client.ContainerInspect(ctx, id)
+			stats <- containerStats{resp, contJson, err, errCont}
+			time.Sleep(time.Microsecond)
+			if <-c.done {
+				break
+			}
 		}
-		c.client.Stats(opts)
-		c.running = false
+		defer close(stats)
+		defer closeCtx()
+		defer func() { c.running = false }()
 	}()
 
 	go func() {
 		defer close(c.stream)
 		for s := range stats {
-			c.ReadCPU(s)
-			c.ReadMem(s)
-			c.ReadNet(s)
-			c.ReadIO(s)
+			if s.err != nil {
+				continue
+				log.Errorf("%s", s.err)
+			}
+			b, _ := ioutil.ReadAll(s.stats.Body)
+			s.stats.Body.Close()
+			var apiStats api.Stats
+			if err := json.Unmarshal(b, &apiStats); err != nil {
+				log.Errorf("Unmarshal Stats error. err: %s", err)
+			}
+			log.Debugf("Api stats. %s", apiStats)
+			c.ReadCPU(&apiStats)
+			c.ReadMem(&apiStats)
+			c.ReadNet(&apiStats)
+			c.ReadIO(&apiStats)
+
+			nameWords := strings.Split(s.cont.ContainerJSONBase.Name, ".")
+			if len(nameWords) == 3 {
+				c.Metrics.Id = nameWords[2]
+			} else {
+				c.Metrics.Id = id
+			}
+			c.done <- false
 			c.stream <- c.Metrics
+			go c.sendMetrics(c.Metrics)
 		}
 		log.Infof("collector stopped for container: %s", c.id)
 	}()
@@ -114,4 +164,36 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 		}
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
+}
+
+func (c *Docker) sendMetrics(metric models.Metrics) {
+	c.lastMetrics = metric
+	if config.GetSwitchVal("enableDisplay") {
+		return
+	}
+	if len(config.GetVal("host")) == 0 {
+		return
+	}
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(metric)
+	req, err := http.NewRequest("POST", c.url, b)
+	if err != nil {
+		log.Errorf("%s", err)
+	}
+	req.Close = true
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Errorf("%s", err)
+		return
+	}
+	if res != nil {
+		log.Debugf("Response: %s", res.Body)
+	}
+	defer res.Body.Close()
+}
+
+func (c *Docker) LastMetrics() models.Metrics {
+	return c.lastMetrics
 }

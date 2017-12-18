@@ -8,11 +8,11 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/container"
+	"github.com/bcicen/ctop/entity"
+	"github.com/bcicen/ctop/models"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 )
@@ -50,7 +50,7 @@ func NewRuncOpts() (RuncOpts, error) {
 type Runc struct {
 	opts          RuncOpts
 	factory       libcontainer.Factory
-	containers    map[string]*container.Container
+	containers    map[string]*entity.Container
 	libContainers map[string]libcontainer.Container
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
@@ -66,18 +66,18 @@ func NewRunc() Connector {
 	cm := &Runc{
 		opts:          opts,
 		factory:       factory,
-		containers:    make(map[string]*container.Container),
+		containers:    make(map[string]*entity.Container),
 		libContainers: make(map[string]libcontainer.Container),
 		needsRefresh:  make(chan string, 60),
 		lock:          sync.RWMutex{},
 	}
 
-	go func() {
-		for {
-			cm.refreshAll()
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	//go func() {
+	//	for {
+	//		cm.refreshAllContainers()
+	//		time.Sleep(5 * time.Second)
+	//	}
+	//}()
 	go cm.Loop()
 
 	return cm
@@ -137,7 +137,7 @@ func (cm *Runc) refresh(id string) {
 }
 
 // Read runc root, creating any new containers
-func (cm *Runc) refreshAll() {
+func (cm *Runc) refreshAllContainers() {
 	list, err := ioutil.ReadDir(cm.opts.root)
 	runcFailOnErr(err)
 
@@ -154,7 +154,7 @@ func (cm *Runc) refreshAll() {
 	}
 
 	// queue all existing containers for refresh
-	for id, _ := range cm.containers {
+	for id := range cm.containers {
 		cm.needsRefresh <- id
 	}
 	log.Debugf("queued %d containers for refresh", len(cm.containers))
@@ -167,8 +167,8 @@ func (cm *Runc) Loop() {
 }
 
 // Get a single ctop container in the map matching libc container, creating one anew if not existing
-func (cm *Runc) MustGet(id string) *container.Container {
-	c, ok := cm.Get(id)
+func (cm *Runc) MustGet(id string) *entity.Container {
+	c, ok := cm.GetContainer(id)
 	if !ok {
 		libc := cm.GetLibc(id)
 
@@ -177,7 +177,7 @@ func (cm *Runc) MustGet(id string) *container.Container {
 
 		// create container
 		manager := manager.NewRunc()
-		c = container.New(id, collector, manager)
+		c = entity.NewContainer(id, collector, manager)
 
 		name := libc.ID()
 		// set initial metadata
@@ -198,11 +198,19 @@ func (cm *Runc) MustGet(id string) *container.Container {
 }
 
 // Get a single container, by ID
-func (cm *Runc) Get(id string) (*container.Container, bool) {
+func (cm *Runc) GetContainer(id string) (*entity.Container, bool) {
 	cm.lock.Lock()
 	defer cm.lock.Unlock()
 	c, ok := cm.containers[id]
 	return c, ok
+}
+
+func (cm *Runc) GetTask(id string) (*entity.Task, bool) {
+	return nil, false
+}
+
+func (cm *Runc) GetService(id string) (s *entity.Service, ok bool) {
+	return s, ok
 }
 
 // Remove containers by ID
@@ -214,13 +222,24 @@ func (cm *Runc) delByID(id string) {
 	log.Infof("removed dead container: %s", id)
 }
 
-// Return array of all containers, sorted by field
-func (cm *Runc) All() (containers container.Containers) {
+func (cm *Runc) AllNodes() (nodes entity.Nodes) {
+	return nodes
+}
+
+func (cm *Runc) AllTasks() (tasks entity.Tasks) {
+	return tasks
+}
+
+func (cm *Runc) AllServices() (services entity.Services) {
+	return services
+}
+
+func (cm *Runc) AllContainers() (containers entity.Containers) {
 	cm.lock.Lock()
-	for _, c := range cm.containers {
-		containers = append(containers, c)
+	for _, container := range cm.containers {
+		containers = append(containers, container)
 	}
-	containers.Sort()
+	//containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers
@@ -241,5 +260,15 @@ func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
 func runcFailOnErr(err error) {
 	if err != nil {
 		panic(fmt.Errorf("fatal runc error: %s", err))
+	}
+}
+
+func (cm *Runc) DownSwarmMode() {
+	log.Warningf("Call unsupported method, DownSwarmMode()")
+}
+
+func (cm *Runc) SetMetrics(metrics models.Metrics) {
+	if cont, ok := cm.GetContainer(metrics.Id); ok {
+		cont.SetMetrics(metrics)
 	}
 }

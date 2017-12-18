@@ -8,6 +8,8 @@ const (
 	mark       = string('\u25C9')
 	healthMark = string('\u207A')
 	vBar       = string('\u25AE') + string('\u25AE')
+	service     = string('\u0053')
+	statusWidth = 3
 )
 
 // Status indicator
@@ -51,6 +53,8 @@ func (s *Status) Set(val string) {
 		color = ui.ThemeAttr("status.danger")
 	case "paused":
 		text = vBar
+	case "service":
+		text =  service
 	}
 
 	var cells []ui.Cell

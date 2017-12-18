@@ -2,54 +2,64 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/Azure/go-ansiterm"
   packages = [".","winterm"]
-  revision = "fa152c58bc15761d0200cb75fe958b89a9d4888e"
+  revision = "d6e3b3328b783f23731bc4d058875b0371ff8109"
 
 [[projects]]
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
-  revision = "fff283ad5116362ca252298cfc9b95828956d85d"
-  version = "v0.3.8"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/Nvveen/Gotty"
-  packages = ["."]
-  revision = "cd527374f1e5bff4938207604a14f2e38a9cf512"
+  revision = "78439966b38d69bf38227fbf57ac8a6fee70f69a"
+  version = "v0.4.5"
 
 [[projects]]
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "26709e2714106fb8ad40b773b711ebce25b78914"
+  revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
+  version = "v1.0.3"
 
 [[projects]]
+  branch = "master"
   name = "github.com/c9s/goprocinfo"
   packages = ["linux"]
-  revision = "b34328d6e0cd139894ea7347d2624ccf31fa3c58"
+  revision = "0010a05ce49fde7f50669bc7ecda7d41dd6ab824"
 
 [[projects]]
   name = "github.com/coreos/go-systemd"
   packages = ["dbus","util"]
-  revision = "b4a58d95188dd092ae20072bac14cece0e67c388"
-  version = "v4"
+  revision = "d2196463941895ee908e13531a23a39feb9e1243"
+  version = "v15"
+
+[[projects]]
+  name = "github.com/coreos/pkg"
+  packages = ["dlopen"]
+  revision = "3ac0863d7acf3bc44daf49afef8919af12f704ef"
+  version = "v3"
+
+[[projects]]
+  name = "github.com/docker/distribution"
+  packages = ["digest","reference"]
+  revision = "48294d928ced5dd9b378f7fd7c6f5da3ff3f2c89"
+  version = "v2.6.2"
 
 [[projects]]
   name = "github.com/docker/docker"
-  packages = ["api/types","api/types/blkiodev","api/types/container","api/types/filters","api/types/mount","api/types/network","api/types/registry","api/types/strslice","api/types/swarm","api/types/versions","opts","pkg/archive","pkg/fileutils","pkg/homedir","pkg/idtools","pkg/ioutils","pkg/jsonlog","pkg/jsonmessage","pkg/longpath","pkg/mount","pkg/pools","pkg/promise","pkg/stdcopy","pkg/symlink","pkg/system","pkg/term","pkg/term/windows"]
-  revision = "90d35abf7b3535c1c319c872900fbd76374e521c"
-  version = "v17.05.0-ce-rc3"
+  packages = ["api/types","api/types/blkiodev","api/types/container","api/types/events","api/types/filters","api/types/mount","api/types/network","api/types/reference","api/types/registry","api/types/strslice","api/types/swarm","api/types/time","api/types/versions","api/types/volume","client","opts","pkg/archive","pkg/fileutils","pkg/homedir","pkg/idtools","pkg/ioutils","pkg/jsonlog","pkg/jsonmessage","pkg/longpath","pkg/mount","pkg/pools","pkg/promise","pkg/stdcopy","pkg/symlink","pkg/system","pkg/term","pkg/term/windows","pkg/tlsconfig"]
+  revision = "eef6495eddab52828327aade186443681ed71a4e"
+  version = "v17.03.2-ce-rc1"
 
 [[projects]]
   name = "github.com/docker/go-connections"
-  packages = ["nat"]
-  revision = "a2afab9802043837035592f1c24827fb70766de9"
+  packages = ["nat","sockets","tlsconfig"]
+  revision = "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
+  version = "v0.3.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/docker/go-units"
   packages = ["."]
   revision = "0dadbb0345b35ec7ef35e228dabb8de89a65bf52"
+  version = "v0.3.2"
 
 [[projects]]
   name = "github.com/fsouza/go-dockerclient"
@@ -66,20 +76,20 @@
 [[projects]]
   name = "github.com/godbus/dbus"
   packages = ["."]
-  revision = "c7fdd8b5cd55e87b4e1f4e372cdb1db61dd6c66f"
-  version = "v3"
+  revision = "a389bdde4dd695d414e47b755e95e72b7826432c"
+  version = "v4.1.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
   packages = ["proto"]
-  revision = "0a4f71a498b7c4812f64969510bcb4eca251e33a"
+  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/go-cleanhttp"
   packages = ["."]
-  revision = "3573b8b52aa7b37b9358d966a898feb387f62437"
+  revision = "06c9ea3a335b7443026f8124b22619524420291b"
 
 [[projects]]
   branch = "master"
@@ -90,12 +100,14 @@
 [[projects]]
   name = "github.com/maruel/panicparse"
   packages = ["stack"]
-  revision = "25bcac0d793cf4109483505a0d66e066a3a90a80"
+  revision = "766956aceb8ff49664065ae50bef0ae8a0a83ec4"
+  version = "v1.0.2"
 
 [[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
-  revision = "14207d285c6c197daabb5c9793d63e7af9ab2d50"
+  revision = "9e777a8366cce605130a531d2cd6363d07ad7317"
+  version = "v0.0.2"
 
 [[projects]]
   branch = "master"
@@ -104,9 +116,10 @@
   revision = "ad45545899c7b13c020ea92b2072220eefad42b8"
 
 [[projects]]
+  branch = "master"
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "91bae1bb5fa9ee504905ecbe7043fa30e92feaa3"
+  revision = "aa4a75b1c20a2b03751b1a9f7e41d58bd6f71c43"
 
 [[projects]]
   branch = "master"
@@ -127,33 +140,56 @@
   version = "v0.1.1"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
+
+[[projects]]
   name = "github.com/seccomp/libseccomp-golang"
   packages = ["."]
-  revision = "1b506fc7c24eec5a3693cdcbed40d9c226cfc6a1"
+  revision = "e3496e3a417d1dc9ecdceca5af2513271fed37a0"
+  version = "v0.9.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/syndtr/gocapability"
   packages = ["capability"]
-  revision = "2c00daeb6c3b45114c80ac44119e7b8801fdd852"
+  revision = "db04d3cc01c8b54962a58ec7e491717d06cfcc16"
 
 [[projects]]
+  branch = "master"
   name = "github.com/vishvananda/netlink"
   packages = [".","nl"]
-  revision = "1e2e08e8a2dcdacaae3f14ac44c5cfa31361f270"
+  revision = "f67b75edbf5e3bb7dfe70bb788610693a71be3d1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/vishvananda/netns"
+  packages = ["."]
+  revision = "be1fbeda19366dea804f00efff2dd73a1642fdcc"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "94eea52f7b742c7cbe0b03b22f0c4c8631ece122"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp"]
-  revision = "a6577fac2d73be281a500b310739095313165611"
+  packages = ["context","context/ctxhttp","proxy"]
+  revision = "a8b9294777976932365dabb6640cf1468d95c70f"
 
 [[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "99f16d856c9836c42d24e7ab64ea72916925fa97"
+  revision = "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cf4dacc32111b22d72ac23189b826c8316ec265e55bf987338c7a00633af788e"
+  inputs-digest = "52f5e0597e2b850a6023c84a58c5e500bfece5019aa6ec3be308621e2cef8031"
   solver-name = "gps-cdcl"
   solver-version = 1

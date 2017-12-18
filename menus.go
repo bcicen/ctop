@@ -1,13 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/container"
+	"github.com/bcicen/ctop/entity"
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
-	"time"
-	"fmt"
 )
 
 var helpDialog = []menu.Item{
@@ -16,6 +17,7 @@ var helpDialog = []menu.Item{
 	{"[h] - open this help dialog", ""},
 	{"[H] - toggle ctop header", ""},
 	{"[s] - select container sort field", ""},
+	{"[w] - toggle swarm mode", ""},
 	{"[r] - reverse container sort order", ""},
 	{"[m] - Manage container (start, stop and/or remove)", ""},
 	{"[l] - View container logs ([t] to toggle timestamp when open)", ""},
@@ -79,7 +81,7 @@ func SortMenu() {
 	m.SortItems = true
 	m.BorderLabel = "Sort Field"
 
-	for _, field := range container.SortFields() {
+	for _, field := range entity.SortFields() {
 		m.AddItems(menu.Item{field, ""})
 	}
 
@@ -100,6 +102,9 @@ func SortMenu() {
 }
 
 func ContainerMenu() {
+	if config.GetSwitchVal("swarMode") {
+		return
+	}
 
 	c := cursor.Selected()
 	if c == nil {
@@ -114,10 +119,10 @@ func ContainerMenu() {
 
 	m.BorderLabel = "Menu"
 	var items []menu.Item
-	if c.Meta["state"] == "running" {
+	if c.GetMeta("state") == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 	}
-	if c.Meta["state"] == "exited" {
+	if c.GetMeta("state") == "exited" {
 		items = append(items, menu.Item{Val: "start", Label: "start"})
 		items = append(items, menu.Item{Val: "remove", Label: "remove"})
 	}
@@ -131,13 +136,13 @@ func ContainerMenu() {
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		switch m.SelectedItem().Val {
 		case "start":
-			c.Start()
+			c.(*entity.Container).Start()
 			ui.StopLoop()
 		case "stop":
-			c.Stop()
+			c.(*entity.Container).Stop()
 			ui.StopLoop()
 		case "remove":
-			c.Remove()
+			c.(*entity.Container).Remove()
 			ui.StopLoop()
 		case "cancel":
 			ui.StopLoop()
@@ -150,6 +155,9 @@ func ContainerMenu() {
 }
 
 func LogMenu() {
+	if config.GetSwitchVal("swarmMode") {
+		return
+	}
 
 	c := cursor.Selected()
 	if c == nil {
@@ -159,7 +167,7 @@ func LogMenu() {
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	logs, quit := logReader(c)
+	logs, quit := logReader(c.(*entity.Container))
 	m := widgets.NewTextView(logs)
 	m.BorderLabel = "Logs"
 	ui.Render(m)
@@ -189,7 +197,7 @@ func (t *toggleLog) Toggle(on bool) string {
 	return t.message
 }
 
-func logReader(container *container.Container) (logs chan widgets.ToggleText, quit chan bool) {
+func logReader(container *entity.Container) (logs chan widgets.ToggleText, quit chan bool) {
 
 	logCollector := container.Logs()
 	stream := logCollector.Stream()

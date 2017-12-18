@@ -25,7 +25,7 @@ func getListener() net.Listener {
 		ln, err = net.Listen("unix", socketPath)
 	}
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Logging getListener: %s", err))
 	}
 	return ln
 }

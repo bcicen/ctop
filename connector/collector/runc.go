@@ -37,7 +37,7 @@ func (c *Runc) Running() bool {
 	return c.running
 }
 
-func (c *Runc) Start() {
+func (c *Runc) Start(id string) {
 	c.done = false
 	c.stream = make(chan models.Metrics)
 	go c.run()
@@ -125,4 +125,8 @@ func (c *Runc) ReadIO(stats *cgroups.Stats) {
 		}
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
+}
+
+func (c *Runc) LastMetrics() models.Metrics {
+	return c.Metrics
 }
