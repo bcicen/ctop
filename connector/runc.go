@@ -71,13 +71,6 @@ func NewRunc() Connector {
 		needsRefresh:  make(chan string, 60),
 		lock:          sync.RWMutex{},
 	}
-
-	//go func() {
-	//	for {
-	//		cm.refreshAllContainers()
-	//		time.Sleep(5 * time.Second)
-	//	}
-	//}()
 	go cm.Loop()
 
 	return cm
@@ -239,7 +232,6 @@ func (cm *Runc) AllContainers() (containers entity.Containers) {
 	for _, container := range cm.containers {
 		containers = append(containers, container)
 	}
-	//containers.Sort()
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers

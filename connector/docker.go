@@ -330,6 +330,7 @@ func (cm *Docker) LoopDiscoveryTasks() {
 			time.Sleep(time.Second)
 			cm.refreshAllTasks()
 		}
+		runtime.Gosched()
 	}
 }
 
