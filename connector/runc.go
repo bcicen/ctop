@@ -255,8 +255,8 @@ func runcFailOnErr(err error) {
 	}
 }
 
-func (cm *Runc) DownSwarmMode() {
-	log.Warningf("Call unsupported method, DownSwarmMode()")
+func (cm *Runc) Down() {
+	log.Warningf("Call unsupported method, Down()")
 }
 
 func (cm *Runc) SetMetrics(metrics models.Metrics) {

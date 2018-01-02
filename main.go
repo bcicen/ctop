@@ -135,7 +135,7 @@ func main() {
 
 func Shutdown() {
 	if config.GetSwitchVal("swarmMode") {
-		cursor.cSource.DownSwarmMode()
+		cursor.cSource.Down()
 	}
 	log.Notice("shutting down")
 	log.Exit()

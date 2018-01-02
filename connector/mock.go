@@ -8,17 +8,20 @@ import (
 	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
+	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/entity"
 	"github.com/jgautheron/codename-generator"
 	"github.com/nu7hatch/gouuid"
 )
 
+// Mock for connector
 type Mock struct {
 	containers entity.Containers
 	services   entity.Services
 	nodes      entity.Nodes
 }
 
+// NewMock return new instance of Mock
 func NewMock() *Mock {
 	cs := &Mock{}
 	go cs.Init()
@@ -26,7 +29,7 @@ func NewMock() *Mock {
 	return cs
 }
 
-// Create Mock containers
+// Init create Mock containers
 func (cs *Mock) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 
@@ -42,14 +45,14 @@ func (cs *Mock) Init() {
 
 func (cs *Mock) makeContainer(aggression int64) {
 	collector := collector.NewMock(aggression)
-	c := entity.NewContainer(makeID(), collector)
-	//c := container.New(makeID(), collector, manager)
-	//manager := manager.NewMock()
+	manager := manager.NewMock()
+	c := entity.NewContainer(makeID(), collector, manager)
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
 	cs.containers = append(cs.containers, c)
 }
 
+// Loop container of mock
 func (cs *Mock) Loop() {
 	iter := 0
 	for {
@@ -63,7 +66,7 @@ func (cs *Mock) Loop() {
 	}
 }
 
-// Get a single container, by ID
+// GetContainer get a single container, by ID
 func (cs *Mock) GetContainer(id string) (*entity.Container, bool) {
 	for _, c := range cs.containers {
 		if c.Id == id {
@@ -73,21 +76,26 @@ func (cs *Mock) GetContainer(id string) (*entity.Container, bool) {
 	return nil, false
 }
 
-func (cs *Mock) GetTask(id string) (*eneity.Task, bool) {
+// GetTask return a single task by ID
+func (cs *Mock) GetTask(id string) (*entity.Task, bool) {
 	return nil, false
 }
 
-// Return array of all containers, sorted by field
+// AllNodes Return slice of all containers, sorted by field
 func (cs *Mock) AllNodes() entity.Nodes {
 	//cs.nodes.Sort()
 	//cs.nodes.Filter()
 	return cs.nodes
 }
+
+// AllServices return slice of all Service
 func (cs *Mock) AllServices() entity.Services {
 	//cs.services.Sort()
 	//cs.services.Filter()
 	return cs.services
 }
+
+// AllContainers return slice of all Container
 func (cs *Mock) AllContainers() entity.Containers {
 	cs.containers.Sort()
 	cs.containers.Filter()
@@ -142,6 +150,7 @@ func makeState() string {
 	return "running"
 }
 
-func (cm *Mock) DownSwarmMode() {
-	log.Warningf("Call unsupported method, DownSwarmMode()")
+// Down mock
+func (cs *Mock) Down() {
+	log.Warning("Not implent Down for Mock")
 }
