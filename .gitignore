@@ -1,2 +1,4 @@
 ctop
 .idea
+vendor
+*.orig
