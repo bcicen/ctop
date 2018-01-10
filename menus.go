@@ -12,14 +12,16 @@ import (
 )
 
 var helpDialog = []menu.Item{
+	{"<enter> - open container menu", ""},
+	{"", ""},
 	{"[a] - toggle display of all containers", ""},
 	{"[f] - filter displayed containers", ""},
 	{"[h] - open this help dialog", ""},
 	{"[H] - toggle ctop header", ""},
 	{"[s] - select container sort field", ""},
 	{"[r] - reverse container sort order", ""},
-	{"[m] - Manage container (start, stop and/or remove)", ""},
-	{"[l] - View container logs ([t] to toggle timestamp when open)", ""},
+	{"[o] - open single view", ""},
+	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
 	{"[q] - exit ctop", ""},
 }
 
@@ -114,7 +116,10 @@ func ContainerMenu() {
 	m.Selectable = true
 
 	m.BorderLabel = "Menu"
-	items := []menu.Item{menu.Item{Val: "single", Label: "single view"}}
+	items := []menu.Item{
+		menu.Item{Val: "single", Label: "single view"},
+		menu.Item{Val: "logs", Label: "log view"},
+	}
 	if c.Meta["state"] == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 	}
@@ -133,6 +138,9 @@ func ContainerMenu() {
 		switch m.SelectedItem().Val {
 		case "single":
 			SingleView(c)
+			ui.StopLoop()
+		case "logs":
+			LogMenu()
 			ui.StopLoop()
 		case "start":
 			c.Start()
