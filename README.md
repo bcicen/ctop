@@ -70,13 +70,14 @@ Option | Description
 
 Key | Action
 --- | ---
+<enter> | Open container menu
 a | Toggle display of all (running and non-running) containers
 f | Filter displayed containers (`esc` to clear when open)
 H | Toggle ctop header
 h | Open help dialog
 s | Select container sort field
 r | Reverse container sort order
-m | Manage container (start, stop and/or remove)
+o | Open single view
 l | View container logs (`t` to toggle timestamp when open)
 q | Quit ctop
 

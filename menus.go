@@ -114,7 +114,7 @@ func ContainerMenu() {
 	m.Selectable = true
 
 	m.BorderLabel = "Menu"
-	var items []menu.Item
+	items := []menu.Item{menu.Item{Val: "single", Label: "single view"}}
 	if c.Meta["state"] == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 	}
@@ -131,6 +131,9 @@ func ContainerMenu() {
 	HandleKeys("down", m.Down)
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		switch m.SelectedItem().Val {
+		case "single":
+			SingleView(c)
+			ui.StopLoop()
 		case "start":
 			c.Start()
 			ui.StopLoop()

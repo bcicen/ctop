@@ -93,7 +93,7 @@ func Display() bool {
 		ui.StopLoop()
 	})
 
-	ui.Handle("/sys/kbd/m", func(ui.Event) {
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		menu = ContainerMenu
 		ui.StopLoop()
 	})
@@ -101,7 +101,7 @@ func Display() bool {
 		menu = LogMenu
 		ui.StopLoop()
 	})
-	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+	ui.Handle("/sys/kbd/o", func(ui.Event) {
 		single = true
 		ui.StopLoop()
 	})
