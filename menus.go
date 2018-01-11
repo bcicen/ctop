@@ -11,6 +11,9 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+// MenuFn executes a menu window, returning the next menu or nil
+type MenuFn func() MenuFn
+
 var helpDialog = []menu.Item{
 	{"<enter> - open container menu", ""},
 	{"", ""},
@@ -25,7 +28,7 @@ var helpDialog = []menu.Item{
 	{"[q] - exit ctop", ""},
 }
 
-func HelpMenu() {
+func HelpMenu() MenuFn {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
@@ -38,9 +41,10 @@ func HelpMenu() {
 		ui.StopLoop()
 	})
 	ui.Loop()
+	return nil
 }
 
-func FilterMenu() {
+func FilterMenu() MenuFn {
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
@@ -70,9 +74,10 @@ func FilterMenu() {
 		ui.StopLoop()
 	})
 	ui.Loop()
+	return nil
 }
 
-func SortMenu() {
+func SortMenu() MenuFn {
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
@@ -100,13 +105,13 @@ func SortMenu() {
 
 	ui.Render(m)
 	ui.Loop()
+	return nil
 }
 
-func ContainerMenu() {
-
+func ContainerMenu() MenuFn {
 	c := cursor.Selected()
 	if c == nil {
-		return
+		return nil
 	}
 
 	ui.DefaultEvtStream.ResetHandlers()
@@ -133,42 +138,36 @@ func ContainerMenu() {
 	m.AddItems(items...)
 	ui.Render(m)
 
-	confirmTxt := func(a, n string) string { return fmt.Sprintf("%s container %s?", a, n) }
-
+	var nextMenu MenuFn
 	HandleKeys("up", m.Up)
 	HandleKeys("down", m.Down)
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		switch m.SelectedItem().Val {
 		case "single":
-			SingleView(c)
-			ui.StopLoop()
+			nextMenu = SingleView
 		case "logs":
-			LogMenu()
-			ui.StopLoop()
+			nextMenu = LogMenu
 		case "start":
-			Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
-			ui.StopLoop()
+			nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 		case "stop":
-			Confirm(confirmTxt("stop", c.GetMeta("name")), c.Stop)
-			ui.StopLoop()
+			nextMenu = Confirm(confirmTxt("stop", c.GetMeta("name")), c.Stop)
 		case "remove":
-			Confirm(confirmTxt("remove", c.GetMeta("name")), c.Remove)
-			ui.StopLoop()
-		case "cancel":
-			ui.StopLoop()
+			nextMenu = Confirm(confirmTxt("remove", c.GetMeta("name")), c.Remove)
 		}
+		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
 	})
 	ui.Loop()
+	return nextMenu
 }
 
-func LogMenu() {
+func LogMenu() MenuFn {
 
 	c := cursor.Selected()
 	if c == nil {
-		return
+		return nil
 	}
 
 	ui.DefaultEvtStream.ResetHandlers()
@@ -190,56 +189,63 @@ func LogMenu() {
 		ui.StopLoop()
 	})
 	ui.Loop()
+	return nil
 }
 
-func Confirm(txt string, fn func()) {
-	ui.DefaultEvtStream.ResetHandlers()
-	defer ui.DefaultEvtStream.ResetHandlers()
+// Create a confirmation dialog with a given description string and
+// func to perform if confirmed
+func Confirm(txt string, fn func()) MenuFn {
+	menu := func() MenuFn {
+		ui.DefaultEvtStream.ResetHandlers()
+		defer ui.DefaultEvtStream.ResetHandlers()
 
-	m := menu.NewMenu()
-	m.Selectable = true
-	m.BorderLabel = "Confirm"
-	m.SubText = txt
+		m := menu.NewMenu()
+		m.Selectable = true
+		m.BorderLabel = "Confirm"
+		m.SubText = txt
 
-	items := []menu.Item{
-		menu.Item{Val: "cancel", Label: "[c]ancel"},
-		menu.Item{Val: "yes", Label: "[y]es"},
-	}
-
-	var response bool
-
-	m.AddItems(items...)
-	ui.Render(m)
-
-	yes := func() {
-		response = true
-		ui.StopLoop()
-	}
-
-	no := func() {
-		response = false
-		ui.StopLoop()
-	}
-
-	HandleKeys("up", m.Up)
-	HandleKeys("down", m.Down)
-	HandleKeys("exit", no)
-	ui.Handle("/sys/kbd/c", func(ui.Event) { no() })
-	ui.Handle("/sys/kbd/y", func(ui.Event) { yes() })
-
-	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		switch m.SelectedItem().Val {
-		case "cancel":
-			no()
-		case "yes":
-			yes()
+		items := []menu.Item{
+			menu.Item{Val: "cancel", Label: "[c]ancel"},
+			menu.Item{Val: "yes", Label: "[y]es"},
 		}
-	})
 
-	ui.Loop()
-	if response {
-		fn()
+		var response bool
+
+		m.AddItems(items...)
+		ui.Render(m)
+
+		yes := func() {
+			response = true
+			ui.StopLoop()
+		}
+
+		no := func() {
+			response = false
+			ui.StopLoop()
+		}
+
+		HandleKeys("up", m.Up)
+		HandleKeys("down", m.Down)
+		HandleKeys("exit", no)
+		ui.Handle("/sys/kbd/c", func(ui.Event) { no() })
+		ui.Handle("/sys/kbd/y", func(ui.Event) { yes() })
+
+		ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
+			switch m.SelectedItem().Val {
+			case "cancel":
+				no()
+			case "yes":
+				yes()
+			}
+		})
+
+		ui.Loop()
+		if response {
+			fn()
+		}
+		return nil
 	}
+	return menu
 }
 
 type toggleLog struct {
@@ -275,3 +281,5 @@ func logReader(container *container.Container) (logs chan widgets.ToggleText, qu
 	}()
 	return
 }
+
+func confirmTxt(a, n string) string { return fmt.Sprintf("%s container %s?", a, n) }

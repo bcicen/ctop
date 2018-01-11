@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 )
@@ -35,7 +34,12 @@ func RedrawRows(clr bool) {
 	ui.Render(cGrid)
 }
 
-func SingleView(c *container.Container) {
+func SingleView() MenuFn {
+	c := cursor.Selected()
+	if c == nil {
+		return nil
+	}
+
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
@@ -59,6 +63,7 @@ func SingleView(c *container.Container) {
 
 	ui.Loop()
 	c.SetUpdater(c.Widgets)
+	return nil
 }
 
 func RefreshDisplay() {
@@ -70,8 +75,7 @@ func RefreshDisplay() {
 }
 
 func Display() bool {
-	var menu func()
-	var single bool
+	var menu MenuFn
 
 	cGrid.SetWidth(ui.TermWidth())
 	ui.DefaultEvtStream.Hook(logEvent)
@@ -102,7 +106,7 @@ func Display() bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/o", func(ui.Event) {
-		single = true
+		menu = SingleView
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
@@ -141,16 +145,13 @@ func Display() bool {
 	})
 
 	ui.Loop()
+
 	if menu != nil {
-		menu()
-		return false
-	}
-	if single {
-		c := cursor.Selected()
-		if c != nil {
-			SingleView(c)
+		for menu != nil {
+			menu = menu()
 		}
 		return false
 	}
+
 	return true
 }
