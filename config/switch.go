@@ -45,6 +45,14 @@ func GetSwitchVal(k string) bool {
 	return GetSwitch(k).Val
 }
 
+func UpdateSwitch(k string, val bool) {
+	sw := GetSwitch(k)
+	if sw.Val != val {
+		log.Noticef("config change: %s: %t -> %t", k, sw.Val, val)
+		sw.Val = val
+	}
+}
+
 // Toggle a boolean switch
 func Toggle(k string) {
 	sw := GetSwitch(k)

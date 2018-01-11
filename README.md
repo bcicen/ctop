@@ -79,6 +79,7 @@ s | Select container sort field
 r | Reverse container sort order
 o | Open single view
 l | View container logs (`t` to toggle timestamp when open)
+S | Save current configuration to file
 q | Quit ctop
 
 [build]: _docs/build.md

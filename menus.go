@@ -25,6 +25,7 @@ var helpDialog = []menu.Item{
 	{"[r] - reverse container sort order", ""},
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
+	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
 }
 

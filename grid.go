@@ -131,6 +131,9 @@ func Display() bool {
 		menu = SortMenu
 		ui.StopLoop()
 	})
+	ui.Handle("/sys/kbd/S", func(ui.Event) {
+		config.Write()
+	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
 		RefreshDisplay()
