@@ -110,9 +110,7 @@ func (c *Container) Stop() {
 }
 
 func (c *Container) Remove() {
-	if c.Meta["state"] == "exited" {
-		if err := c.manager.Remove(); err != nil {
-			log.Warningf("container %s: %v", c.Id, err)
-		}
+	if err := c.manager.Remove(); err != nil {
+		log.Warningf("container %s: %v", c.Id, err)
 	}
 }

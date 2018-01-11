@@ -129,7 +129,7 @@ func ContainerMenu() MenuFn {
 	if c.Meta["state"] == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 	}
-	if c.Meta["state"] == "exited" {
+	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "start"})
 		items = append(items, menu.Item{Val: "remove", Label: "remove"})
 	}
