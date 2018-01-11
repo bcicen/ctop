@@ -114,12 +114,13 @@ func ContainerMenu() {
 
 	m := menu.NewMenu()
 	m.Selectable = true
-
 	m.BorderLabel = "Menu"
+
 	items := []menu.Item{
 		menu.Item{Val: "single", Label: "single view"},
 		menu.Item{Val: "logs", Label: "log view"},
 	}
+
 	if c.Meta["state"] == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 	}
@@ -132,6 +133,8 @@ func ContainerMenu() {
 	m.AddItems(items...)
 	ui.Render(m)
 
+	confirmTxt := func(a, n string) string { return fmt.Sprintf("%s container %s?", a, n) }
+
 	HandleKeys("up", m.Up)
 	HandleKeys("down", m.Down)
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
@@ -143,13 +146,13 @@ func ContainerMenu() {
 			LogMenu()
 			ui.StopLoop()
 		case "start":
-			c.Start()
+			Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 			ui.StopLoop()
 		case "stop":
-			c.Stop()
+			Confirm(confirmTxt("stop", c.GetMeta("name")), c.Stop)
 			ui.StopLoop()
 		case "remove":
-			c.Remove()
+			Confirm(confirmTxt("remove", c.GetMeta("name")), c.Remove)
 			ui.StopLoop()
 		case "cancel":
 			ui.StopLoop()
@@ -187,6 +190,54 @@ func LogMenu() {
 		ui.StopLoop()
 	})
 	ui.Loop()
+}
+
+func Confirm(txt string, fn func()) {
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	m := menu.NewMenu()
+	m.Selectable = true
+	m.BorderLabel = "Confirm"
+
+	items := []menu.Item{
+		menu.Item{Val: "cancel", Label: "[c]ancel"},
+		menu.Item{Val: "yes", Label: "[y]es"},
+	}
+
+	var response bool
+
+	m.AddItems(items...)
+	ui.Render(m)
+
+	yes := func(ui.Event) {
+		response = true
+		ui.StopLoop()
+	}
+
+	no := func(ui.Event) {
+		response = false
+		ui.StopLoop()
+	}
+
+	HandleKeys("up", m.Up)
+	HandleKeys("down", m.Down)
+	ui.Handle("/sys/kbd/c", no)
+	ui.Handle("/sys/kbd/y", yes)
+
+	ui.Handle("/sys/kbd/<enter>", func(e ui.Event) {
+		switch m.SelectedItem().Val {
+		case "cancel":
+			no(e)
+		case "yes":
+			yes(e)
+		}
+	})
+
+	ui.Loop()
+	if response {
+		fn()
+	}
 }
 
 type toggleLog struct {
