@@ -53,10 +53,10 @@ func Read() error {
 	return nil
 }
 
-func Write() error {
-	path, err := getConfigPath()
+func Write() (path string, err error) {
+	path, err = getConfigPath()
 	if err != nil {
-		return err
+		return path, err
 	}
 
 	cfgdir := basedir(path)
@@ -64,22 +64,22 @@ func Write() error {
 	if _, err := os.Stat(cfgdir); err != nil {
 		err = os.MkdirAll(cfgdir, 0755)
 		if err != nil {
-			return fmt.Errorf("failed to create config dir [%s]: %s", cfgdir, err)
+			return path, fmt.Errorf("failed to create config dir [%s]: %s", cfgdir, err)
 		}
 	}
 
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to open config for writing: %s", err)
+		return path, fmt.Errorf("failed to open config for writing: %s", err)
 	}
 
 	writer := toml.NewEncoder(file)
 	err = writer.Encode(exportConfig())
 	if err != nil {
-		return fmt.Errorf("failed to write config: %s", err)
+		return path, fmt.Errorf("failed to write config: %s", err)
 	}
 
-	return nil
+	return path, nil
 }
 
 // determine config path from environment

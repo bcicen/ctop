@@ -17,6 +17,7 @@ func RedrawRows(clr bool) {
 		header.SetFilter(config.GetVal("filterStr"))
 		y += header.Height()
 	}
+
 	cGrid.SetY(y)
 
 	for _, c := range cursor.filtered {
@@ -32,6 +33,7 @@ func RedrawRows(clr bool) {
 	}
 	cGrid.Align()
 	ui.Render(cGrid)
+
 }
 
 func SingleView() MenuFn {
@@ -82,6 +84,7 @@ func Display() bool {
 
 	// initial draw
 	header.Align()
+	status.Align()
 	cursor.RefreshContainers()
 	RedrawRows(true)
 
@@ -132,7 +135,13 @@ func Display() bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/S", func(ui.Event) {
-		config.Write()
+		path, err := config.Write()
+		if err == nil {
+			log.Statusf("wrote config to %s", path)
+		} else {
+			log.StatusErr(err)
+		}
+		ui.StopLoop()
 	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
@@ -141,6 +150,7 @@ func Display() bool {
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
 		header.Align()
+		status.Align()
 		cursor.ScrollPage()
 		cGrid.SetWidth(ui.TermWidth())
 		log.Infof("resize: width=%v max-rows=%v", cGrid.Width, cGrid.MaxRows())
@@ -148,6 +158,17 @@ func Display() bool {
 	})
 
 	ui.Loop()
+
+	if log.StatusQueued() {
+		for sm := range log.FlushStatus() {
+			if sm.IsError {
+				status.ShowErr(sm.Text)
+			} else {
+				status.Show(sm.Text)
+			}
+		}
+		return false
+	}
 
 	if menu != nil {
 		for menu != nil {

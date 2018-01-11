@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -20,10 +21,35 @@ var (
 	)
 )
 
+type statusMsg struct {
+	Text    string
+	IsError bool
+}
+
 type CTopLogger struct {
 	*logging.Logger
 	backend *logging.MemoryBackend
+	sLog    []statusMsg
 }
+
+func (c *CTopLogger) FlushStatus() chan statusMsg {
+	ch := make(chan statusMsg)
+	go func() {
+		for _, sm := range c.sLog {
+			ch <- sm
+		}
+		close(ch)
+		c.sLog = []statusMsg{}
+	}()
+	return ch
+}
+
+func (c *CTopLogger) StatusQueued() bool     { return len(c.sLog) > 0 }
+func (c *CTopLogger) Status(s string)        { c.addStatus(statusMsg{s, false}) }
+func (c *CTopLogger) StatusErr(err error)    { c.addStatus(statusMsg{err.Error(), true}) }
+func (c *CTopLogger) addStatus(sm statusMsg) { c.sLog = append(c.sLog, sm) }
+
+func (c *CTopLogger) Statusf(s string, a ...interface{}) { c.Status(fmt.Sprintf(s, a...)) }
 
 func Init() *CTopLogger {
 	if Log == nil {
@@ -32,6 +58,7 @@ func Init() *CTopLogger {
 		Log = &CTopLogger{
 			logging.MustGetLogger("ctop"),
 			logging.NewMemoryBackend(size),
+			[]statusMsg{},
 		}
 
 		if debugMode() {

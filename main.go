@@ -25,6 +25,7 @@ var (
 	cursor *GridCursor
 	cGrid  *compact.CompactGrid
 	header *widgets.CTopHeader
+	status *widgets.StatusLine
 
 	versionStr = fmt.Sprintf("ctop version %v, build %v %v", version, build, goVersion)
 )
@@ -59,8 +60,9 @@ func main() {
 	// init logger
 	log = logging.Init()
 
-	// init global config
+	// init global config and read config file if exists
 	config.Init()
+	config.Read()
 
 	// override default config values with command line flags
 	if *filterFlag != "" {
@@ -102,6 +104,7 @@ func main() {
 	cursor = &GridCursor{cSource: conn}
 	cGrid = compact.NewCompactGrid()
 	header = widgets.NewCTopHeader()
+	status = widgets.NewStatusLine()
 
 	for {
 		exit := Display()
