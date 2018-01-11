@@ -17,6 +17,11 @@ var switches = []*Switch{
 		Val:   true,
 		Label: "Enable Status Header",
 	},
+	&Switch{
+		Key:   "scaleCpu",
+		Val:   false,
+		Label: "Show CPU as %% of system total",
+	},
 }
 
 type Switch struct {

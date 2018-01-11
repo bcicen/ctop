@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 )
@@ -15,13 +16,15 @@ type Docker struct {
 	done       chan bool
 	lastCpu    float64
 	lastSysCpu float64
+	scaleCpu   bool
 }
 
 func NewDocker(client *api.Client, id string) *Docker {
 	return &Docker{
-		Metrics: models.Metrics{},
-		id:      id,
-		client:  client,
+		Metrics:  models.Metrics{},
+		id:       id,
+		client:   client,
+		scaleCpu: config.GetSwitchVal("scaleCpu"),
 	}
 }
 
@@ -82,7 +85,11 @@ func (c *Docker) ReadCPU(stats *api.Stats) {
 	cpudiff := total - c.lastCpu
 	syscpudiff := system - c.lastSysCpu
 
-	c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
+	if c.scaleCpu {
+		c.CPUUtil = round((cpudiff / syscpudiff * 100))
+	} else {
+		c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
+	}
 	c.lastCpu = total
 	c.lastSysCpu = system
 	c.Pids = int(stats.PidsStats.Current)

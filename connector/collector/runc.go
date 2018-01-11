@@ -5,6 +5,7 @@ package collector
 import (
 	"time"
 
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups"
@@ -21,6 +22,7 @@ type Runc struct {
 	interval   int // collection interval, in seconds
 	lastCpu    float64
 	lastSysCpu float64
+	scaleCpu   bool
 }
 
 func NewRunc(libc libcontainer.Container) *Runc {
@@ -29,6 +31,7 @@ func NewRunc(libc libcontainer.Container) *Runc {
 		id:       libc.ID(),
 		libc:     libc,
 		interval: 1,
+		scaleCpu: config.GetSwitchVal("scaleCpu"),
 	}
 	return c
 }
@@ -90,7 +93,11 @@ func (c *Runc) ReadCPU(stats *cgroups.Stats) {
 	cpudiff := total - c.lastCpu
 	syscpudiff := system - c.lastSysCpu
 
-	c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
+	if c.scaleCpu {
+		c.CPUUtil = round((cpudiff / syscpudiff * 100))
+	} else {
+		c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
+	}
 	c.lastCpu = total
 	c.lastSysCpu = system
 	c.Pids = int(stats.PidsStats.Current)
