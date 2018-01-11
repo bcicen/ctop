@@ -145,6 +145,9 @@ func Display() bool {
 	})
 
 	ui.Handle("/timer/1s", func(e ui.Event) {
+		if log.StatusQueued() {
+			ui.StopLoop()
+		}
 		RefreshDisplay()
 	})
 

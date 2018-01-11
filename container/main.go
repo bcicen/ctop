@@ -93,6 +93,7 @@ func (c *Container) Start() {
 	if c.Meta["state"] != "running" {
 		if err := c.manager.Start(); err != nil {
 			log.Warningf("container %s: %v", c.Id, err)
+			log.StatusErr(err)
 			return
 		}
 		c.SetState("running")
@@ -103,6 +104,7 @@ func (c *Container) Stop() {
 	if c.Meta["state"] == "running" {
 		if err := c.manager.Stop(); err != nil {
 			log.Warningf("container %s: %v", c.Id, err)
+			log.StatusErr(err)
 			return
 		}
 		c.SetState("exited")
@@ -112,5 +114,6 @@ func (c *Container) Stop() {
 func (c *Container) Remove() {
 	if err := c.manager.Remove(); err != nil {
 		log.Warningf("container %s: %v", c.Id, err)
+		log.StatusErr(err)
 	}
 }
