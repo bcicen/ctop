@@ -20,7 +20,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.6.1/ctop-0.6.1-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/bcicen/ctop/releases/download/v0.7/ctop-0.7-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -31,7 +31,7 @@ brew install ctop
 ```
 or
 ```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.6.1/ctop-0.6.1-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7/ctop-0.7-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -54,6 +54,10 @@ Build steps can be found [here][build].
 
 `ctop` requires no arguments and uses Docker host variables by default. See [connectors][connectors] for further configuration options.
 
+### Config file
+
+While running, use `S` to save the current filters, sort field, and other options to a default config path. These settings will be loaded and applied the next time `ctop` is started.
+
 ### Options
 
 Option | Description
@@ -64,6 +68,7 @@ Option | Description
 -i  | invert default colors
 -r	| reverse container sort order
 -s  | select initial container sort field
+-scale-cpu	| show cpu as % of system total
 -v	| output version information and exit
 
 ### Keybindings
