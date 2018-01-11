@@ -199,6 +199,7 @@ func Confirm(txt string, fn func()) {
 	m := menu.NewMenu()
 	m.Selectable = true
 	m.BorderLabel = "Confirm"
+	m.SubText = txt
 
 	items := []menu.Item{
 		menu.Item{Val: "cancel", Label: "[c]ancel"},
@@ -210,27 +211,28 @@ func Confirm(txt string, fn func()) {
 	m.AddItems(items...)
 	ui.Render(m)
 
-	yes := func(ui.Event) {
+	yes := func() {
 		response = true
 		ui.StopLoop()
 	}
 
-	no := func(ui.Event) {
+	no := func() {
 		response = false
 		ui.StopLoop()
 	}
 
 	HandleKeys("up", m.Up)
 	HandleKeys("down", m.Down)
-	ui.Handle("/sys/kbd/c", no)
-	ui.Handle("/sys/kbd/y", yes)
+	HandleKeys("exit", no)
+	ui.Handle("/sys/kbd/c", func(ui.Event) { no() })
+	ui.Handle("/sys/kbd/y", func(ui.Event) { yes() })
 
-	ui.Handle("/sys/kbd/<enter>", func(e ui.Event) {
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
 		switch m.SelectedItem().Val {
 		case "cancel":
-			no(e)
+			no()
 		case "yes":
-			yes(e)
+			yes()
 		}
 	})
 

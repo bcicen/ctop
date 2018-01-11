@@ -10,7 +10,8 @@ type Padding [2]int // x,y padding
 
 type Menu struct {
 	ui.Block
-	SortItems   bool // enable automatic sorting of menu items
+	SortItems   bool   // enable automatic sorting of menu items
+	SubText     string // optional text to display before items
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
 	Selectable  bool
@@ -82,9 +83,19 @@ func (m *Menu) Buffer() ui.Buffer {
 	var cell ui.Cell
 	buf := m.Block.Buffer()
 
+	y := m.Y + m.padding[1]
+
+	if m.SubText != "" {
+		x := m.X + m.padding[0]
+		for i, ch := range m.SubText {
+			cell = ui.Cell{Ch: ch, Fg: m.TextFgColor, Bg: m.TextBgColor}
+			buf.Set(x+i, y, cell)
+		}
+		y += 2
+	}
+
 	for n, item := range m.items {
 		x := m.X + m.padding[0]
-		y := m.Y + m.padding[1]
 		for _, ch := range item.Text() {
 			// invert bg/fg colors on currently selected row
 			if m.Selectable && n == m.cursorPos {
@@ -118,14 +129,22 @@ func (m *Menu) Down() {
 func (m *Menu) calcSize() {
 	m.Width = 7 // minimum width
 
-	items := m.items
+	var height int
 	for _, i := range m.items {
 		s := i.Text()
 		if len(s) > m.Width {
 			m.Width = len(s)
 		}
+		height++
+	}
+
+	if m.SubText != "" {
+		if len(m.SubText) > m.Width {
+			m.Width = len(m.SubText)
+		}
+		height += 2
 	}
 
 	m.Width += (m.padding[0] * 2)
-	m.Height = len(items) + (m.padding[1] * 2)
+	m.Height = height + (m.padding[1] * 2)
 }
