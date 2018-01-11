@@ -63,7 +63,7 @@ While running, use `S` to save the current filters, sort field, and other option
 Option | Description
 --- | ---
 -a	| show active containers only
--f <string> | set an initial filter string
+-f \<string\> | set an initial filter string
 -h	| display help dialog
 -i  | invert default colors
 -r	| reverse container sort order
@@ -75,7 +75,7 @@ Option | Description
 
 Key | Action
 --- | ---
-<enter> | Open container menu
+\<enter\> | Open container menu
 a | Toggle display of all (running and non-running) containers
 f | Filter displayed containers (`esc` to clear when open)
 H | Toggle ctop header
