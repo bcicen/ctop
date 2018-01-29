@@ -11,6 +11,8 @@ import (
 	api "github.com/fsouza/go-dockerclient"
 )
 
+func init() { enabled["docker"] = NewDocker }
+
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container

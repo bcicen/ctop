@@ -17,6 +17,8 @@ import (
 	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 )
 
+func init() { enabled["runc"] = NewRunc }
+
 type RuncOpts struct {
 	root           string // runc root path
 	systemdCgroups bool   // use systemd cgroups

@@ -14,11 +14,13 @@ import (
 	"github.com/nu7hatch/gouuid"
 )
 
+func init() { enabled["mock"] = NewMock }
+
 type Mock struct {
 	containers container.Containers
 }
 
-func NewMock() *Mock {
+func NewMock() Connector {
 	cs := &Mock{}
 	go cs.Init()
 	go cs.Loop()

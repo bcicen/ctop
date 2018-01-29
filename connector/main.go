@@ -7,7 +7,10 @@ import (
 	"github.com/bcicen/ctop/logging"
 )
 
-var log = logging.Init()
+var (
+	log     = logging.Init()
+	enabled = make(map[string]func() Connector)
+)
 
 func ByName(s string) (Connector, error) {
 	if _, ok := enabled[s]; !ok {
