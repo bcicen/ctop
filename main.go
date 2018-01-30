@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/connector"
@@ -138,7 +139,7 @@ func panicExit() {
 	}
 }
 
-var helpMsg = `ctop - container metric viewer
+var helpMsg = `ctop - interactive container viewer
 
 usage: ctop [options]
 
@@ -148,4 +149,6 @@ options:
 func printHelp() {
 	fmt.Println(helpMsg)
 	flag.PrintDefaults()
+	fmt.Printf("\navailable connectors: ")
+	fmt.Println(strings.Join(connector.Enabled(), ", "))
 }

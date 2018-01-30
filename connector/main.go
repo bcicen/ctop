@@ -2,6 +2,7 @@ package connector
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/logging"
@@ -12,15 +13,20 @@ var (
 	enabled = make(map[string]func() Connector)
 )
 
-func ByName(s string) (Connector, error) {
-	if _, ok := enabled[s]; !ok {
-		msg := fmt.Sprintf("invalid connector type \"%s\"\nconnector must be one of:", s)
-		for k, _ := range enabled {
-			msg += fmt.Sprintf("\n  %s", k)
-		}
-		return nil, fmt.Errorf(msg)
+// return names for all enabled connectors on the current platform
+func Enabled() (a []string) {
+	for k, _ := range enabled {
+		a = append(a, k)
 	}
-	return enabled[s](), nil
+	sort.Strings(a)
+	return a
+}
+
+func ByName(s string) (Connector, error) {
+	if cfn, ok := enabled[s]; ok {
+		return cfn(), nil
+	}
+	return nil, fmt.Errorf("invalid connector type \"%s\"", s)
 }
 
 type Connector interface {
