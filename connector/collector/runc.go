@@ -1,4 +1,4 @@
-// +build !darwin
+// +build linux
 
 package collector
 
