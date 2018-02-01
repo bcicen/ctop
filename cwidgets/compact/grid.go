@@ -23,10 +23,7 @@ func NewCompactGrid() *CompactGrid {
 func (cg *CompactGrid) Align() {
 	y := cg.Y
 
-	if cg.Offset >= len(cg.Rows) {
-		cg.Offset = 0
-	}
-	if cg.Offset < 0 {
+	if cg.Offset >= len(cg.Rows) || cg.Offset < 0 {
 		cg.Offset = 0
 	}
 
