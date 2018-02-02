@@ -37,7 +37,10 @@ func HelpMenu() MenuFn {
 	m := menu.NewMenu()
 	m.BorderLabel = "Help"
 	m.AddItems(helpDialog...)
-	ui.Render(m)
+	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		ui.Clear()
+		ui.Render(m)
+	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
 	})
