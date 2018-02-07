@@ -29,7 +29,16 @@ sudo chmod +x /usr/local/bin/ctop
 ```bash
 brew install ctop
 ```
-or
+
+or using brew cask to install the latest released binary
+
+```bash
+brew tap pcasaretto/ctop
+brew cask install ctop
+```
+
+or download it directly from github
+
 ```bash
 sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7/ctop-0.7-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
