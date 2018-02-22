@@ -1,4 +1,4 @@
-FROM quay.io/vektorcloud/go:1.9
+FROM quay.io/vektorcloud/go:1.10
 
 RUN apk add --no-cache make
 
