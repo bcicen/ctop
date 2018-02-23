@@ -7,6 +7,12 @@
   revision = "fa152c58bc15761d0200cb75fe958b89a9d4888e"
 
 [[projects]]
+  name = "github.com/BurntSushi/toml"
+  packages = ["."]
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
+  version = "v0.3.0"
+
+[[projects]]
   name = "github.com/Microsoft/go-winio"
   packages = ["."]
   revision = "fff283ad5116362ca252298cfc9b95828956d85d"
@@ -57,10 +63,10 @@
   revision = "318513eb1ab27495afbc67f671ba1080513d8aa0"
 
 [[projects]]
-  branch = "barchart-numfmt"
+  branch = "master"
   name = "github.com/gizak/termui"
   packages = ["."]
-  revision = "ea10e6ccee219e572ffad0ac1909f1a17f6db7d6"
+  revision = "cdc199d7ea432fd8187db35f0247285d6f5b0267"
   source = "https://github.com/bcicen/termui"
 
 [[projects]]
@@ -154,6 +160,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cf4dacc32111b22d72ac23189b826c8316ec265e55bf987338c7a00633af788e"
+  inputs-digest = "f46f5c696ecb0b0c42a38dac512df21fc1f5fb2bfda888434e005e69d1b6273b"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -26,7 +26,7 @@
   revision = "318513eb1ab27495afbc67f671ba1080513d8aa0"
 
 [[constraint]]
-  branch = "barchart-numfmt"
+  branch = "master"
   name = "github.com/gizak/termui"
   source = "https://github.com/bcicen/termui"
 
