@@ -112,7 +112,7 @@
 [[projects]]
   name = "github.com/nsf/termbox-go"
   packages = ["."]
-  revision = "91bae1bb5fa9ee504905ecbe7043fa30e92feaa3"
+  revision = "e2050e41c8847748ec5288741c0b19a8cb26d084"
 
 [[projects]]
   branch = "master"
