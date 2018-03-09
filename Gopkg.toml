@@ -45,3 +45,7 @@
 [[constraint]]
   name = "github.com/opencontainers/runc"
   version = "0.1.1"
+
+[[constraint]]
+  name = "github.com/Microsoft/go-winio"
+  version = "0.3.8"
