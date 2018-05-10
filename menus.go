@@ -179,7 +179,7 @@ func LogMenu() MenuFn {
 
 	logs, quit := logReader(c)
 	m := widgets.NewTextView(logs)
-	m.BorderLabel = "Logs"
+	m.BorderLabel = fmt.Sprintf("Logs [%s]", c.GetMeta("name"))
 	ui.Render(m)
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
