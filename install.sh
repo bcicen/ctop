@@ -5,6 +5,10 @@ KERNEL=$(uname -s)
 
 function output() { echo -e "\033[32mctop-install\033[0m $@"; }
 
+function command_exists() {
+	command -v "$@" > /dev/null 2>&1
+}
+
 # extract github download url matching pattern
 function extract_url() {
   match=$1; shift
