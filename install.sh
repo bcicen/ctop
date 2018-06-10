@@ -28,6 +28,18 @@ case $KERNEL in
     ;;
 esac
 
+sh_c='sh -c'
+if [ "$CURRENT_USER" != 'root' ]; then
+  if command_exists sudo; then
+    sh_c='sudo -E sh -c'
+  elif command_exists su; then
+    sh_c='su -c'
+  else
+    output "Error: this installer needs the ability to run commands as root. We are unable to find either "sudo" or "su" available to make this happen."
+    exit 1
+  fi
+fi
+
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/ctop.XXXXX")
 cd ${TMP}
 
@@ -54,7 +66,7 @@ wget -q --show-progress $url
 (sha256sum -c --quiet --ignore-missing sha256sums.txt) || exit 1
 
 output "installing to /usr/local/bin"
-chmod +x ctop-*
-sudo mv ctop-* /usr/local/bin/ctop
+$sh_c "chmod +x ctop-*"
+$sh_c "mv ctop-* /usr/local/bin/ctop"
 
 output "done!"
