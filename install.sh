@@ -70,7 +70,7 @@ wget -q --show-progress $url
 (sha256sum -c --quiet --ignore-missing sha256sums.txt) || exit 1
 
 output "installing to /usr/local/bin"
-$sh_c "chmod +x ctop-*"
+chmod +x ctop-*
 $sh_c "mv ctop-* /usr/local/bin/ctop"
 
 output "done!"
