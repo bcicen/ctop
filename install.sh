@@ -6,7 +6,7 @@ KERNEL=$(uname -s)
 function output() { echo -e "\033[32mctop-install\033[0m $@"; }
 
 function command_exists() {
-	command -v "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 # extract github download url matching pattern
@@ -31,6 +31,14 @@ case $KERNEL in
     exit 1
     ;;
 esac
+
+for req in curl wget; do
+  command_exists $req || {
+    output "missing required $req binary"
+    req_failed=1
+  }
+done
+[ "$req_failed" == 1 ] && exit 1
 
 sh_c='sh -c'
 if [ "$CURRENT_USER" != 'root' ]; then
