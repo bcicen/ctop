@@ -117,3 +117,35 @@ func (c *Container) Remove() {
 		log.StatusErr(err)
 	}
 }
+
+func (c *Container) Pause() {
+	if c.Meta["state"] == "running" {
+		if err := c.manager.Pause(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			log.StatusErr(err)
+			return
+		}
+		c.SetState("paused")
+	}
+}
+
+func (c *Container) Unpause() {
+	if c.Meta["state"] == "paused" {
+		if err := c.manager.Unpause(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			log.StatusErr(err)
+			return
+		}
+		c.SetState("running")
+	}
+}
+
+func (c *Container) Restart() {
+	if c.Meta["state"] == "running" {
+		if err := c.manager.Restart(); err != nil {
+			log.Warningf("container %s: %v", c.Id, err)
+			log.StatusErr(err)
+			return
+		}
+	}
+}

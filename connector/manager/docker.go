@@ -42,3 +42,24 @@ func (dc *Docker) Remove() error {
 	}
 	return nil
 }
+
+func (dc *Docker) Pause() error {
+	if err := dc.client.PauseContainer(dc.id); err != nil {
+		return fmt.Errorf("cannot pause container: %v", err)
+	}
+	return nil
+}
+
+func (dc *Docker) Unpause() error {
+	if err := dc.client.UnpauseContainer(dc.id); err != nil {
+		return fmt.Errorf("cannot unpause container: %v", err)
+	}
+	return nil
+}
+
+func (dc *Docker) Restart() error {
+	if err := dc.client.RestartContainer(dc.id, 3); err != nil {
+		return fmt.Errorf("cannot restart container: %v", err)
+	}
+	return nil
+}

@@ -17,3 +17,15 @@ func (rc *Runc) Stop() error {
 func (rc *Runc) Remove() error {
 	return nil
 }
+
+func (rc *Runc) Pause() error {
+	return nil
+}
+
+func (rc *Runc) Unpause() error {
+	return nil
+}
+
+func (rc *Runc) Restart() error {
+	return nil
+}

@@ -132,10 +132,15 @@ func ContainerMenu() MenuFn {
 
 	if c.Meta["state"] == "running" {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
+		items = append(items, menu.Item{Val: "pause", Label: "pause"})
+		items = append(items, menu.Item{Val: "restart", Label: "restart"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "start"})
 		items = append(items, menu.Item{Val: "remove", Label: "remove"})
+	}
+	if c.Meta["state"] == "paused" {
+		items = append(items, menu.Item{Val: "unpause", Label: "unpause"})
 	}
 	items = append(items, menu.Item{Val: "cancel", Label: "cancel"})
 
@@ -157,6 +162,12 @@ func ContainerMenu() MenuFn {
 			nextMenu = Confirm(confirmTxt("stop", c.GetMeta("name")), c.Stop)
 		case "remove":
 			nextMenu = Confirm(confirmTxt("remove", c.GetMeta("name")), c.Remove)
+		case "pause":
+			nextMenu = Confirm(confirmTxt("pause", c.GetMeta("name")), c.Pause)
+		case "unpause":
+			nextMenu = Confirm(confirmTxt("unpause", c.GetMeta("name")), c.Unpause)
+		case "restart":
+			nextMenu = Confirm(confirmTxt("restart", c.GetMeta("name")), c.Restart)
 		}
 		ui.StopLoop()
 	})
