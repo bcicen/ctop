@@ -17,3 +17,15 @@ func (m *Mock) Stop() error {
 func (m *Mock) Remove() error {
 	return nil
 }
+
+func (m *Mock) Pause() error {
+	return nil
+}
+
+func (m *Mock) Unpause() error {
+	return nil
+}
+
+func (m *Mock) Restart() error {
+	return nil
+}
