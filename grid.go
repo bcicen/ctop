@@ -104,6 +104,14 @@ func Display() bool {
 		menu = ContainerMenu
 		ui.StopLoop()
 	})
+	ui.Handle("/sys/kbd/<left>", func(ui.Event) {
+		menu = LogMenu
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/<right>", func(ui.Event) {
+		menu = SingleView
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/l", func(ui.Event) {
 		menu = LogMenu
 		ui.StopLoop()
