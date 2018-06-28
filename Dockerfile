@@ -12,5 +12,6 @@ RUN make build && \
     mv -v ctop /go/bin/
 
 FROM scratch
+ENV TERM=linux
 COPY --from=0 /go/bin/ctop /ctop
 ENTRYPOINT ["/ctop"]
