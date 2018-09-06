@@ -80,6 +80,17 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 	return strings.Join(append(exposed, published...), "\n")
 }
 
+func ipsFormat(networks map[string]api.ContainerNetwork) string {
+	var ips []string
+
+	for k, v := range networks {
+		s := fmt.Sprintf("%s:%s", k, v.IPAddress)
+		ips = append(ips, s)
+	}
+
+	return strings.Join(ips, "\n")
+}
+
 func (cm *Docker) refresh(c *container.Container) {
 	insp := cm.inspect(c.Id)
 	// remove container if no longer exists
@@ -89,6 +100,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	}
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
+	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetMeta("health", insp.State.Health.Status)

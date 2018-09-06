@@ -6,7 +6,7 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var displayInfo = []string{"id", "name", "image", "ports", "state", "created", "health"}
+var displayInfo = []string{"id", "name", "image", "ports", "IPs", "state", "created", "health"}
 
 type Info struct {
 	*ui.Table
@@ -45,7 +45,7 @@ func mkInfoRows(k, v string) (rows [][]string) {
 	// initial row with field name
 	rows = append(rows, []string{k, lines[0]})
 
-	// append any additional lines in seperate row
+	// append any additional lines in separate row
 	if len(lines) > 1 {
 		for _, line := range lines[1:] {
 			if line != "" {
