@@ -5,17 +5,22 @@ var switches = []*Switch{
 	&Switch{
 		Key:   "sortReversed",
 		Val:   false,
-		Label: "Reverse Sort Order",
+		Label: "Reverse sort order",
 	},
 	&Switch{
 		Key:   "allContainers",
 		Val:   true,
-		Label: "Show All Containers",
+		Label: "Show all containers",
+	},
+	&Switch{
+		Key:   "fullRowCursor",
+		Val:   true,
+		Label: "Highlight entire cursor row (vs. name only)",
 	},
 	&Switch{
 		Key:   "enableHeader",
 		Val:   true,
-		Label: "Enable Status Header",
+		Label: "Enable status header",
 	},
 	&Switch{
 		Key:   "scaleCpu",

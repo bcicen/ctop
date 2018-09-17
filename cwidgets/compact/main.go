@@ -1,6 +1,7 @@
 package compact
 
 import (
+	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/logging"
 	"github.com/bcicen/ctop/models"
 	ui "github.com/gizak/termui"
@@ -153,25 +154,29 @@ func (row *Compact) all() []ui.GridBufferer {
 }
 
 func (row *Compact) Highlight() {
-	row.Bg.Highlight()
 	row.Name.Highlight()
-	row.Cid.Highlight()
-	row.Cpu.Highlight()
-	row.Mem.Highlight()
-	row.Net.Highlight()
-	row.IO.Highlight()
-	row.Pids.Highlight()
+	if config.GetSwitchVal("fullRowCursor") {
+		row.Bg.Highlight()
+		row.Cid.Highlight()
+		row.Cpu.Highlight()
+		row.Mem.Highlight()
+		row.Net.Highlight()
+		row.IO.Highlight()
+		row.Pids.Highlight()
+	}
 }
 
 func (row *Compact) UnHighlight() {
-	row.Bg.UnHighlight()
 	row.Name.UnHighlight()
-	row.Cid.UnHighlight()
-	row.Cpu.UnHighlight()
-	row.Mem.UnHighlight()
-	row.Net.UnHighlight()
-	row.IO.UnHighlight()
-	row.Pids.UnHighlight()
+	if config.GetSwitchVal("fullRowCursor") {
+		row.Bg.UnHighlight()
+		row.Cid.UnHighlight()
+		row.Cpu.UnHighlight()
+		row.Mem.UnHighlight()
+		row.Net.UnHighlight()
+		row.IO.UnHighlight()
+		row.Pids.UnHighlight()
+	}
 }
 
 type RowBg struct {
