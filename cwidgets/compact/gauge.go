@@ -23,6 +23,16 @@ func (w *GaugeCol) Reset() {
 	w.Percent = 0
 }
 
+func (w *GaugeCol) Highlight() {
+	w.Bg = ui.ThemeAttr("par.text.fg")
+	w.PercentColor = ui.ThemeAttr("par.text.hi")
+}
+
+func (w *GaugeCol) UnHighlight() {
+	w.Bg = ui.ThemeAttr("par.text.bg")
+	w.PercentColor = ui.ThemeAttr("par.text.bg")
+}
+
 func colorScale(n int) ui.Attribute {
 	if n > 70 {
 		return ui.ThemeAttr("status.danger")

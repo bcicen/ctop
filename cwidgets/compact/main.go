@@ -17,6 +17,7 @@ type Compact struct {
 	Net    *TextCol
 	IO     *TextCol
 	Pids   *TextCol
+	Bg     *RowBg
 	X, Y   int
 	Width  int
 	Height int
@@ -36,6 +37,7 @@ func NewCompact(id string) *Compact {
 		Net:    NewTextCol("-"),
 		IO:     NewTextCol("-"),
 		Pids:   NewTextCol("-"),
+		Bg:     NewRowBg(),
 		X:      1,
 		Height: 1,
 	}
@@ -90,6 +92,8 @@ func (row *Compact) SetY(y int) {
 	if y == row.Y {
 		return
 	}
+
+	row.Bg.Y = y
 	for _, col := range row.all() {
 		col.SetY(y)
 	}
@@ -101,6 +105,10 @@ func (row *Compact) SetWidth(width int) {
 		return
 	}
 	x := row.X
+
+	row.Bg.SetX(x + colWidths[0] + 1)
+	row.Bg.SetWidth(width)
+
 	autoWidth := calcWidth(width)
 	for n, col := range row.all() {
 		if colWidths[n] != 0 {
@@ -119,6 +127,7 @@ func (row *Compact) SetWidth(width int) {
 func (row *Compact) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
 
+	buf.Merge(row.Bg.Buffer())
 	buf.Merge(row.Status.Buffer())
 	buf.Merge(row.Name.Buffer())
 	buf.Merge(row.Cid.Buffer())
@@ -142,3 +151,40 @@ func (row *Compact) all() []ui.GridBufferer {
 		row.Pids,
 	}
 }
+
+func (row *Compact) Highlight() {
+	row.Bg.Highlight()
+	row.Name.Highlight()
+	row.Cid.Highlight()
+	row.Cpu.Highlight()
+	row.Mem.Highlight()
+	row.Net.Highlight()
+	row.IO.Highlight()
+	row.Pids.Highlight()
+}
+
+func (row *Compact) UnHighlight() {
+	row.Bg.UnHighlight()
+	row.Name.UnHighlight()
+	row.Cid.UnHighlight()
+	row.Cpu.UnHighlight()
+	row.Mem.UnHighlight()
+	row.Net.UnHighlight()
+	row.IO.UnHighlight()
+	row.Pids.UnHighlight()
+}
+
+type RowBg struct {
+	*ui.Par
+}
+
+func NewRowBg() *RowBg {
+	bg := ui.NewPar("")
+	bg.Height = 1
+	bg.Border = false
+	bg.Bg = ui.ThemeAttr("par.text.bg")
+	return &RowBg{bg}
+}
+
+func (w *RowBg) Highlight()   { w.Bg = ui.ThemeAttr("par.text.fg") }
+func (w *RowBg) UnHighlight() { w.Bg = ui.ThemeAttr("par.text.bg") }

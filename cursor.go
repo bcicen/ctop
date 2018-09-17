@@ -57,11 +57,11 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
 	for _, c := range gc.cSource.All() {
-		c.Widgets.Name.UnHighlight()
+		c.Widgets.UnHighlight()
 	}
 	if gc.Len() > 0 {
 		gc.selectedID = gc.filtered[0].Id
-		gc.filtered[0].Widgets.Name.Highlight()
+		gc.filtered[0].Widgets.Highlight()
 	}
 }
 
@@ -109,9 +109,9 @@ func (gc *GridCursor) Up() {
 	active := gc.filtered[idx]
 	next := gc.filtered[idx-1]
 
-	active.Widgets.Name.UnHighlight()
+	active.Widgets.UnHighlight()
 	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	next.Widgets.Highlight()
 
 	gc.ScrollPage()
 	ui.Render(cGrid)
@@ -128,9 +128,9 @@ func (gc *GridCursor) Down() {
 	active := gc.filtered[idx]
 	next := gc.filtered[idx+1]
 
-	active.Widgets.Name.UnHighlight()
+	active.Widgets.UnHighlight()
 	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	next.Widgets.Highlight()
 
 	gc.ScrollPage()
 	ui.Render(cGrid)
@@ -151,9 +151,9 @@ func (gc *GridCursor) PgUp() {
 	active := gc.filtered[idx]
 	next := gc.filtered[nextidx]
 
-	active.Widgets.Name.UnHighlight()
+	active.Widgets.UnHighlight()
 	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	next.Widgets.Highlight()
 
 	cGrid.Align()
 	ui.Render(cGrid)
@@ -174,9 +174,9 @@ func (gc *GridCursor) PgDown() {
 	active := gc.filtered[idx]
 	next := gc.filtered[nextidx]
 
-	active.Widgets.Name.UnHighlight()
+	active.Widgets.UnHighlight()
 	gc.selectedID = next.Id
-	next.Widgets.Name.Highlight()
+	next.Widgets.Highlight()
 
 	cGrid.Align()
 	ui.Render(cGrid)

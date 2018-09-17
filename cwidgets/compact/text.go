@@ -17,11 +17,13 @@ func NewTextCol(s string) *TextCol {
 }
 
 func (w *TextCol) Highlight() {
+	w.Bg = ui.ThemeAttr("par.text.fg")
 	w.TextFgColor = ui.ThemeAttr("par.text.hi")
 	w.TextBgColor = ui.ThemeAttr("par.text.fg")
 }
 
 func (w *TextCol) UnHighlight() {
+	w.Bg = ui.ThemeAttr("par.text.bg")
 	w.TextFgColor = ui.ThemeAttr("par.text.fg")
 	w.TextBgColor = ui.ThemeAttr("par.text.bg")
 }
