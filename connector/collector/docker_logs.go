@@ -37,7 +37,7 @@ func (l *DockerLogs) Stream() chan models.Log {
 		ErrorStream:  w,
 		Stdout:       true,
 		Stderr:       true,
-		Tail:         "10",
+		Tail:         "100",
 		Follow:       true,
 		Timestamps:   true,
 	}

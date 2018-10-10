@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"time"
 
 	"github.com/bcicen/ctop/config"
@@ -134,6 +136,7 @@ func ContainerMenu() MenuFn {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 		items = append(items, menu.Item{Val: "pause", Label: "pause"})
 		items = append(items, menu.Item{Val: "restart", Label: "restart"})
+		items = append(items, menu.Item{Val: "exec sh", Label: "exec sh"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "start"})
@@ -156,6 +159,8 @@ func ContainerMenu() MenuFn {
 			nextMenu = SingleView
 		case "logs":
 			nextMenu = LogMenu
+		case "exec sh":
+			nextMenu = ExecSh
 		case "start":
 			nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 		case "stop":
@@ -204,6 +209,24 @@ func LogMenu() MenuFn {
 		ui.StopLoop()
 	})
 	ui.Loop()
+	return nil
+}
+
+func ExecSh() MenuFn {
+	c := cursor.Selected()
+
+	if c == nil {
+		return nil
+	}
+
+	// Reset colors && clear screen && run sh
+	cmdName := fmt.Sprintf("echo '\033[0m' && clear && docker exec -it %s sh", c.GetMeta("name"))
+	cmd := exec.Command("bash", "-c", cmdName)
+	cmd.Stdout = os.Stdout
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Run()
+
 	return nil
 }
 
