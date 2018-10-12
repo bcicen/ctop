@@ -27,6 +27,7 @@ var helpDialog = []menu.Item{
 	{"[r] - reverse container sort order", ""},
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
+	{"[e] - exec sh", ""},
 	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
 }
@@ -218,6 +219,11 @@ func ExecSh() MenuFn {
 	if c == nil {
 		return nil
 	}
+
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+	ui.StopLoop()
+	defer ui.Loop()
 
 	// Reset colors && clear screen && run sh
 	cmdName := fmt.Sprintf("echo '\033[0m' && clear && docker exec -it %s sh", c.GetMeta("name"))

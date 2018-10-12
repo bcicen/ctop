@@ -116,6 +116,10 @@ func Display() bool {
 		menu = LogMenu
 		ui.StopLoop()
 	})
+	ui.Handle("/sys/kbd/e", func(ui.Event) {
+		menu = ExecSh
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/o", func(ui.Event) {
 		menu = SingleView
 		ui.StopLoop()
