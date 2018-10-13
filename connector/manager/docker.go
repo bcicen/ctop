@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	api "github.com/fsouza/go-dockerclient"
+	"os"
 )
 
 type Docker struct {
@@ -15,6 +16,28 @@ func NewDocker(client *api.Client, id string) *Docker {
 		id:     id,
 		client: client,
 	}
+}
+
+func (dc *Docker) Exec(cmd []string) error {
+	execCmd, err := dc.client.CreateExec(api.CreateExecOptions{
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Cmd:          cmd,
+		Container:    dc.id,
+		Tty:          true,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return dc.client.StartExec(execCmd.ID, api.StartExecOptions{
+		InputStream:  os.Stdin,
+		OutputStream: os.Stdout,
+		ErrorStream:  os.Stderr,
+		RawTerminal:  true,
+	})
 }
 
 func (dc *Docker) Start() error {

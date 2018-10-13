@@ -3,7 +3,10 @@
 
 [[projects]]
   name = "github.com/Azure/go-ansiterm"
-  packages = [".","winterm"]
+  packages = [
+    ".",
+    "winterm"
+  ]
   revision = "fa152c58bc15761d0200cb75fe958b89a9d4888e"
 
 [[projects]]
@@ -36,13 +39,44 @@
 
 [[projects]]
   name = "github.com/coreos/go-systemd"
-  packages = ["dbus","util"]
+  packages = [
+    "dbus",
+    "util"
+  ]
   revision = "b4a58d95188dd092ae20072bac14cece0e67c388"
   version = "v4"
 
 [[projects]]
   name = "github.com/docker/docker"
-  packages = ["api/types","api/types/blkiodev","api/types/container","api/types/filters","api/types/mount","api/types/network","api/types/registry","api/types/strslice","api/types/swarm","api/types/versions","opts","pkg/archive","pkg/fileutils","pkg/homedir","pkg/idtools","pkg/ioutils","pkg/jsonlog","pkg/jsonmessage","pkg/longpath","pkg/mount","pkg/pools","pkg/promise","pkg/stdcopy","pkg/symlink","pkg/system","pkg/term","pkg/term/windows"]
+  packages = [
+    "api/types",
+    "api/types/blkiodev",
+    "api/types/container",
+    "api/types/filters",
+    "api/types/mount",
+    "api/types/network",
+    "api/types/registry",
+    "api/types/strslice",
+    "api/types/swarm",
+    "api/types/versions",
+    "opts",
+    "pkg/archive",
+    "pkg/fileutils",
+    "pkg/homedir",
+    "pkg/idtools",
+    "pkg/ioutils",
+    "pkg/jsonlog",
+    "pkg/jsonmessage",
+    "pkg/longpath",
+    "pkg/mount",
+    "pkg/pools",
+    "pkg/promise",
+    "pkg/stdcopy",
+    "pkg/symlink",
+    "pkg/system",
+    "pkg/term",
+    "pkg/term/windows"
+  ]
   revision = "90d35abf7b3535c1c319c872900fbd76374e521c"
   version = "v17.05.0-ce-rc3"
 
@@ -128,7 +162,24 @@
 
 [[projects]]
   name = "github.com/opencontainers/runc"
-  packages = ["libcontainer","libcontainer/apparmor","libcontainer/cgroups","libcontainer/cgroups/fs","libcontainer/cgroups/systemd","libcontainer/configs","libcontainer/configs/validate","libcontainer/criurpc","libcontainer/keys","libcontainer/label","libcontainer/seccomp","libcontainer/selinux","libcontainer/stacktrace","libcontainer/system","libcontainer/user","libcontainer/utils"]
+  packages = [
+    "libcontainer",
+    "libcontainer/apparmor",
+    "libcontainer/cgroups",
+    "libcontainer/cgroups/fs",
+    "libcontainer/cgroups/systemd",
+    "libcontainer/configs",
+    "libcontainer/configs/validate",
+    "libcontainer/criurpc",
+    "libcontainer/keys",
+    "libcontainer/label",
+    "libcontainer/seccomp",
+    "libcontainer/selinux",
+    "libcontainer/stacktrace",
+    "libcontainer/system",
+    "libcontainer/user",
+    "libcontainer/utils"
+  ]
   revision = "baf6536d6259209c3edfa2b22237af82942d3dfa"
   version = "v0.1.1"
 
@@ -144,22 +195,31 @@
 
 [[projects]]
   name = "github.com/vishvananda/netlink"
-  packages = [".","nl"]
+  packages = [
+    ".",
+    "nl"
+  ]
   revision = "1e2e08e8a2dcdacaae3f14ac44c5cfa31361f270"
 
 [[projects]]
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp"]
+  packages = [
+    "context",
+    "context/ctxhttp"
+  ]
   revision = "a6577fac2d73be281a500b310739095313165611"
 
 [[projects]]
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
+  packages = [
+    "unix",
+    "windows"
+  ]
   revision = "99f16d856c9836c42d24e7ab64ea72916925fa97"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a21d4c707f08f26de894adbdd00d5d6e82a54f5e0f52566229dd2da9b94e26ec"
+  inputs-digest = "f46f5c696ecb0b0c42a38dac512df21fc1f5fb2bfda888434e005e69d1b6273b"
   solver-name = "gps-cdcl"
   solver-version = 1

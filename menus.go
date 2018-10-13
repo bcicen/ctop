@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"time"
 
 	"github.com/bcicen/ctop/config"
@@ -225,13 +223,7 @@ func ExecSh() MenuFn {
 	ui.StopLoop()
 	defer ui.Loop()
 
-	// Reset colors && clear screen && run sh
-	cmdName := fmt.Sprintf("echo '\033[0m' && clear && docker exec -it %s sh", c.GetMeta("name"))
-	cmd := exec.Command("bash", "-c", cmdName)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	c.Exec([]string{"sh", "-c", "echo '\033[0m' && clear && sh"})
 
 	return nil
 }
