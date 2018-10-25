@@ -62,10 +62,8 @@ func (l *DockerLogs) Stream() chan models.Log {
 	}()
 
 	go func() {
-		select {
-		case <-l.done:
-			cancel()
-		}
+		<-l.done
+		cancel()
 	}()
 
 	log.Infof("log reader started for container: %s", l.id)
