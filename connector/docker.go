@@ -113,7 +113,7 @@ func (cm *Docker) refresh(c *container.Container) {
 func (cm *Docker) inspect(id string) *api.Container {
 	c, err := cm.client.InspectContainer(id)
 	if err != nil {
-		if _, ok := err.(*api.NoSuchContainer); ok == false {
+		if _, ok := err.(*api.NoSuchContainer); !ok {
 			log.Errorf(err.Error())
 		}
 	}
