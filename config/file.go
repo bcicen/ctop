@@ -13,13 +13,13 @@ var (
 	xdgRe = regexp.MustCompile("^XDG_*")
 )
 
-type ConfigFile struct {
+type File struct {
 	Options map[string]string `toml:"options"`
 	Toggles map[string]bool   `toml:"toggles"`
 }
 
-func exportConfig() ConfigFile {
-	c := ConfigFile{
+func exportConfig() File {
+	c := File{
 		Options: make(map[string]string),
 		Toggles: make(map[string]bool),
 	}
@@ -33,7 +33,7 @@ func exportConfig() ConfigFile {
 }
 
 func Read() error {
-	var config ConfigFile
+	var config File
 
 	path, err := getConfigPath()
 	if err != nil {
