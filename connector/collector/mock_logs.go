@@ -20,7 +20,7 @@ func (l *MockLogs) Stream() chan models.Log {
 			case <-l.done:
 				break
 			default:
-				logCh <- models.Log{time.Now(), mockLog}
+				logCh <- models.Log{Timestamp: time.Now(), Message: mockLog}
 				time.Sleep(250 * time.Millisecond)
 			}
 		}
