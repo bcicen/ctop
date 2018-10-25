@@ -117,7 +117,7 @@ func Display() bool {
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/e", func(ui.Event) {
-		menu = ExecSh
+		menu = ExecShell
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/o", func(ui.Event) {

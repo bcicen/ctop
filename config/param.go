@@ -12,6 +12,11 @@ var params = []*Param{
 		Val:   "state",
 		Label: "Container Sort Field",
 	},
+	&Param{
+		Key:   "shell",
+		Val:   "sh",
+		Label: "Shell",
+	},
 }
 
 type Param struct {

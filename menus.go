@@ -25,7 +25,7 @@ var helpDialog = []menu.Item{
 	{"[r] - reverse container sort order", ""},
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
-	{"[e] - exec sh", ""},
+	{"[e] - exec shell", ""},
 	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
 }
@@ -135,7 +135,7 @@ func ContainerMenu() MenuFn {
 		items = append(items, menu.Item{Val: "stop", Label: "stop"})
 		items = append(items, menu.Item{Val: "pause", Label: "pause"})
 		items = append(items, menu.Item{Val: "restart", Label: "restart"})
-		items = append(items, menu.Item{Val: "exec sh", Label: "exec sh"})
+		items = append(items, menu.Item{Val: "exec shell", Label: "exec shell"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "start"})
@@ -158,8 +158,8 @@ func ContainerMenu() MenuFn {
 			nextMenu = SingleView
 		case "logs":
 			nextMenu = LogMenu
-		case "exec sh":
-			nextMenu = ExecSh
+		case "exec shell":
+			nextMenu = ExecShell
 		case "start":
 			nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 		case "stop":
@@ -211,7 +211,7 @@ func LogMenu() MenuFn {
 	return nil
 }
 
-func ExecSh() MenuFn {
+func ExecShell() MenuFn {
 	c := cursor.Selected()
 
 	if c == nil {
@@ -223,7 +223,10 @@ func ExecSh() MenuFn {
 	ui.StopLoop()
 	defer ui.Loop()
 
-	c.Exec([]string{"sh", "-c", "echo '\033[0m' && clear && sh"})
+	shell := config.Get("shell")
+	if err := c.Exec([]string{shell.Val, "-c", "echo '\033[0m' && clear && " + shell.Val}); err != nil {
+		log.Fatal(err)
+	}
 
 	return nil
 }
