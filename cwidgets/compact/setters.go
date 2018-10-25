@@ -19,7 +19,7 @@ func (row *Compact) SetIO(read int64, write int64) {
 }
 
 func (row *Compact) SetPids(val int) {
-	label := fmt.Sprintf("%s", strconv.Itoa(val))
+	label := strconv.Itoa(val)
 	row.Pids.Set(label)
 }
 
