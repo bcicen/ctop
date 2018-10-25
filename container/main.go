@@ -13,6 +13,10 @@ var (
 	log = logging.Init()
 )
 
+const (
+	running = "running"
+)
+
 // Metrics and metadata representing a container
 type Container struct {
 	models.Metrics
@@ -60,12 +64,12 @@ func (c *Container) GetMeta(k string) string {
 func (c *Container) SetState(s string) {
 	c.SetMeta("state", s)
 	// start collector, if needed
-	if s == "running" && !c.collector.Running() {
+	if s == running && !c.collector.Running() {
 		c.collector.Start()
 		c.Read(c.collector.Stream())
 	}
 	// stop collector, if needed
-	if s != "running" && c.collector.Running() {
+	if s != running && c.collector.Running() {
 		c.collector.Stop()
 	}
 }
@@ -90,18 +94,18 @@ func (c *Container) Read(stream chan models.Metrics) {
 }
 
 func (c *Container) Start() {
-	if c.Meta["state"] != "running" {
+	if c.Meta["state"] != running {
 		if err := c.manager.Start(); err != nil {
 			log.Warningf("container %s: %v", c.Id, err)
 			log.StatusErr(err)
 			return
 		}
-		c.SetState("running")
+		c.SetState(running)
 	}
 }
 
 func (c *Container) Stop() {
-	if c.Meta["state"] == "running" {
+	if c.Meta["state"] == running {
 		if err := c.manager.Stop(); err != nil {
 			log.Warningf("container %s: %v", c.Id, err)
 			log.StatusErr(err)
@@ -119,7 +123,7 @@ func (c *Container) Remove() {
 }
 
 func (c *Container) Pause() {
-	if c.Meta["state"] == "running" {
+	if c.Meta["state"] == running {
 		if err := c.manager.Pause(); err != nil {
 			log.Warningf("container %s: %v", c.Id, err)
 			log.StatusErr(err)
@@ -136,12 +140,12 @@ func (c *Container) Unpause() {
 			log.StatusErr(err)
 			return
 		}
-		c.SetState("running")
+		c.SetState(running)
 	}
 }
 
 func (c *Container) Restart() {
-	if c.Meta["state"] == "running" {
+	if c.Meta["state"] == running {
 		if err := c.manager.Restart(); err != nil {
 			log.Warningf("container %s: %v", c.Id, err)
 			log.StatusErr(err)
