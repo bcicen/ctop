@@ -3,6 +3,7 @@ package manager
 import (
 	"fmt"
 	api "github.com/fsouza/go-dockerclient"
+	"io"
 	"os"
 )
 
@@ -16,6 +17,15 @@ func NewDocker(client *api.Client, id string) *Docker {
 		id:     id,
 		client: client,
 	}
+}
+
+// Do not allow to close reader (i.e. /dev/stdin which docker client tries to close after command execution)
+type noClosableReader struct {
+	wrappedReader io.Reader
+}
+
+func (w *noClosableReader) Read(p []byte) (n int, err error) {
+	return w.wrappedReader.Read(p)
 }
 
 func (dc *Docker) Exec(cmd []string) error {
@@ -33,7 +43,7 @@ func (dc *Docker) Exec(cmd []string) error {
 	}
 
 	return dc.client.StartExec(execCmd.ID, api.StartExecOptions{
-		InputStream:  os.Stdin,
+		InputStream:  &noClosableReader{os.Stdin},
 		OutputStream: os.Stdout,
 		ErrorStream:  os.Stderr,
 		RawTerminal:  true,
