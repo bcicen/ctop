@@ -48,7 +48,7 @@ func (l *DockerLogs) Stream() chan models.Log {
 		for scanner.Scan() {
 			parts := strings.Split(scanner.Text(), " ")
 			ts := l.parseTime(parts[0])
-			logCh <- models.Log{ts, strings.Join(parts[1:], " ")}
+			logCh <- models.Log{Timestamp: ts, Message: strings.Join(parts[1:], " ")}
 		}
 	}()
 
@@ -62,10 +62,8 @@ func (l *DockerLogs) Stream() chan models.Log {
 	}()
 
 	go func() {
-		select {
-		case <-l.done:
-			cancel()
-		}
+		<-l.done
+		cancel()
 	}()
 
 	log.Infof("log reader started for container: %s", l.id)

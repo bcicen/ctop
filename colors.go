@@ -52,7 +52,7 @@ var ColorMap = map[string]ui.Attribute{
 
 func InvertColorMap() {
 	re := regexp.MustCompile(".*.fg")
-	for k, _ := range ColorMap {
+	for k := range ColorMap {
 		if re.FindAllString(k, 1) != nil {
 			ColorMap[k] = ui.ColorBlack
 		}

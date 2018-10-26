@@ -4,6 +4,7 @@ package compact
 
 import (
 	"fmt"
+
 	ui "github.com/gizak/termui"
 )
 
@@ -28,7 +29,7 @@ func calcWidth(width int) int {
 	for _, w := range colWidths {
 		width -= w
 		if w == 0 {
-			staticCols += 1
+			staticCols++
 		}
 	}
 	return (width - spacing) / staticCols

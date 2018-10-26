@@ -105,7 +105,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetMeta("health", insp.State.Health.Status)
 	for _, env := range insp.Config.Env {
-		c.SetMeta("[ENV-VAR]", string(env))
+		c.SetMeta("[ENV-VAR]", env)
 	}
 	c.SetState(insp.State.Status)
 }
@@ -113,7 +113,7 @@ func (cm *Docker) refresh(c *container.Container) {
 func (cm *Docker) inspect(id string) *api.Container {
 	c, err := cm.client.InspectContainer(id)
 	if err != nil {
-		if _, ok := err.(*api.NoSuchContainer); ok == false {
+		if _, ok := err.(*api.NoSuchContainer); !ok {
 			log.Errorf(err.Error())
 		}
 	}

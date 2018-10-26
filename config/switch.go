@@ -61,7 +61,7 @@ func UpdateSwitch(k string, val bool) {
 // Toggle a boolean switch
 func Toggle(k string) {
 	sw := GetSwitch(k)
-	newVal := sw.Val != true
+	newVal := !sw.Val
 	log.Noticef("config change: %s: %t -> %t", k, sw.Val, newVal)
 	sw.Val = newVal
 	//log.Errorf("ignoring toggle for non-existant switch: %s", k)

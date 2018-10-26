@@ -2,6 +2,7 @@ package logging
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"sync"
 )
@@ -56,13 +57,13 @@ func StopServer() {
 	}
 }
 
-func handler(conn net.Conn) {
+func handler(wc io.WriteCloser) {
 	server.wg.Add(1)
 	defer server.wg.Done()
-	defer conn.Close()
+	defer wc.Close()
 	for msg := range Log.tail() {
 		msg = fmt.Sprintf("%s\n", msg)
-		conn.Write([]byte(msg))
+		wc.Write([]byte(msg))
 	}
-	conn.Write([]byte("bye\n"))
+	wc.Write([]byte("bye\n"))
 }
