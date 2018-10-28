@@ -67,11 +67,11 @@ func (s *Status) SetHealth(val string) {
 	color := ui.ColorDefault
 
 	switch val {
-	case "healthy":
+	case "healthy", "Succeeded":
 		color = ui.ThemeAttr("status.ok")
-	case "unhealthy":
+	case "unhealthy", "Failed", "Unknown":
 		color = ui.ThemeAttr("status.danger")
-	case "starting":
+	case "starting", "Pending", "Running":
 		color = ui.ThemeAttr("status.warn")
 	}
 

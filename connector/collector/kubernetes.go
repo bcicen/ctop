@@ -1,16 +1,21 @@
 package collector
 
 import (
+	"k8s.io/metrics/pkg/client/clientset_generated/clientset"
+
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
 	"k8s.io/client-go/kubernetes"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Kubernetes collector
 type Kubernetes struct {
 	models.Metrics
 	name       string
-	client     *kubernetes.Clientset
+	client     clientset.Interface
+	clientset  *kubernetes.Clientset
 	running    bool
 	stream     chan models.Metrics
 	done       chan bool
@@ -21,28 +26,33 @@ type Kubernetes struct {
 
 func NewKubernetes(client *kubernetes.Clientset, name string) *Kubernetes {
 	return &Kubernetes{
-		Metrics:  models.Metrics{},
-		name:     name,
-		client:   client,
-		scaleCpu: config.GetSwitchVal("scaleCpu"),
+		Metrics:   models.Metrics{},
+		name:      name,
+		client:    clientset.New(client.RESTClient()),
+		clientset: client,
+		scaleCpu:  config.GetSwitchVal("scaleCpu"),
 	}
 }
 
-func (c *Kubernetes) Start() {
-	//c.done = make(chan bool)
-	//c.stream = make(chan models.Metrics)
-	//stats := make(chan *api.Stats)
+func (k *Kubernetes) Start() {
+	k.done = make(chan bool)
+	k.stream = make(chan models.Metrics)
 
-	//go func() {
-	//	opts := api.StatsOptions{
-	//		ID:     c.id,
-	//		Stats:  stats,
-	//		Stream: true,
-	//		Done:   c.done,
-	//	}
-	//	c.client.Stats(opts)
-	//	c.running = false
-	//}()
+	go func() {
+		k.running = false
+		for {
+
+			cm, err := k.client.Metrics().PodMetricses("akozlenkov").List(metav1.ListOptions{})
+			if err != nil {
+				log.Errorf(">>>>>> %s here %s", k.name, err.Error())
+				continue
+			}
+			log.Debugf(">>>> %+v", cm)
+			//for _, m := range cm.Containers {
+			//	log.Debugf(">>>> %+v", m)
+			//}
+		}
+	}()
 
 	//go func() {
 	//	defer close(c.stream)
@@ -56,8 +66,8 @@ func (c *Kubernetes) Start() {
 	//	log.Infof("collector stopped for container: %s", c.id)
 	//}()
 
-	//c.running = true
-	//log.Infof("collector started for container: %s", c.id)
+	k.running = true
+	log.Infof("collector started for container: %s", k.name)
 }
 
 func (c *Kubernetes) Running() bool {
@@ -69,7 +79,7 @@ func (c *Kubernetes) Stream() chan models.Metrics {
 }
 
 func (c *Kubernetes) Logs() LogCollector {
-	return NewKubernetesLogs(c.name, c.client)
+	return NewKubernetesLogs(c.name, c.clientset)
 }
 
 // Stop collector

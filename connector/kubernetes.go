@@ -1,9 +1,12 @@
 package connector
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
@@ -59,42 +62,46 @@ func NewKubernetes() Connector {
 	}
 	go k.Loop()
 	k.refreshAll()
+	go k.watchEvents()
 	return k
 }
 
+func (k *Kubernetes) watchEvents() {
+	for {
+		log.Info("kubernetes event listener starting")
+		allEvents, err := k.clientset.CoreV1().Events(namespace).List(metav1.ListOptions{})
+		if err != nil {
+			log.Error(err.Error())
+			return
+		}
+
+		for _, e := range allEvents.Items {
+			if e.Kind != "pod" {
+				continue
+			}
+
+			actionName := strings.Split(e.Action, ":")[0]
+
+			switch actionName {
+			case "start", "die", "pause", "unpause", "health_status":
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.UID)
+				k.needsRefresh <- e.Name
+			case "destroy":
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.UID)
+				k.delByID(e.Name)
+			default:
+				log.Debugf("handling docker event: %v", e)
+				k.needsRefresh <- e.Name
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
 func (k *Kubernetes) Loop() {
 	for id := range k.needsRefresh {
 		c := k.MustGet(id)
 		k.refresh(c)
 	}
-	//log.Debug(">>>>>>1")
-	//for {
-	//	log.Debug(">>>>>>2")
-	//	pods, err := k.clientset.CoreV1().Pods("").List(metav1.ListOptions{})
-	//	if err != nil {
-	//		panic(err.Error())
-	//	}
-	//	log.Debugf("There are %d pods in the cluster\n", len(pods.Items))
-
-	//	// Examples for error handling:
-	//	// - Use helper functions like e.g. errors.IsNotFound()
-	//	// - And/or cast to StatusError and use its properties like e.g. ErrStatus.Message
-	//	namespace := "akozlenkov"
-	//	pod := "example-xxxxx"
-	//	_, err = k.clientset.CoreV1().Pods(namespace).Get(pod, metav1.GetOptions{})
-	//	if errors.IsNotFound(err) {
-	//		log.Debugf("Pod %s in namespace %s not found\n", pod, namespace)
-	//	} else if statusError, isStatus := err.(*errors.StatusError); isStatus {
-	//		log.Debugf("Error getting pod %s in namespace %s: %v\n",
-	//			pod, namespace, statusError.ErrStatus.Message)
-	//	} else if err != nil {
-	//		panic(err.Error())
-	//	} else {
-	//		log.Debugf("Found pod %s in namespace %s\n", pod, namespace)
-	//	}
-
-	//	time.Sleep(10 * time.Second)
-	//}
 }
 
 // Get a single container, creating one anew if not existing
@@ -123,13 +130,25 @@ func (k *Kubernetes) refresh(c *container.Container) {
 		return
 	}
 	c.SetMeta("name", insp.Name)
-	c.SetMeta("image", "stub")
-	c.SetMeta("IPs", "stub")
-	c.SetMeta("ports", "stub")
-	c.SetMeta("created", "stub")
-	c.SetMeta("health", "stub")
-	c.SetMeta("[ENV-VAR]", "stub")
-	c.SetState("stub")
+	if len(insp.Spec.Containers) >= 1 {
+		c.SetMeta("image", insp.Spec.Containers[0].Image)
+		c.SetMeta("ports", k8sPort(insp.Spec.Containers[0].Ports))
+		for _, env := range insp.Spec.Containers[0].Env {
+			c.SetMeta("[ENV-VAR]", env.Name+"="+env.Value)
+		}
+	}
+	c.SetMeta("IPs", insp.Status.PodIP)
+	c.SetMeta("created", insp.CreationTimestamp.Format("Mon Jan 2 15:04:05 2006"))
+	c.SetMeta("health", string(insp.Status.Phase))
+	c.SetState("running")
+}
+
+func k8sPort(ports []v1.ContainerPort) string {
+	str := []string{}
+	for _, p := range ports {
+		str = append(str, fmt.Sprintf("%s:%d -> %d", p.HostIP, p.HostPort, p.ContainerPort))
+	}
+	return strings.Join(str, "\n")
 }
 
 func (k *Kubernetes) inspect(id string) *v1.Pod {
@@ -167,9 +186,12 @@ func (k *Kubernetes) refreshAll() {
 
 	for _, pod := range allPods.Items {
 		c := k.MustGet(pod.Name)
+		c.SetMeta("uid", string(pod.UID))
 		c.SetMeta("name", pod.Name)
 		if pod.Initializers != nil && pod.Initializers.Result != nil {
 			c.SetState(pod.Initializers.Result.Status)
+		} else {
+			c.SetState(string(pod.Status.Phase))
 		}
 		k.needsRefresh <- c.Id
 	}
