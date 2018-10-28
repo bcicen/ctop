@@ -220,8 +220,6 @@ func ExecShell() MenuFn {
 
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
-	ui.StopLoop()
-	defer ui.Loop()
 
 	shell := config.Get("shell")
 	if err := c.Exec([]string{shell.Val, "-c", "echo '\033[0m' && clear && " + shell.Val}); err != nil {
