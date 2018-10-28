@@ -53,3 +53,9 @@
 [[constraint]]
   name = "github.com/kubernetes/client-go"
   version = "9.0.0"
+
+[[constraint]]
+  name = "github.com/kubernetes/metrics"
+
+[[constraint]]
+  name = "github.com/kubernetes-incubator/metrics-server"

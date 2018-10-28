@@ -36,7 +36,7 @@ func main() {
 
 	// parse command line arguments
 	var (
-		versionFlag     = flag.Bool("V", false, "output version information and exit")
+		versionFlag     = flag.Bool("version", false, "output version information and exit")
 		helpFlag        = flag.Bool("h", false, "display this help dialog")
 		filterFlag      = flag.String("f", "", "filter containers")
 		activeOnlyFlag  = flag.Bool("a", false, "show active containers only")
