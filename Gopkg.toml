@@ -49,3 +49,7 @@
 [[constraint]]
   name = "github.com/Microsoft/go-winio"
   version = "0.3.8"
+
+[[constraint]]
+  name = "github.com/kubernetes/client-go"
+  version = "9.0.0"
