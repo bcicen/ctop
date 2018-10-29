@@ -12,6 +12,11 @@ var params = []*Param{
 		Val:   "state",
 		Label: "Container Sort Field",
 	},
+	&Param{
+		Key:   "namespace",
+		Val:   "state",
+		Label: "Kubernetes namespace for monitoring",
+	},
 }
 
 type Param struct {

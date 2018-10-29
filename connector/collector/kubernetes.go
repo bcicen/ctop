@@ -1,13 +1,16 @@
 package collector
 
 import (
+	"time"
+
+	"k8s.io/metrics/pkg/apis/metrics/v1alpha1"
 	"k8s.io/metrics/pkg/client/clientset_generated/clientset"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/api/core/v1"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 // Kubernetes collector
@@ -42,29 +45,19 @@ func (k *Kubernetes) Start() {
 		k.running = false
 		for {
 
-			cm, err := k.client.Metrics().PodMetricses("akozlenkov").List(metav1.ListOptions{})
+			result := &v1alpha1.PodMetrics{}
+			err := k.clientset.RESTClient().Get().AbsPath("/api/v1/namespaces/kube-system/services/http:heapster:/proxy/apis/metrics/v1alpha1/namespaces/" + config.GetVal("namespace") + "/pods/" + k.name).Do().Into(result)
+
 			if err != nil {
-				log.Errorf(">>>>>> %s here %s", k.name, err.Error())
+				log.Errorf("has error %s here %s", k.name, err.Error())
+				time.Sleep(1 * time.Second)
 				continue
 			}
-			log.Debugf(">>>> %+v", cm)
-			//for _, m := range cm.Containers {
-			//	log.Debugf(">>>> %+v", m)
-			//}
+			k.ReadCPU(result)
+			k.ReadMem(result)
+			k.stream <- k.Metrics
 		}
 	}()
-
-	//go func() {
-	//	defer close(c.stream)
-	//	for s := range stats {
-	//		c.ReadCPU(s)
-	//		c.ReadMem(s)
-	//		c.ReadNet(s)
-	//		c.ReadIO(s)
-	//		c.stream <- c.Metrics
-	//	}
-	//	log.Infof("collector stopped for container: %s", c.id)
-	//}()
 
 	k.running = true
 	log.Infof("collector started for container: %s", k.name)
@@ -87,30 +80,30 @@ func (c *Kubernetes) Stop() {
 	c.done <- true
 }
 
-//
-//func (c *Kubernetes) ReadCPU(stats *api.Stats) {
-//	ncpus := float64(len(stats.CPUStats.CPUUsage.PercpuUsage))
-//	total := float64(stats.CPUStats.CPUUsage.TotalUsage)
-//	system := float64(stats.CPUStats.SystemCPUUsage)
-//
-//	cpudiff := total - c.lastCpu
-//	syscpudiff := system - c.lastSysCpu
-//
-//	if c.scaleCpu {
-//		c.CPUUtil = round((cpudiff / syscpudiff * 100))
-//	} else {
-//		c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
-//	}
-//	c.lastCpu = total
-//	c.lastSysCpu = system
-//	c.Pids = int(stats.PidsStats.Current)
-//}
+func (k *Kubernetes) ReadCPU(metrics *v1alpha1.PodMetrics) {
+	all := int64(0)
+	for _, c := range metrics.Containers {
+		v := c.Usage[v1.ResourceCPU]
+		all += v.Value()
+	}
+	if all != 0 {
+		k.CPUUtil = round(float64(all))
+	}
+}
 
-//func (c *Kubernetes) ReadMem(stats *api.Stats) {
-//	c.MemUsage = int64(stats.MemoryStats.Usage - stats.MemoryStats.Stats.Cache)
-//	c.MemLimit = int64(stats.MemoryStats.Limit)
-//	c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
-//}
+func (k *Kubernetes) ReadMem(metrics *v1alpha1.PodMetrics) {
+	all := int64(0)
+	for _, c := range metrics.Containers {
+		v := c.Usage[v1.ResourceMemory]
+		a, ok := v.AsInt64()
+		if ok {
+			all += a
+		}
+	}
+	k.MemUsage = all
+	k.MemLimit = int64(0)
+	//k.MemPercent = percent(float64(k.MemUsage), float64(k.MemLimit))
+}
 
 //func (c *Kubernetes) ReadNet(stats *api.Stats) {
 //	var rx, tx int64
