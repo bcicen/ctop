@@ -45,6 +45,7 @@ func main() {
 		invertFlag      = flag.Bool("i", false, "invert default colors")
 		scaleCpu        = flag.Bool("scale-cpu", false, "show cpu as % of system total")
 		connectorFlag   = flag.String("connector", "docker", "container connector to use")
+		namespace       = flag.String("n", "default", "container connector to use")
 	)
 	flag.Parse()
 
@@ -91,6 +92,7 @@ func main() {
 	if *invertFlag {
 		InvertColorMap()
 	}
+	config.Update("namespace", *namespace)
 	ui.ColorMap = ColorMap // override default colormap
 	if err := ui.Init(); err != nil {
 		panic(err)

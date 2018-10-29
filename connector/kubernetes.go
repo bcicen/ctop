@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	bcfg "github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/container"
@@ -20,9 +21,8 @@ import (
 
 func init() { enabled["kubernetes"] = NewKubernetes }
 
-var namespace = "akozlenkov"
-
 type Kubernetes struct {
+	namespace    string
 	clientset    *kubernetes.Clientset
 	containers   map[string]*container.Container
 	needsRefresh chan string // container IDs requiring refresh
@@ -59,6 +59,7 @@ func NewKubernetes() Connector {
 		containers:   make(map[string]*container.Container),
 		needsRefresh: make(chan string, 60),
 		lock:         sync.RWMutex{},
+		namespace:    bcfg.GetVal("namespace"),
 	}
 	go k.Loop()
 	k.refreshAll()
@@ -69,7 +70,7 @@ func NewKubernetes() Connector {
 func (k *Kubernetes) watchEvents() {
 	for {
 		log.Info("kubernetes event listener starting")
-		allEvents, err := k.clientset.CoreV1().Events(namespace).List(metav1.ListOptions{})
+		allEvents, err := k.clientset.CoreV1().Events(k.namespace).List(metav1.ListOptions{})
 		if err != nil {
 			log.Error(err.Error())
 			return
@@ -152,7 +153,7 @@ func k8sPort(ports []v1.ContainerPort) string {
 }
 
 func (k *Kubernetes) inspect(id string) *v1.Pod {
-	p, err := k.clientset.CoreV1().Pods(namespace).Get(id, metav1.GetOptions{})
+	p, err := k.clientset.CoreV1().Pods(k.namespace).Get(id, metav1.GetOptions{})
 	if err != nil {
 		if _, ok := err.(*api.NoSuchContainer); !ok {
 			log.Errorf(err.Error())
@@ -178,7 +179,7 @@ func (k *Kubernetes) Get(name string) (c *container.Container, ok bool) {
 
 // Mark all container IDs for refresh
 func (k *Kubernetes) refreshAll() {
-	allPods, err := k.clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	allPods, err := k.clientset.CoreV1().Pods(k.namespace).List(metav1.ListOptions{})
 	if err != nil {
 		log.Error(err.Error())
 		return

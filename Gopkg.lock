@@ -27,12 +27,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/beorn7/perks"
-  packages = ["quantile"]
-  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
-
-[[projects]]
-  branch = "master"
   name = "github.com/c9s/goprocinfo"
   packages = ["linux"]
   revision = "0010a05ce49fde7f50669bc7ecda7d41dd6ab824"
@@ -164,22 +158,10 @@
   version = "v1.0.1"
 
 [[projects]]
-  name = "github.com/kubernetes-incubator/metrics-server"
-  packages = ["pkg/metrics","pkg/provider","pkg/provider/sink","pkg/sink","pkg/sources"]
-  revision = "6cd52610db69d662b3b7890b73df82b3b3601ab3"
-  version = "v0.3.1"
-
-[[projects]]
   name = "github.com/mattn/go-runewidth"
   packages = ["."]
   revision = "ce7b0b5c7b45a81508558cd1dba6bb1e4ddb51bb"
   version = "v0.0.3"
-
-[[projects]]
-  name = "github.com/matttproud/golang_protobuf_extensions"
-  packages = ["pbutil"]
-  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
-  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/mitchellh/go-wordwrap"
@@ -234,30 +216,6 @@
   packages = ["."]
   revision = "5f041e8faa004a95c88a202771f4cc3e991971e6"
   version = "v2.0.1"
-
-[[projects]]
-  name = "github.com/prometheus/client_golang"
-  packages = ["prometheus"]
-  revision = "c5b7fccd204277076155f10851dad72b76a49317"
-  version = "v0.8.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/prometheus/client_model"
-  packages = ["go"]
-  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/prometheus/common"
-  packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
-  revision = "7e9e6cabbd393fc208072eedef99188d0ce788b6"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/prometheus/procfs"
-  packages = [".","internal/util","nfs","xfs"]
-  revision = "185b4288413d2a0dd0806f78c90dde719829e5ae"
 
 [[projects]]
   name = "github.com/seccomp/libseccomp-golang"
@@ -352,12 +310,12 @@
 [[projects]]
   branch = "release-1.11"
   name = "k8s.io/metrics"
-  packages = ["pkg/apis/metrics"]
+  packages = ["pkg/apis/metrics","pkg/apis/metrics/v1alpha1","pkg/apis/metrics/v1beta1","pkg/client/clientset_generated/clientset","pkg/client/clientset_generated/clientset/scheme","pkg/client/clientset_generated/clientset/typed/metrics/v1alpha1","pkg/client/clientset_generated/clientset/typed/metrics/v1beta1"]
   revision = "972ef826b8401c180b89cefc7457daa2d116daa9"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c317229b631a11b3773e710f5a1faa24fa940ba9571388c743637431ec03a419"
+  inputs-digest = "475768252defbddd5c08cc0ceb5726612cc7b6865154a7d8065fb55162f0325d"
   solver-name = "gps-cdcl"
   solver-version = 1
