@@ -8,7 +8,7 @@ clean:
 	rm -rf _build/ release/
 
 build:
-	dep ensure
+	go mod download
 	CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o ctop
 
 build-dev:
