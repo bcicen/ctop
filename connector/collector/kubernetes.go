@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"k8s.io/metrics/pkg/apis/metrics/v1alpha1"
-	"k8s.io/metrics/pkg/client/clientset_generated/clientset"
+	clientset "k8s.io/metrics/pkg/client/clientset/versioned"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
