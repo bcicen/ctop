@@ -1,12 +1,12 @@
-FROM quay.io/vektorcloud/go:1.10
+FROM quay.io/vektorcloud/go:1.11
 
 RUN apk add --no-cache make
 
-COPY Gopkg.* /go/src/github.com/bcicen/ctop/
-WORKDIR /go/src/github.com/bcicen/ctop/
-RUN dep ensure -vendor-only
+WORKDIR /app
+COPY go.mod .
+RUN go mod download
 
-COPY . /go/src/github.com/bcicen/ctop
+COPY . .
 RUN make build && \
     mkdir -p /go/bin && \
     mv -v ctop /go/bin/
