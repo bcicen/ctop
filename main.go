@@ -29,25 +29,24 @@ var (
 	status *widgets.StatusLine
 
 	versionStr = fmt.Sprintf("ctop version %v, build %v %v", version, build, goVersion)
+
+	fs              = flag.NewFlagSet("ctop", flag.ExitOnError)
+	versionFlag     = fs.Bool("version", false, "output version information and exit")
+	helpFlag        = fs.Bool("h", false, "display this help dialog")
+	filterFlag      = fs.String("f", "", "filter containers")
+	activeOnlyFlag  = fs.Bool("a", false, "show active containers only")
+	sortFieldFlag   = fs.String("s", "", "select container sort field")
+	reverseSortFlag = fs.Bool("r", false, "reverse container sort order")
+	invertFlag      = fs.Bool("i", false, "invert default colors")
+	scaleCpu        = fs.Bool("scale-cpu", false, "show cpu as % of system total")
+	connectorFlag   = fs.String("connector", "docker", "container connector to use")
+	namespaceFlag   = fs.String("n", "default", "Kubernetes namespace for monitoring")
 )
 
 func main() {
 	defer panicExit()
 
-	// parse command line arguments
-	var (
-		versionFlag     = flag.Bool("version", false, "output version information and exit")
-		helpFlag        = flag.Bool("h", false, "display this help dialog")
-		filterFlag      = flag.String("f", "", "filter containers")
-		activeOnlyFlag  = flag.Bool("a", false, "show active containers only")
-		sortFieldFlag   = flag.String("s", "", "select container sort field")
-		reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
-		invertFlag      = flag.Bool("i", false, "invert default colors")
-		scaleCpu        = flag.Bool("scale-cpu", false, "show cpu as % of system total")
-		connectorFlag   = flag.String("connector", "docker", "container connector to use")
-		namespaceFlag   = flag.String("n", "default", "Kubernetes namespace for monitoring")
-	)
-	flag.Parse()
+	fs.Parse(os.Args[1:])
 
 	if *versionFlag {
 		fmt.Println(versionStr)
@@ -151,7 +150,7 @@ options:
 
 func printHelp() {
 	fmt.Println(helpMsg)
-	flag.PrintDefaults()
+	fs.PrintDefaults()
 	fmt.Printf("\navailable connectors: ")
 	fmt.Println(strings.Join(connector.Enabled(), ", "))
 }
