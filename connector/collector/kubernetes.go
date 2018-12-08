@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"encoding/json"
 	"time"
 
 	"k8s.io/metrics/pkg/apis/metrics/v1alpha1"
@@ -25,6 +26,16 @@ type Kubernetes struct {
 	lastCpu    float64
 	lastSysCpu float64
 	scaleCpu   bool
+}
+
+type Metric struct {
+	Timestamp time.Time `json:"timestamp"`
+	Value     int64     `json:"value"`
+}
+
+type Response struct {
+	Metrics         []Metric  `json:"metrics"`
+	LatestTimestamp time.Time `json:"latest_timestamp"`
 }
 
 func NewKubernetes(client *kubernetes.Clientset, name string) *Kubernetes {
@@ -55,6 +66,33 @@ func (k *Kubernetes) Start() {
 			}
 			k.ReadCPU(result)
 			k.ReadMem(result)
+			txMetrics := &Response{}
+			b, err := k.clientset.RESTClient().Get().AbsPath("/api/v1/namespaces/kube-system/services/heapster/proxy/api/v1/model/namespaces/" + config.GetVal("namespace") + "/pods/" + k.name + "/metrics/network/tx").Do().Raw()
+			if err != nil {
+				log.Errorf("has error %s here %s", k.name, err.Error())
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			err = json.Unmarshal(b, txMetrics)
+			if err != nil {
+				log.Errorf("has error %s here %s", k.name, err.Error())
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			rxMetrics := &Response{}
+			b, err = k.clientset.RESTClient().Get().AbsPath("/api/v1/namespaces/kube-system/services/heapster/proxy/api/v1/model/namespaces/" + config.GetVal("namespace") + "/pods/" + k.name + "/metrics/network/rx").Do().Raw()
+			if err != nil {
+				log.Errorf("has error %s here %s", k.name, err.Error())
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			err = json.Unmarshal(b, rxMetrics)
+			if err != nil {
+				log.Errorf("has error %s here %s", k.name, err.Error())
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			k.ReadNet(rxMetrics, txMetrics)
 			k.stream <- k.Metrics
 		}
 	}()
@@ -105,15 +143,17 @@ func (k *Kubernetes) ReadMem(metrics *v1alpha1.PodMetrics) {
 	//k.MemPercent = percent(float64(k.MemUsage), float64(k.MemLimit))
 }
 
-//func (c *Kubernetes) ReadNet(stats *api.Stats) {
-//	var rx, tx int64
-//	for _, network := range stats.Networks {
-//		rx += int64(network.RxBytes)
-//		tx += int64(network.TxBytes)
-//	}
-//	c.NetRx, c.NetTx = rx, tx
-//}
-//
+func (k *Kubernetes) ReadNet(rxR, txR *Response) {
+	var rx, tx int64
+	for _, network := range rxR.Metrics {
+		rx += int64(network.Value)
+	}
+	for _, network := range txR.Metrics {
+		tx += int64(network.Value)
+	}
+	k.NetRx, k.NetTx = rx, tx
+}
+
 //func (c *Kubernetes) ReadIO(stats *api.Stats) {
 //	var read, write int64
 //	for _, blk := range stats.BlkioStats.IOServiceBytesRecursive {
