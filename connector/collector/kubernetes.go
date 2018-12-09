@@ -64,6 +64,7 @@ func (k *Kubernetes) Start() {
 			k.ReadMem()
 			k.ReadNetRx()
 			k.ReadNetTx()
+			k.ReadUptime()
 			k.stream <- k.Metrics
 			time.Sleep(k.interval)
 		}
@@ -149,6 +150,16 @@ func (k *Kubernetes) ReadNetTx() {
 		return
 	}
 	k.NetTx = tx
+}
+
+func (k *Kubernetes) ReadUptime() {
+	uptime, err := k.read("/uptime")
+	if err != nil {
+		log.Errorf("collecte network uptime metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
+	}
+	k.Uptime = uptime
 }
 
 func (k *Kubernetes) read(name string) (int64, error) {

@@ -19,7 +19,8 @@ var colWidths = []int{
 	0, // memory
 	0, // net
 	0, // io
-	4, // pids
+	0, // pids
+	6, // uptime
 }
 
 // Calculate per-column width, given total width

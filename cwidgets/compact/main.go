@@ -18,6 +18,7 @@ type Compact struct {
 	Net    *TextCol
 	IO     *TextCol
 	Pids   *TextCol
+	Uptime *TextCol
 	Bg     *RowBg
 	X, Y   int
 	Width  int
@@ -38,6 +39,7 @@ func NewCompact(id string) *Compact {
 		Net:    NewTextCol("-"),
 		IO:     NewTextCol("-"),
 		Pids:   NewTextCol("-"),
+		Uptime: NewTextCol("-"),
 		Bg:     NewRowBg(),
 		X:      1,
 		Height: 1,
@@ -70,6 +72,7 @@ func (row *Compact) SetMetrics(m models.Metrics) {
 	row.SetMem(m.MemUsage, m.MemLimit, m.MemPercent)
 	row.SetIO(m.IOBytesRead, m.IOBytesWrite)
 	row.SetPids(m.Pids)
+	row.SetUptime(m.Uptime)
 }
 
 // Set gauges, counters to default unread values
@@ -79,6 +82,7 @@ func (row *Compact) Reset() {
 	row.Net.Reset()
 	row.IO.Reset()
 	row.Pids.Reset()
+	row.Uptime.Reset()
 }
 
 func (row *Compact) GetHeight() int {
@@ -137,6 +141,7 @@ func (row *Compact) Buffer() ui.Buffer {
 	buf.Merge(row.Net.Buffer())
 	buf.Merge(row.IO.Buffer())
 	buf.Merge(row.Pids.Buffer())
+	buf.Merge(row.Uptime.Buffer())
 	return buf
 }
 
@@ -150,6 +155,7 @@ func (row *Compact) all() []ui.GridBufferer {
 		row.Net,
 		row.IO,
 		row.Pids,
+		row.Uptime,
 	}
 }
 
@@ -163,6 +169,7 @@ func (row *Compact) Highlight() {
 		row.Net.Highlight()
 		row.IO.Highlight()
 		row.Pids.Highlight()
+		row.Uptime.Highlight()
 	}
 }
 
@@ -176,6 +183,7 @@ func (row *Compact) UnHighlight() {
 		row.Net.UnHighlight()
 		row.IO.UnHighlight()
 		row.Pids.UnHighlight()
+		row.Uptime.UnHighlight()
 	}
 }
 

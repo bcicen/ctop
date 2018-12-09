@@ -12,7 +12,7 @@ type CompactHeader struct {
 }
 
 func NewCompactHeader() *CompactHeader {
-	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX", "IO R/W", "PIDS"}
+	fields := []string{"", "NAME", "CID", "CPU", "MEM", "NET RX/TX", "IO R/W", "PIDS", "UPTIME"}
 	ch := &CompactHeader{}
 	ch.Height = 2
 	for _, f := range fields {

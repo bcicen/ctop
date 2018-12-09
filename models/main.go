@@ -17,6 +17,7 @@ type Metrics struct {
 	IOBytesRead  int64
 	IOBytesWrite int64
 	Pids         int
+	Uptime       int64
 }
 
 func NewMetrics() Metrics {
@@ -29,5 +30,6 @@ func NewMetrics() Metrics {
 		IOBytesRead:  -1,
 		IOBytesWrite: -1,
 		Pids:         -1,
+		Uptime:       -1,
 	}
 }
