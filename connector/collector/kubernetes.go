@@ -1,14 +1,13 @@
 package collector
 
 import (
+	"encoding/json"
 	"time"
 
-	"k8s.io/metrics/pkg/apis/metrics/v1alpha1"
 	clientset "k8s.io/metrics/pkg/client/clientset/versioned"
 
 	"github.com/bcicen/ctop/config"
 	"github.com/bcicen/ctop/models"
-	"k8s.io/api/core/v1"
 
 	"k8s.io/client-go/kubernetes"
 )
@@ -25,6 +24,17 @@ type Kubernetes struct {
 	lastCpu    float64
 	lastSysCpu float64
 	scaleCpu   bool
+	interval   time.Duration
+}
+
+type Metric struct {
+	Timestamp time.Time `json:"timestamp"`
+	Value     int64     `json:"value"`
+}
+
+type Response struct {
+	Metrics         []Metric  `json:"metrics"`
+	LatestTimestamp time.Time `json:"latest_timestamp"`
 }
 
 func NewKubernetes(client *kubernetes.Clientset, name string) *Kubernetes {
@@ -34,7 +44,12 @@ func NewKubernetes(client *kubernetes.Clientset, name string) *Kubernetes {
 		client:    clientset.New(client.RESTClient()),
 		clientset: client,
 		scaleCpu:  config.GetSwitchVal("scaleCpu"),
+		interval:  time.Duration(30) * time.Second,
 	}
+}
+
+func buildURL(namespace, podName string) string {
+	return "/api/v1/namespaces/kube-system/services/heapster/proxy/api/v1/model/namespaces/" + namespace + "/pods/" + podName
 }
 
 func (k *Kubernetes) Start() {
@@ -44,18 +59,14 @@ func (k *Kubernetes) Start() {
 	go func() {
 		k.running = false
 		for {
-
-			result := &v1alpha1.PodMetrics{}
-			err := k.clientset.RESTClient().Get().AbsPath("/api/v1/namespaces/kube-system/services/http:heapster:/proxy/apis/metrics/v1alpha1/namespaces/" + config.GetVal("namespace") + "/pods/" + k.name).Do().Into(result)
-
-			if err != nil {
-				log.Errorf("has error %s here %s", k.name, err.Error())
-				time.Sleep(1 * time.Second)
-				continue
-			}
-			k.ReadCPU(result)
-			k.ReadMem(result)
+			log.Debugf("collect k8s metrics %s\n", k.name)
+			k.ReadCPU()
+			k.ReadMem()
+			k.ReadNetRx()
+			k.ReadNetTx()
+			k.ReadUptime()
 			k.stream <- k.Metrics
+			time.Sleep(k.interval)
 		}
 	}()
 
@@ -80,40 +91,92 @@ func (c *Kubernetes) Stop() {
 	c.done <- true
 }
 
-func (k *Kubernetes) ReadCPU(metrics *v1alpha1.PodMetrics) {
-	all := int64(0)
-	for _, c := range metrics.Containers {
-		v := c.Usage[v1.ResourceCPU]
-		all += v.Value()
+func (k *Kubernetes) ReadCPU() {
+	cpu, err := k.read("/cpu/usage_rate")
+
+	if err != nil {
+		log.Errorf("collecte network cpu metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
 	}
-	if all != 0 {
-		k.CPUUtil = round(float64(all))
+
+	// TODO: heapster returning usage CPU in micro values without point so 0.004 is 4
+	// because k8s calculate percent usage of all available CPU in cluster
+	if cpu != 0 {
+		k.CPUUtil = round(float64(cpu))
 	}
 }
 
-func (k *Kubernetes) ReadMem(metrics *v1alpha1.PodMetrics) {
-	all := int64(0)
-	for _, c := range metrics.Containers {
-		v := c.Usage[v1.ResourceMemory]
-		a, ok := v.AsInt64()
-		if ok {
-			all += a
-		}
+func (k *Kubernetes) ReadMem() {
+	usage, err := k.read("/memory/usage")
+	if err != nil {
+		log.Errorf("collecte network memory metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
 	}
-	k.MemUsage = all
-	k.MemLimit = int64(0)
+	cache, err := k.read("/memory/cache")
+	if err != nil {
+		log.Errorf("collecte network memory metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
+	}
+	k.MemUsage = usage - cache
+
+	limit, err := k.read("/memory/limit")
+	if err != nil {
+		log.Errorf("collecte network memory metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
+	}
+	k.MemLimit = limit
 	//k.MemPercent = percent(float64(k.MemUsage), float64(k.MemLimit))
 }
 
-//func (c *Kubernetes) ReadNet(stats *api.Stats) {
-//	var rx, tx int64
-//	for _, network := range stats.Networks {
-//		rx += int64(network.RxBytes)
-//		tx += int64(network.TxBytes)
-//	}
-//	c.NetRx, c.NetTx = rx, tx
-//}
-//
+func (k *Kubernetes) ReadNetRx() {
+	rx, err := k.read("/network/rx_rate")
+	if err != nil {
+		log.Errorf("collecte network rx_rate metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
+	}
+	k.NetRx = rx
+}
+
+func (k *Kubernetes) ReadNetTx() {
+	tx, err := k.read("/network/tx_rate")
+	if err != nil {
+		log.Errorf("collecte network tx_rate metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
+	}
+	k.NetTx = tx
+}
+
+func (k *Kubernetes) ReadUptime() {
+	uptime, err := k.read("/uptime")
+	if err != nil {
+		log.Errorf("collecte network uptime metric has error %s here %s", k.name, err.Error())
+		time.Sleep(1 * time.Second)
+		return
+	}
+	k.Uptime = uptime
+}
+
+func (k *Kubernetes) read(name string) (int64, error) {
+	m := &Response{}
+	url := buildURL(config.GetVal("namespace"), k.name) + "/metrics" + name
+	log.Debugf("get metrics: %s", url)
+	b, err := k.clientset.RESTClient().Get().AbsPath(url).Do().Raw()
+	if err != nil {
+		return 0, err
+	}
+	err = json.Unmarshal(b, m)
+	if err != nil {
+		return 0, err
+	}
+	return m.Metrics[len(m.Metrics)-1].Value, nil
+}
+
 //func (c *Kubernetes) ReadIO(stats *api.Stats) {
 //	var read, write int64
 //	for _, blk := range stats.BlkioStats.IOServiceBytesRecursive {

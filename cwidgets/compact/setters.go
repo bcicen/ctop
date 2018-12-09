@@ -3,6 +3,7 @@ package compact
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/bcicen/ctop/cwidgets"
 	ui "github.com/gizak/termui"
@@ -21,6 +22,19 @@ func (row *Compact) SetIO(read int64, write int64) {
 func (row *Compact) SetPids(val int) {
 	label := strconv.Itoa(val)
 	row.Pids.Set(label)
+}
+
+func (row *Compact) SetUptime(val int64) {
+	d := time.Duration(val) * time.Millisecond
+	label := "- h"
+	if d.Hours() < 1.0 {
+		label = fmt.Sprintf("%.0fm", d.Minutes())
+	} else if d.Hours() < 24.0 {
+		label = fmt.Sprintf("%.0fh", d.Hours())
+	} else {
+		label = fmt.Sprintf("%dd", int(d.Hours())%24)
+	}
+	row.Uptime.Set(label)
 }
 
 func (row *Compact) SetCPU(val int) {
