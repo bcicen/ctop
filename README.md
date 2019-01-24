@@ -20,7 +20,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -31,7 +31,7 @@ brew install ctop
 ```
 or
 ```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
