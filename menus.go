@@ -126,55 +126,104 @@ func ContainerMenu() MenuFn {
 	m.BorderLabel = "Menu"
 
 	items := []menu.Item{
-		menu.Item{Val: "single", Label: "single view"},
-		menu.Item{Val: "logs", Label: "log view"},
+		menu.Item{Val: "single", Label: "[o] single view"},
+		menu.Item{Val: "logs", Label: "[l] log view"},
 	}
 
 	if c.Meta["state"] == "running" {
-		items = append(items, menu.Item{Val: "stop", Label: "stop"})
-		items = append(items, menu.Item{Val: "pause", Label: "pause"})
-		items = append(items, menu.Item{Val: "restart", Label: "restart"})
+		items = append(items, menu.Item{Val: "stop", Label: "[s] stop"})
+		items = append(items, menu.Item{Val: "pause", Label: "[p] pause"})
+		items = append(items, menu.Item{Val: "restart", Label: "[r] restart"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
-		items = append(items, menu.Item{Val: "start", Label: "start"})
-		items = append(items, menu.Item{Val: "remove", Label: "remove"})
+		items = append(items, menu.Item{Val: "start", Label: "[s] start"})
+		items = append(items, menu.Item{Val: "remove", Label: "[R] remove"})
 	}
 	if c.Meta["state"] == "paused" {
-		items = append(items, menu.Item{Val: "unpause", Label: "unpause"})
+		items = append(items, menu.Item{Val: "unpause", Label: "[p] unpause"})
 	}
-	items = append(items, menu.Item{Val: "cancel", Label: "cancel"})
+	items = append(items, menu.Item{Val: "cancel", Label: "[c] cancel"})
 
 	m.AddItems(items...)
 	ui.Render(m)
 
-	var nextMenu MenuFn
 	HandleKeys("up", m.Up)
 	HandleKeys("down", m.Down)
+
+	var selected string
+
+	// shortcuts
+	ui.Handle("/sys/kbd/o", func(ui.Event) {
+		selected = "single"
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/l", func(ui.Event) {
+		selected = "logs"
+		ui.StopLoop()
+	})
+	if c.Meta["state"] != "paused" {
+		ui.Handle("/sys/kbd/s", func(ui.Event) {
+			if c.Meta["state"] == "running" {
+				selected = "stop"
+			} else {
+				selected = "start"
+			}
+			ui.StopLoop()
+		})
+	}
+	if c.Meta["state"] != "exited" || c.Meta["state"] != "created" {
+		ui.Handle("/sys/kbd/p", func(ui.Event) {
+			if c.Meta["state"] == "paused" {
+				selected = "unpause"
+			} else {
+				selected = "pause"
+			}
+			ui.StopLoop()
+		})
+	}
+	if c.Meta["state"] == "running" {
+		ui.Handle("/sys/kbd/r", func(ui.Event) {
+			selected = "restart"
+			ui.StopLoop()
+		})
+	}
+	ui.Handle("/sys/kbd/R", func(ui.Event) {
+		selected = "remove"
+		ui.StopLoop()
+	})
+	ui.Handle("/sys/kbd/c", func(ui.Event) {
+		ui.StopLoop()
+	})
+
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		switch m.SelectedItem().Val {
-		case "single":
-			nextMenu = SingleView
-		case "logs":
-			nextMenu = LogMenu
-		case "start":
-			nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
-		case "stop":
-			nextMenu = Confirm(confirmTxt("stop", c.GetMeta("name")), c.Stop)
-		case "remove":
-			nextMenu = Confirm(confirmTxt("remove", c.GetMeta("name")), c.Remove)
-		case "pause":
-			nextMenu = Confirm(confirmTxt("pause", c.GetMeta("name")), c.Pause)
-		case "unpause":
-			nextMenu = Confirm(confirmTxt("unpause", c.GetMeta("name")), c.Unpause)
-		case "restart":
-			nextMenu = Confirm(confirmTxt("restart", c.GetMeta("name")), c.Restart)
-		}
+		selected = m.SelectedItem().Val
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
 		ui.StopLoop()
 	})
 	ui.Loop()
+
+	var nextMenu MenuFn
+	switch selected {
+	case "single":
+		nextMenu = SingleView
+	case "logs":
+		nextMenu = LogMenu
+	case "start":
+		nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
+	case "stop":
+		nextMenu = Confirm(confirmTxt("stop", c.GetMeta("name")), c.Stop)
+	case "remove":
+		nextMenu = Confirm(confirmTxt("remove", c.GetMeta("name")), c.Remove)
+	case "pause":
+		nextMenu = Confirm(confirmTxt("pause", c.GetMeta("name")), c.Pause)
+	case "unpause":
+		nextMenu = Confirm(confirmTxt("unpause", c.GetMeta("name")), c.Unpause)
+	case "restart":
+		nextMenu = Confirm(confirmTxt("restart", c.GetMeta("name")), c.Restart)
+	}
+
 	return nextMenu
 }
 
