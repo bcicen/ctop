@@ -4,6 +4,8 @@ The `ctop` grid view provides a compact status indicator to convey container sta
 
 <img width="200px" src="img/status.png" alt="ctop"/>
 
+#### Status
+
 <span align="center">
 
 Appearance | Description
@@ -14,6 +16,7 @@ green | container is running
 
 </span>
 
+#### Health
 If the container is configured with a health check, a `+` will appear next to the indicator
 
 <span align="center">
