@@ -1,4 +1,4 @@
-# connectors
+# Connectors
 
 `ctop` comes with the below native connectors, enabled via the `--connector` option.
 
