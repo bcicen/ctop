@@ -35,7 +35,7 @@ type Switch struct {
 	Label string
 }
 
-// Return Switch by key
+// GetSwitch returns Switch by key
 func GetSwitch(k string) *Switch {
 	for _, sw := range GlobalSwitches {
 		if sw.Key == k {
@@ -45,7 +45,7 @@ func GetSwitch(k string) *Switch {
 	return &Switch{} // default
 }
 
-// Return Switch value by key
+// GetSwitchVal returns Switch value by key
 func GetSwitchVal(k string) bool {
 	return GetSwitch(k).Val
 }

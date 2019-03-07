@@ -74,7 +74,7 @@ func (c *Container) SetState(s string) {
 	}
 }
 
-// Return container log collector
+// Logs returns container log collector
 func (c *Container) Logs() collector.LogCollector {
 	return c.collector.Logs()
 }

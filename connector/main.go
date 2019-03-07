@@ -13,7 +13,7 @@ var (
 	enabled = make(map[string]func() Connector)
 )
 
-// return names for all enabled connectors on the current platform
+// Enabled returns names for all enabled connectors on the current platform
 func Enabled() (a []string) {
 	for k, _ := range enabled {
 		a = append(a, k)

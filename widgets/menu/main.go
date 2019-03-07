@@ -42,7 +42,7 @@ func (m *Menu) AddItems(items ...Item) {
 	m.refresh()
 }
 
-// Remove menu item by value or label
+// DelItem removes menu item by value or label
 func (m *Menu) DelItem(s string) (success bool) {
 	for n, i := range m.items {
 		if i.Val == s || i.Label == s {
