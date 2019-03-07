@@ -65,7 +65,7 @@ func (gc *GridCursor) Reset() {
 	}
 }
 
-// Return current cursor index
+// Idx returns current cursor index
 func (gc *GridCursor) Idx() int {
 	for n, c := range gc.filtered {
 		if c.Id == gc.selectedID {

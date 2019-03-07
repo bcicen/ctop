@@ -143,7 +143,7 @@ func (cm *Docker) Loop() {
 	}
 }
 
-// Get a single container, creating one anew if not existing
+// MustGet gets a single container, creating one anew if not existing
 func (cm *Docker) MustGet(id string) *container.Container {
 	c, ok := cm.Get(id)
 	// append container struct for new containers
@@ -177,7 +177,7 @@ func (cm *Docker) delByID(id string) {
 	log.Infof("removed dead container: %s", id)
 }
 
-// Return array of all containers, sorted by field
+// All returns array of all containers, sorted by field
 func (cm *Docker) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {

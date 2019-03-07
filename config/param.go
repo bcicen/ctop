@@ -30,7 +30,7 @@ func Get(k string) *Param {
 	return &Param{} // default
 }
 
-// Get Param value by key
+// GetVal gets Param value by key
 func GetVal(k string) string {
 	return Get(k).Val
 }

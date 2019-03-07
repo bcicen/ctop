@@ -70,7 +70,7 @@ func (e *Single) SetMetrics(m models.Metrics) {
 	e.IO.Update(m.IOBytesRead, m.IOBytesWrite)
 }
 
-// Return total column height
+// GetHeight returns total column height
 func (e *Single) GetHeight() (h int) {
 	h += e.Info.Height
 	h += e.Net.Height

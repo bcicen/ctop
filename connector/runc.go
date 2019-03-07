@@ -168,7 +168,7 @@ func (cm *Runc) Loop() {
 	}
 }
 
-// Get a single ctop container in the map matching libc container, creating one anew if not existing
+// MustGet gets a single ctop container in the map matching libc container, creating one anew if not existing
 func (cm *Runc) MustGet(id string) *container.Container {
 	c, ok := cm.Get(id)
 	if !ok {
@@ -216,7 +216,7 @@ func (cm *Runc) delByID(id string) {
 	log.Infof("removed dead container: %s", id)
 }
 
-// Return array of all containers, sorted by field
+// All returns array of all containers, sorted by field
 func (cm *Runc) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
