@@ -22,11 +22,11 @@ func NewDocker(client *api.Client, id string) *Docker {
 
 // Do not allow to close reader (i.e. /dev/stdin which docker client tries to close after command execution)
 type noClosableReader struct {
-	wrappedReader io.Reader
+	io.Reader
 }
 
 func (w *noClosableReader) Read(p []byte) (n int, err error) {
-	return w.wrappedReader.Read(p)
+	return w.Reader.Read(p)
 }
 
 const (
@@ -35,9 +35,7 @@ const (
 	STDERR = 2
 )
 
-var (
-	wrongFrameFormat = errors.New("Wrong frame format")
-)
+var wrongFrameFormat = errors.New("Wrong frame format")
 
 // A frame has a Header and a Payload
 // Header: [8]byte{STREAM_TYPE, 0, 0, 0, SIZE1, SIZE2, SIZE3, SIZE4}
@@ -54,6 +52,11 @@ type frameWriter struct {
 }
 
 func (w *frameWriter) Write(p []byte) (n int, err error) {
+	// drop initial empty frames
+	if len(p) == 0 {
+		return 0, nil
+	}
+
 	if len(p) > 8 {
 		var targetWriter io.Writer
 		switch p[0] {
