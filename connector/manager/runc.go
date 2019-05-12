@@ -29,3 +29,7 @@ func (rc *Runc) Unpause() error {
 func (rc *Runc) Restart() error {
 	return nil
 }
+
+func (rc *Runc) Exec(cmd []string) error {
+	return nil
+}

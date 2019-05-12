@@ -25,6 +25,7 @@ var helpDialog = []menu.Item{
 	{"[r] - reverse container sort order", ""},
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
+	{"[e] - exec shell", ""},
 	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
 }
@@ -134,6 +135,7 @@ func ContainerMenu() MenuFn {
 		items = append(items, menu.Item{Val: "stop", Label: "[s] stop"})
 		items = append(items, menu.Item{Val: "pause", Label: "[p] pause"})
 		items = append(items, menu.Item{Val: "restart", Label: "[r] restart"})
+		items = append(items, menu.Item{Val: "exec shell", Label: "[e]xec shell"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "[s] start"})
@@ -210,6 +212,8 @@ func ContainerMenu() MenuFn {
 		nextMenu = SingleView
 	case "logs":
 		nextMenu = LogMenu
+	case "exec shell":
+		nextMenu = ExecShell
 	case "start":
 		nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 	case "stop":
@@ -253,6 +257,24 @@ func LogMenu() MenuFn {
 		ui.StopLoop()
 	})
 	ui.Loop()
+	return nil
+}
+
+func ExecShell() MenuFn {
+	c := cursor.Selected()
+
+	if c == nil {
+		return nil
+	}
+
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	shell := config.Get("shell")
+	if err := c.Exec([]string{shell.Val, "-c", "echo '\033[0m' && clear && " + shell.Val}); err != nil {
+		log.Fatal(err)
+	}
+
 	return nil
 }
 

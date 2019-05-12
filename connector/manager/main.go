@@ -7,4 +7,5 @@ type Manager interface {
 	Pause() error
 	Unpause() error
 	Restart() error
+	Exec(cmd []string) error
 }
