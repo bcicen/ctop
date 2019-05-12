@@ -70,6 +70,7 @@ Option | Description
 -s  | select initial container sort field
 -scale-cpu	| show cpu as % of system total
 -v	| output version information and exit
+-shell | specify shell (default: sh)
 
 ### Keybindings
 
@@ -84,6 +85,7 @@ s | Select container sort field
 r | Reverse container sort order
 o | Open single view
 l | View container logs (`t` to toggle timestamp when open)
+e | Exec Shell
 S | Save current configuration to file
 q | Quit ctop
 

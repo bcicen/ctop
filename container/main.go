@@ -153,3 +153,7 @@ func (c *Container) Restart() {
 		}
 	}
 }
+
+func (c *Container) Exec(cmd []string) error {
+	return c.manager.Exec(cmd)
+}

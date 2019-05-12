@@ -29,3 +29,7 @@ func (m *Mock) Unpause() error {
 func (m *Mock) Restart() error {
 	return nil
 }
+
+func (m *Mock) Exec(cmd []string) error {
+	return nil
+}
