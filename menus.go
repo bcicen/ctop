@@ -135,7 +135,7 @@ func ContainerMenu() MenuFn {
 		items = append(items, menu.Item{Val: "stop", Label: "[s] stop"})
 		items = append(items, menu.Item{Val: "pause", Label: "[p] pause"})
 		items = append(items, menu.Item{Val: "restart", Label: "[r] restart"})
-		items = append(items, menu.Item{Val: "exec shell", Label: "[e]xec shell"})
+		items = append(items, menu.Item{Val: "exec", Label: "[e] exec shell"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "[s] start"})
@@ -184,6 +184,10 @@ func ContainerMenu() MenuFn {
 		})
 	}
 	if c.Meta["state"] == "running" {
+		ui.Handle("/sys/kbd/e", func(ui.Event) {
+			selected = "exec"
+			ui.StopLoop()
+		})
 		ui.Handle("/sys/kbd/r", func(ui.Event) {
 			selected = "restart"
 			ui.StopLoop()
@@ -212,7 +216,7 @@ func ContainerMenu() MenuFn {
 		nextMenu = SingleView
 	case "logs":
 		nextMenu = LogMenu
-	case "exec shell":
+	case "exec":
 		nextMenu = ExecShell
 	case "start":
 		nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
