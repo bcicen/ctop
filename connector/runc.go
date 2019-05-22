@@ -54,35 +54,44 @@ type Runc struct {
 	factory       libcontainer.Factory
 	containers    map[string]*container.Container
 	libContainers map[string]libcontainer.Container
+	closed        chan struct{}
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
 }
 
-func NewRunc() Connector {
+func NewRunc() (Connector, error) {
 	opts, err := NewRuncOpts()
-	runcFailOnErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	factory, err := getFactory(opts)
-	runcFailOnErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	cm := &Runc{
 		opts:          opts,
 		factory:       factory,
 		containers:    make(map[string]*container.Container),
 		libContainers: make(map[string]libcontainer.Container),
-		needsRefresh:  make(chan string, 60),
+		closed:        make(chan struct{}),
 		lock:          sync.RWMutex{},
 	}
 
 	go func() {
 		for {
-			cm.refreshAll()
-			time.Sleep(5 * time.Second)
+			select {
+			case <-cm.closed:
+				return
+			case <-time.After(5 * time.Second):
+				cm.refreshAll()
+			}
 		}
 	}()
 	go cm.Loop()
 
-	return cm
+	return cm, nil
 }
 
 func (cm *Runc) GetLibc(id string) libcontainer.Container {
@@ -141,7 +150,11 @@ func (cm *Runc) refresh(id string) {
 // Read runc root, creating any new containers
 func (cm *Runc) refreshAll() {
 	list, err := ioutil.ReadDir(cm.opts.root)
-	runcFailOnErr(err)
+	if err != nil {
+		log.Errorf("%s (%T)", err.Error(), err)
+		close(cm.closed)
+		return
+	}
 
 	for _, i := range list {
 		if i.IsDir() {
@@ -199,14 +212,6 @@ func (cm *Runc) MustGet(id string) *container.Container {
 	return c
 }
 
-// Get a single container, by ID
-func (cm *Runc) Get(id string) (*container.Container, bool) {
-	cm.lock.Lock()
-	defer cm.lock.Unlock()
-	c, ok := cm.containers[id]
-	return c, ok
-}
-
 // Remove containers by ID
 func (cm *Runc) delByID(id string) {
 	cm.lock.Lock()
@@ -216,7 +221,18 @@ func (cm *Runc) delByID(id string) {
 	log.Infof("removed dead container: %s", id)
 }
 
-// All returns array of all containers, sorted by field
+// Runc implements Connector
+func (cm *Runc) Wait() struct{} { return <-cm.closed }
+
+// Runc implements Connector
+func (cm *Runc) Get(id string) (*container.Container, bool) {
+	cm.lock.Lock()
+	defer cm.lock.Unlock()
+	c, ok := cm.containers[id]
+	return c, ok
+}
+
+// Runc implements Connector
 func (cm *Runc) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {
@@ -238,10 +254,4 @@ func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
 		}
 	}
 	return libcontainer.New(opts.root, cgroupManager)
-}
-
-func runcFailOnErr(err error) {
-	if err != nil {
-		panic(fmt.Errorf("fatal runc error: %s", err))
-	}
 }

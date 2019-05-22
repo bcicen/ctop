@@ -20,11 +20,11 @@ type Mock struct {
 	containers container.Containers
 }
 
-func NewMock() Connector {
+func NewMock() (Connector, error) {
 	cs := &Mock{}
 	go cs.Init()
 	go cs.Loop()
-	return cs
+	return cs, nil
 }
 
 // Create Mock containers
@@ -39,6 +39,15 @@ func (cs *Mock) Init() {
 		cs.makeContainer(1)
 	}
 
+}
+
+func (cs *Mock) Wait() struct{} {
+	ch := make(chan struct{})
+	go func() {
+		time.Sleep(30 * time.Second)
+		close(ch)
+	}()
+	return <-ch
 }
 
 func (cs *Mock) makeContainer(aggression int64) {

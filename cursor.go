@@ -11,7 +11,7 @@ import (
 type GridCursor struct {
 	selectedID  string // id of currently selected container
 	filtered    container.Containers
-	cSource     connector.Connector
+	cSuper      *connector.ConnectorSuper
 	isScrolling bool // toggled when actively scrolling
 }
 
@@ -25,14 +25,20 @@ func (gc *GridCursor) Selected() *container.Container {
 	return nil
 }
 
-// Refresh containers from source
-func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
+// Refresh containers from source, returning whether the quantity of
+// containers has changed and any error
+func (gc *GridCursor) RefreshContainers() (bool, error) {
 	oldLen := gc.Len()
-
-	// Containers filtered by display bool
 	gc.filtered = container.Containers{}
+
+	cSource, err := gc.cSuper.Get()
+	if err != nil {
+		return true, err
+	}
+
+	// filter Containers by display bool
 	var cursorVisible bool
-	for _, c := range gc.cSource.All() {
+	for _, c := range cSource.All() {
 		if c.Display {
 			if c.Id == gc.selectedID {
 				cursorVisible = true
@@ -41,22 +47,21 @@ func (gc *GridCursor) RefreshContainers() (lenChanged bool) {
 		}
 	}
 
-	if oldLen != gc.Len() {
-		lenChanged = true
+	if !cursorVisible || gc.selectedID == "" {
+		gc.Reset()
 	}
 
-	if !cursorVisible {
-		gc.Reset()
-	}
-	if gc.selectedID == "" {
-		gc.Reset()
-	}
-	return lenChanged
+	return oldLen != gc.Len(), nil
 }
 
 // Set an initial cursor position, if possible
 func (gc *GridCursor) Reset() {
-	for _, c := range gc.cSource.All() {
+	cSource, err := gc.cSuper.Get()
+	if err != nil {
+		return
+	}
+
+	for _, c := range cSource.All() {
 		c.Widgets.UnHighlight()
 	}
 	if gc.Len() > 0 {

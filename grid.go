@@ -6,6 +6,43 @@ import (
 	ui "github.com/gizak/termui"
 )
 
+func ShowConnError(err error) (exit bool) {
+	ui.Clear()
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	setErr := func(err error) {
+		errView.Text = err.Error()
+		ui.Render(errView)
+	}
+
+	HandleKeys("exit", func() {
+		exit = true
+		ui.StopLoop()
+	})
+
+	ui.Handle("/timer/1s", func(ui.Event) {
+		_, err := cursor.RefreshContainers()
+		if err == nil {
+			ui.StopLoop()
+			return
+		}
+		setErr(err)
+	})
+
+	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		errView.Resize()
+		ui.Clear()
+		ui.Render(errView)
+		log.Infof("RESIZE")
+	})
+
+	errView.Resize()
+	setErr(err)
+	ui.Loop()
+	return exit
+}
+
 func RedrawRows(clr bool) {
 	// reinit body rows
 	cGrid.Clear()
@@ -33,7 +70,6 @@ func RedrawRows(clr bool) {
 	}
 	cGrid.Align()
 	ui.Render(cGrid)
-
 }
 
 func SingleView() MenuFn {
@@ -68,16 +104,21 @@ func SingleView() MenuFn {
 	return nil
 }
 
-func RefreshDisplay() {
+func RefreshDisplay() error {
 	// skip display refresh during scroll
 	if !cursor.isScrolling {
-		needsClear := cursor.RefreshContainers()
+		needsClear, err := cursor.RefreshContainers()
+		if err != nil {
+			return err
+		}
 		RedrawRows(needsClear)
 	}
+	return nil
 }
 
 func Display() bool {
 	var menu MenuFn
+	var connErr error
 
 	cGrid.SetWidth(ui.TermWidth())
 	ui.DefaultEvtStream.Hook(logEvent)
@@ -126,7 +167,10 @@ func Display() bool {
 	})
 	ui.Handle("/sys/kbd/a", func(ui.Event) {
 		config.Toggle("allContainers")
-		RefreshDisplay()
+		connErr = RefreshDisplay()
+		if connErr != nil {
+			ui.StopLoop()
+		}
 	})
 	ui.Handle("/sys/kbd/D", func(ui.Event) {
 		dumpContainer(cursor.Selected())
@@ -160,7 +204,10 @@ func Display() bool {
 		if log.StatusQueued() {
 			ui.StopLoop()
 		}
-		RefreshDisplay()
+		connErr = RefreshDisplay()
+		if connErr != nil {
+			ui.StopLoop()
+		}
 	})
 
 	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
@@ -173,6 +220,10 @@ func Display() bool {
 	})
 
 	ui.Loop()
+
+	if connErr != nil {
+		return ShowConnError(connErr)
+	}
 
 	if log.StatusQueued() {
 		for sm := range log.FlushStatus() {

@@ -27,6 +27,7 @@ require (
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
 	github.com/opencontainers/runc v0.1.1
+	github.com/pkg/errors v0.8.1
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/seccomp/libseccomp-golang v0.0.0-20150813023252-1b506fc7c24e // indirect
 	github.com/stretchr/testify v1.2.2 // indirect

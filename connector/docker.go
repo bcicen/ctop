@@ -17,26 +17,44 @@ type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
 	needsRefresh chan string // container IDs requiring refresh
+	closed       chan struct{}
 	lock         sync.RWMutex
 }
 
-func NewDocker() Connector {
+func NewDocker() (Connector, error) {
 	// init docker client
 	client, err := api.NewClientFromEnv()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
 		needsRefresh: make(chan string, 60),
+		closed:       make(chan struct{}),
 		lock:         sync.RWMutex{},
 	}
+
+	// query info as pre-flight healthcheck
+	info, err := client.Info()
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("docker-connector ID: %s", info.ID)
+	log.Debugf("docker-connector Driver: %s", info.Driver)
+	log.Debugf("docker-connector Images: %d", info.Images)
+	log.Debugf("docker-connector Name: %s", info.Name)
+	log.Debugf("docker-connector ServerVersion: %s", info.ServerVersion)
+
 	go cm.Loop()
 	cm.refreshAll()
 	go cm.watchEvents()
-	return cm
+	return cm, nil
 }
+
+// Docker implements Connector
+func (cm *Docker) Wait() struct{} { return <-cm.closed }
 
 // Docker events watcher
 func (cm *Docker) watchEvents() {
@@ -60,6 +78,8 @@ func (cm *Docker) watchEvents() {
 			cm.delByID(e.ID)
 		}
 	}
+	log.Info("docker event listener exited")
+	close(cm.closed)
 }
 
 func portsFormat(ports map[api.Port][]api.PortBinding) string {
@@ -114,7 +134,7 @@ func (cm *Docker) inspect(id string) *api.Container {
 	c, err := cm.client.InspectContainer(id)
 	if err != nil {
 		if _, ok := err.(*api.NoSuchContainer); !ok {
-			log.Errorf(err.Error())
+			log.Errorf("%s (%T)", err.Error(), err)
 		}
 	}
 	return c
@@ -125,7 +145,8 @@ func (cm *Docker) refreshAll() {
 	opts := api.ListContainersOptions{All: true}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
-		panic(err)
+		log.Errorf("%s (%T)", err.Error(), err)
+		return
 	}
 
 	for _, i := range allContainers {
@@ -137,9 +158,14 @@ func (cm *Docker) refreshAll() {
 }
 
 func (cm *Docker) Loop() {
-	for id := range cm.needsRefresh {
-		c := cm.MustGet(id)
-		cm.refresh(c)
+	for {
+		select {
+		case id := <-cm.needsRefresh:
+			c := cm.MustGet(id)
+			cm.refresh(c)
+		case <-cm.closed:
+			return
+		}
 	}
 }
 
@@ -161,7 +187,7 @@ func (cm *Docker) MustGet(id string) *container.Container {
 	return c
 }
 
-// Get a single container, by ID
+// Docker implements Connector
 func (cm *Docker) Get(id string) (*container.Container, bool) {
 	cm.lock.Lock()
 	c, ok := cm.containers[id]
@@ -177,7 +203,7 @@ func (cm *Docker) delByID(id string) {
 	log.Infof("removed dead container: %s", id)
 }
 
-// All returns array of all containers, sorted by field
+// Docker implements Connector
 func (cm *Docker) All() (containers container.Containers) {
 	cm.lock.Lock()
 	for _, c := range cm.containers {

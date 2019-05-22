@@ -16,7 +16,7 @@ type CTopHeader struct {
 
 func NewCTopHeader() *CTopHeader {
 	return &CTopHeader{
-		Time:   headerPar(2, timeStr()),
+		Time:   headerPar(2, ""),
 		Count:  headerPar(24, "-"),
 		Filter: headerPar(40, ""),
 		bg:     headerBg(),
