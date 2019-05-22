@@ -12,7 +12,8 @@ func ShowConnError(err error) (exit bool) {
 	defer ui.DefaultEvtStream.ResetHandlers()
 
 	setErr := func(err error) {
-		errView.Text = err.Error()
+		errView.Append(err.Error())
+		errView.Append("attempting to reconnect...")
 		ui.Render(errView)
 	}
 
@@ -21,7 +22,7 @@ func ShowConnError(err error) (exit bool) {
 		ui.StopLoop()
 	})
 
-	ui.Handle("/timer/1s", func(ui.Event) {
+	ui.Handle("/timer/2s", func(ui.Event) {
 		_, err := cursor.RefreshContainers()
 		if err == nil {
 			ui.StopLoop()

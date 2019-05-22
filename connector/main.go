@@ -68,7 +68,7 @@ func (cs *ConnectorSuper) loop() {
 
 		conn, err := cs.connFn()
 		if err != nil {
-			cs.setError(fmt.Errorf("%s\n\nattempting to reconnect...", err))
+			cs.setError(err)
 			log.Errorf("failed to initialize connector: %s (%T)", err, err)
 			log.Errorf("retrying in %ds", interval)
 			time.Sleep(interval * time.Second)
