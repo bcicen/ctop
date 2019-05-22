@@ -22,7 +22,7 @@ func ShowConnError(err error) (exit bool) {
 		ui.StopLoop()
 	})
 
-	ui.Handle("/timer/2s", func(ui.Event) {
+	ui.Handle("/timer/1s", func(ui.Event) {
 		_, err := cursor.RefreshContainers()
 		if err == nil {
 			ui.StopLoop()
