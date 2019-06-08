@@ -55,11 +55,13 @@ func (e *Single) Down() {
 }
 
 func (e *Single) SetWidth(w int) { e.Width = w }
-func (e *Single) SetMeta(k, v string) {
-	if k == "[ENV-VAR]" {
-		e.Env.Set(k, v)
-	} else {
-		e.Info.Set(k, v)
+func (e *Single) SetMeta(m models.Meta) {
+	for k, v := range m {
+		if k == "[ENV-VAR]" {
+			e.Env.Set(k, v)
+		} else {
+			e.Info.Set(k, v)
+		}
 	}
 }
 
