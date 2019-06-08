@@ -7,6 +7,17 @@ type Log struct {
 	Message   string
 }
 
+type Meta map[string]string
+
+func NewMeta() Meta { return make(Meta) }
+
+func (m Meta) Get(k string) string {
+	if s, ok := m[k]; ok {
+		return s
+	}
+	return ""
+}
+
 type Metrics struct {
 	CPUUtil      int
 	NetTx        int64

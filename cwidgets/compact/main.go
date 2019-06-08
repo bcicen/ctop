@@ -9,16 +9,18 @@ import (
 
 var log = logging.Init()
 
+type CompactCol interface {
+	ui.GridBufferer
+	Reset()
+	Highlight()
+	UnHighlight()
+	SetMeta(models.Meta)
+	SetMetrics(models.Metrics)
+}
+
 type Compact struct {
-	Status *Status
-	Name   *TextCol
-	Cid    *TextCol
-	Cpu    *GaugeCol
-	Mem    *GaugeCol
-	Net    *TextCol
-	IO     *TextCol
-	Pids   *TextCol
 	Bg     *RowBg
+	Cols   []CompactCol
 	X, Y   int
 	Width  int
 	Height int
@@ -30,64 +32,44 @@ func NewCompact(id string) *Compact {
 		id = id[:12]
 	}
 	row := &Compact{
-		Status: NewStatus(),
-		Name:   NewTextCol("-"),
-		Cid:    NewTextCol(id),
-		Cpu:    NewGaugeCol(),
-		Mem:    NewGaugeCol(),
-		Net:    NewTextCol("-"),
-		IO:     NewTextCol("-"),
-		Pids:   NewTextCol("-"),
-		Bg:     NewRowBg(),
+		Bg: NewRowBg(),
+		Cols: []CompactCol{
+			NewStatus(),
+			&NameCol{NewTextCol("-")},
+			&CIDCol{NewTextCol(id)},
+			&CPUCol{NewGaugeCol()},
+			&MemCol{NewGaugeCol()},
+			&NetCol{NewTextCol("-")},
+			&IOCol{NewTextCol("-")},
+			&PIDCol{NewTextCol("-")},
+		},
 		X:      1,
 		Height: 1,
 	}
 	return row
 }
 
-//func (row *Compact) ToggleExpand() {
-//if row.Height == 1 {
-//row.Height = 4
-//} else {
-//row.Height = 1
-//}
-//}
-
-func (row *Compact) SetMeta(k, v string) {
-	switch k {
-	case "name":
-		row.Name.Set(v)
-	case "state":
-		row.Status.Set(v)
-	case "health":
-		row.Status.SetHealth(v)
+func (row *Compact) SetMeta(m models.Meta) {
+	for _, w := range row.Cols {
+		w.SetMeta(m)
 	}
 }
 
 func (row *Compact) SetMetrics(m models.Metrics) {
-	row.SetCPU(m.CPUUtil)
-	row.SetNet(m.NetRx, m.NetTx)
-	row.SetMem(m.MemUsage, m.MemLimit, m.MemPercent)
-	row.SetIO(m.IOBytesRead, m.IOBytesWrite)
-	row.SetPids(m.Pids)
+	for _, w := range row.Cols {
+		w.SetMetrics(m)
+	}
 }
 
-// Set gauges, counters to default unread values
+// Set gauges, counters, etc. to default unread values
 func (row *Compact) Reset() {
-	row.Cpu.Reset()
-	row.Mem.Reset()
-	row.Net.Reset()
-	row.IO.Reset()
-	row.Pids.Reset()
+	for _, w := range row.Cols {
+		w.Reset()
+	}
 }
 
-func (row *Compact) GetHeight() int {
-	return row.Height
-}
-
-func (row *Compact) SetX(x int) {
-	row.X = x
-}
+func (row *Compact) GetHeight() int { return row.Height }
+func (row *Compact) SetX(x int)     { row.X = x }
 
 func (row *Compact) SetY(y int) {
 	if y == row.Y {
@@ -95,8 +77,8 @@ func (row *Compact) SetY(y int) {
 	}
 
 	row.Bg.Y = y
-	for _, col := range row.all() {
-		col.SetY(y)
+	for _, w := range row.Cols {
+		w.SetY(y)
 	}
 	row.Y = y
 }
@@ -111,15 +93,17 @@ func (row *Compact) SetWidth(width int) {
 	row.Bg.SetWidth(width)
 
 	autoWidth := calcWidth(width)
-	for n, col := range row.all() {
+	for n, w := range row.Cols {
+		// set static width, if provided
 		if colWidths[n] != 0 {
-			col.SetX(x)
-			col.SetWidth(colWidths[n])
+			w.SetX(x)
+			w.SetWidth(colWidths[n])
 			x += colWidths[n]
 			continue
 		}
-		col.SetX(x)
-		col.SetWidth(autoWidth)
+		// else use auto width
+		w.SetX(x)
+		w.SetWidth(autoWidth)
 		x += autoWidth + colSpacing
 	}
 	row.Width = width
@@ -127,55 +111,28 @@ func (row *Compact) SetWidth(width int) {
 
 func (row *Compact) Buffer() ui.Buffer {
 	buf := ui.NewBuffer()
-
 	buf.Merge(row.Bg.Buffer())
-	buf.Merge(row.Status.Buffer())
-	buf.Merge(row.Name.Buffer())
-	buf.Merge(row.Cid.Buffer())
-	buf.Merge(row.Cpu.Buffer())
-	buf.Merge(row.Mem.Buffer())
-	buf.Merge(row.Net.Buffer())
-	buf.Merge(row.IO.Buffer())
-	buf.Merge(row.Pids.Buffer())
+	for _, w := range row.Cols {
+		buf.Merge(w.Buffer())
+	}
 	return buf
 }
 
-func (row *Compact) all() []ui.GridBufferer {
-	return []ui.GridBufferer{
-		row.Status,
-		row.Name,
-		row.Cid,
-		row.Cpu,
-		row.Mem,
-		row.Net,
-		row.IO,
-		row.Pids,
-	}
-}
-
 func (row *Compact) Highlight() {
-	row.Name.Highlight()
+	row.Cols[1].Highlight()
 	if config.GetSwitchVal("fullRowCursor") {
-		row.Bg.Highlight()
-		row.Cid.Highlight()
-		row.Cpu.Highlight()
-		row.Mem.Highlight()
-		row.Net.Highlight()
-		row.IO.Highlight()
-		row.Pids.Highlight()
+		for _, w := range row.Cols {
+			w.Highlight()
+		}
 	}
 }
 
 func (row *Compact) UnHighlight() {
-	row.Name.UnHighlight()
+	row.Cols[1].UnHighlight()
 	if config.GetSwitchVal("fullRowCursor") {
-		row.Bg.UnHighlight()
-		row.Cid.UnHighlight()
-		row.Cpu.UnHighlight()
-		row.Mem.UnHighlight()
-		row.Net.UnHighlight()
-		row.IO.UnHighlight()
-		row.Pids.UnHighlight()
+		for _, w := range row.Cols {
+			w.UnHighlight()
+		}
 	}
 }
 
