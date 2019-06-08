@@ -21,7 +21,7 @@ const (
 type Container struct {
 	models.Metrics
 	Id        string
-	Meta      map[string]string
+	Meta      models.Meta
 	Widgets   *compact.Compact
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
@@ -34,7 +34,7 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 	return &Container{
 		Metrics:   models.NewMetrics(),
 		Id:        id,
-		Meta:      make(map[string]string),
+		Meta:      models.NewMeta(),
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
@@ -44,21 +44,16 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 
 func (c *Container) SetUpdater(u cwidgets.WidgetUpdater) {
 	c.updater = u
-	for k, v := range c.Meta {
-		c.updater.SetMeta(k, v)
-	}
+	c.updater.SetMeta(c.Meta)
 }
 
 func (c *Container) SetMeta(k, v string) {
 	c.Meta[k] = v
-	c.updater.SetMeta(k, v)
+	c.updater.SetMeta(c.Meta)
 }
 
 func (c *Container) GetMeta(k string) string {
-	if v, ok := c.Meta[k]; ok {
-		return v
-	}
-	return ""
+	return c.Meta.Get(k)
 }
 
 func (c *Container) SetState(s string) {

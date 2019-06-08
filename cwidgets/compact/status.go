@@ -1,6 +1,7 @@
 package compact
 
 import (
+	"github.com/bcicen/ctop/models"
 	ui "github.com/gizak/termui"
 )
 
@@ -24,7 +25,7 @@ func NewStatus() *Status {
 	}
 	s.Height = 1
 	s.Border = false
-	s.Set("")
+	s.setState("")
 	return s
 }
 
@@ -43,7 +44,18 @@ func (s *Status) Buffer() ui.Buffer {
 	return buf
 }
 
-func (s *Status) Set(val string) {
+func (s *Status) SetMeta(m models.Meta) {
+	s.setState(m.Get("state"))
+	s.setHealth(m.Get("health"))
+}
+
+// Status implements CompactCol
+func (s *Status) Reset()                    {}
+func (s *Status) SetMetrics(models.Metrics) {}
+func (s *Status) Highlight()                {}
+func (s *Status) UnHighlight()              {}
+
+func (s *Status) setState(val string) {
 	// defaults
 	text := mark
 	color := ui.ColorDefault
@@ -60,21 +72,21 @@ func (s *Status) Set(val string) {
 	s.status = ui.TextCells(text, color, ui.ColorDefault)
 }
 
-func (s *Status) SetHealth(val string) {
-	if val == "" {
-		return
-	}
-
+func (s *Status) setHealth(val string) {
 	color := ui.ColorDefault
 	mark := healthMark
 
 	switch val {
+	case "":
+		return
 	case "healthy":
 		color = ui.ThemeAttr("status.ok")
 	case "unhealthy":
 		color = ui.ThemeAttr("status.danger")
 	case "starting":
 		color = ui.ThemeAttr("status.warn")
+	default:
+		log.Warningf("unknown health state string: \"%v\"", val)
 	}
 
 	s.health = ui.TextCells(mark, color, ui.ColorDefault)

@@ -8,6 +8,6 @@ import (
 var log = logging.Init()
 
 type WidgetUpdater interface {
-	SetMeta(string, string)
+	SetMeta(models.Meta)
 	SetMetrics(models.Metrics)
 }
