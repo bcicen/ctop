@@ -12,7 +12,7 @@ const colSpacing = 1
 
 // per-column width. 0 == auto width
 var colWidths = []int{
-	3, // status
+	5, // status
 	0, // name
 	0, // cid
 	0, // cpu

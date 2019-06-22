@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	mark       = string('\u25C9')
-	healthMark = string('\u207A')
+	mark       = "◉"
+	healthMark = "✚"
 	vBar       = string('\u25AE') + string('\u25AE')
 )
 
@@ -18,7 +18,10 @@ type Status struct {
 }
 
 func NewStatus() *Status {
-	s := &Status{Block: ui.NewBlock()}
+	s := &Status{
+		Block:  ui.NewBlock(),
+		health: []ui.Cell{{Ch: ' '}},
+	}
 	s.Height = 1
 	s.Border = false
 	s.Set("")
@@ -28,11 +31,12 @@ func NewStatus() *Status {
 func (s *Status) Buffer() ui.Buffer {
 	buf := s.Block.Buffer()
 	x := 0
-	for _, c := range s.status {
+	for _, c := range s.health {
 		buf.Set(s.InnerX()+x, s.InnerY(), c)
 		x += c.Width()
 	}
-	for _, c := range s.health {
+	x += 1
+	for _, c := range s.status {
 		buf.Set(s.InnerX()+x, s.InnerY(), c)
 		x += c.Width()
 	}
@@ -53,18 +57,16 @@ func (s *Status) Set(val string) {
 		text = vBar
 	}
 
-	var cells []ui.Cell
-	for _, ch := range text {
-		cells = append(cells, ui.Cell{Ch: ch, Fg: color})
-	}
-	s.status = cells
+	s.status = ui.TextCells(text, color, ui.ColorDefault)
 }
 
 func (s *Status) SetHealth(val string) {
 	if val == "" {
 		return
 	}
+
 	color := ui.ColorDefault
+	mark := healthMark
 
 	switch val {
 	case "healthy":
@@ -75,9 +77,5 @@ func (s *Status) SetHealth(val string) {
 		color = ui.ThemeAttr("status.warn")
 	}
 
-	var cells []ui.Cell
-	for _, ch := range healthMark {
-		cells = append(cells, ui.Cell{Ch: ch, Fg: color})
-	}
-	s.health = cells
+	s.health = ui.TextCells(mark, color, ui.ColorDefault)
 }
