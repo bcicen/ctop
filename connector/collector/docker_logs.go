@@ -34,12 +34,13 @@ func (l *DockerLogs) Stream() chan models.Log {
 		Context:      ctx,
 		Container:    l.id,
 		OutputStream: w,
-		ErrorStream:  w,
-		Stdout:       true,
-		Stderr:       true,
-		Tail:         "10",
-		Follow:       true,
-		Timestamps:   true,
+		//ErrorStream:  w,
+		Stdout:      true,
+		Stderr:      true,
+		Tail:        "20",
+		Follow:      true,
+		Timestamps:  true,
+		RawTerminal: true,
 	}
 
 	// read io pipe into channel
@@ -74,9 +75,25 @@ func (l *DockerLogs) Stop() { l.done <- true }
 
 func (l *DockerLogs) parseTime(s string) time.Time {
 	ts, err := time.Parse("2006-01-02T15:04:05.000000000Z", s)
-	if err != nil {
-		log.Errorf("failed to parse container log: %s", err)
-		ts = time.Now()
+	if err == nil {
+		return ts
 	}
-	return ts
+
+	ts, err2 := time.Parse("2006-01-02T15:04:05.000000000Z", l.stripPfx(s))
+	if err2 == nil {
+		return ts
+	}
+
+	log.Errorf("failed to parse container log: %s", err)
+	log.Errorf("failed to parse container log2: %s", err2)
+	return time.Now()
+}
+
+// attempt to strip message header prefix from a given raw docker log string
+func (l *DockerLogs) stripPfx(s string) string {
+	b := []byte(s)
+	if len(b) > 8 {
+		return string(b[8:])
+	}
+	return s
 }
