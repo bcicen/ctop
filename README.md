@@ -40,7 +40,7 @@ sudo chmod +x /usr/local/bin/ctop
 ```bash
 docker run --rm -ti \
   --name=ctop \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  --volume /var/run/docker.sock:/var/run/docker.sock:ro \
   quay.io/vektorlab/ctop:latest
 ```
 
