@@ -3,7 +3,7 @@ package widgets
 import (
 	"fmt"
 	"time"
-	"github.com/bcicen/ctop/cwidgets"
+
 	ui "github.com/gizak/termui"
 )
 
@@ -11,7 +11,6 @@ type CTopHeader struct {
 	Time   *ui.Par
 	Count  *ui.Par
 	Filter *ui.Par
-	Mem    *ui.Par
 	bg     *ui.Par
 }
 
@@ -20,7 +19,6 @@ func NewCTopHeader() *CTopHeader {
 		Time:   headerPar(2, ""),
 		Count:  headerPar(24, "-"),
 		Filter: headerPar(40, ""),
-		Mem:    headerPar(70, ""),
 		bg:     headerBg(),
 	}
 }
@@ -32,7 +30,6 @@ func (c *CTopHeader) Buffer() ui.Buffer {
 	buf.Merge(c.Time.Buffer())
 	buf.Merge(c.Count.Buffer())
 	buf.Merge(c.Filter.Buffer())
-	buf.Merge(c.Mem.Buffer())
 	return buf
 }
 
@@ -59,10 +56,6 @@ func headerBg() *ui.Par {
 	bg.Border = false
 	bg.Bg = ui.ThemeAttr("header.bg")
 	return bg
-}
-
-func (c *CTopHeader) SetMemoryUsage(val int64) {
-	c.Mem.Text = cwidgets.ByteFormat(val)
 }
 
 func (c *CTopHeader) SetCount(val int) {

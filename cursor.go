@@ -17,16 +17,6 @@ type GridCursor struct {
 
 func (gc *GridCursor) Len() int { return len(gc.filtered) }
 
-func (gc *GridCursor) MemoryUsage() int64 {
-	var size int64
-	size = 0
-	for _, c := range gc.filtered {
-		size += c.MemUsage
-	}
-	gc.Reset()
-	return size
-}
-
 func (gc *GridCursor) Selected() *container.Container {
 	idx := gc.Idx()
 	if idx < gc.Len() {
