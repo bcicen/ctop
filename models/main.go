@@ -9,7 +9,23 @@ type Log struct {
 
 type Meta map[string]string
 
-func NewMeta() Meta { return make(Meta) }
+// NewMeta returns an initialized Meta map.
+// An optional series of key, values may be provided to populate the map prior to returning
+func NewMeta(kvs ...string) Meta {
+	m := make(Meta)
+
+	var k string
+	for i := 0; i < len(kvs)-1; i++ {
+		if k == "" {
+			k = kvs[i]
+		} else {
+			m[k] = kvs[i]
+			k = ""
+		}
+	}
+
+	return m
+}
 
 func (m Meta) Get(k string) string {
 	if s, ok := m[k]; ok {
