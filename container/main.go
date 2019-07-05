@@ -22,7 +22,7 @@ type Container struct {
 	models.Metrics
 	Id        string
 	Meta      models.Meta
-	Widgets   *compact.Compact
+	Widgets   *compact.CompactRow
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
 	collector collector.Collector
@@ -30,11 +30,11 @@ type Container struct {
 }
 
 func New(id string, collector collector.Collector, manager manager.Manager) *Container {
-	widgets := compact.NewCompact(id)
+	widgets := compact.NewCompactRow()
 	return &Container{
 		Metrics:   models.NewMetrics(),
 		Id:        id,
-		Meta:      models.NewMeta(),
+		Meta:      models.NewMeta("id", id),
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,

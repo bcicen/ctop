@@ -54,6 +54,8 @@ func (s *Status) Reset()                    {}
 func (s *Status) SetMetrics(models.Metrics) {}
 func (s *Status) Highlight()                {}
 func (s *Status) UnHighlight()              {}
+func (s *Status) Header() string            { return "" }
+func (s *Status) FixedWidth() int           { return 3 }
 
 func (s *Status) setState(val string) {
 	// defaults
