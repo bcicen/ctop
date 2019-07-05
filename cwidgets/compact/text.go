@@ -12,21 +12,36 @@ type NameCol struct {
 	*TextCol
 }
 
-func (w *NameCol) SetMeta(m models.Meta) {
-	if s, ok := m["name"]; ok {
-		w.Text = s
-	}
+func NewNameCol() CompactCol {
+	return &NameCol{NewTextCol("NAME")}
 }
 
-func (w *NameCol) SetMetrics(m models.Metrics) {
+func (w *NameCol) SetMeta(m models.Meta) {
+	w.Text = m.Get("name")
+	// truncate container id
+	if len(w.Text) > 12 {
+		w.Text = w.Text[:12]
+	}
 }
 
 type CIDCol struct {
 	*TextCol
 }
 
+func NewCIDCol() CompactCol {
+	return &CIDCol{NewTextCol("CID")}
+}
+
+func (w *CIDCol) SetMeta(m models.Meta) {
+	w.Text = m.Get("id")
+}
+
 type NetCol struct {
 	*TextCol
+}
+
+func NewNetCol() CompactCol {
+	return &NetCol{NewTextCol("NET RX/TX")}
 }
 
 func (w *NetCol) SetMetrics(m models.Metrics) {
@@ -38,6 +53,10 @@ type IOCol struct {
 	*TextCol
 }
 
+func NewIOCol() CompactCol {
+	return &IOCol{NewTextCol("IO R/W")}
+}
+
 func (w *IOCol) SetMetrics(m models.Metrics) {
 	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(m.IOBytesRead), cwidgets.ByteFormat(m.IOBytesWrite))
 	w.Text = label
@@ -47,20 +66,28 @@ type PIDCol struct {
 	*TextCol
 }
 
+func NewPIDCol() CompactCol {
+	w := &PIDCol{NewTextCol("PIDS")}
+	w.fWidth = 4
+	return w
+}
+
 func (w *PIDCol) SetMetrics(m models.Metrics) {
 	w.Text = fmt.Sprintf("%d", m.Pids)
 }
 
 type TextCol struct {
 	*ui.Par
+	header string
+	fWidth int
 }
 
-func NewTextCol(s string) *TextCol {
-	p := ui.NewPar(s)
+func NewTextCol(header string) *TextCol {
+	p := ui.NewPar("-")
 	p.Border = false
 	p.Height = 1
 	p.Width = 20
-	return &TextCol{p}
+	return &TextCol{p, header, 0}
 }
 
 func (w *TextCol) Highlight() {
@@ -75,7 +102,8 @@ func (w *TextCol) UnHighlight() {
 	w.TextBgColor = ui.ThemeAttr("par.text.bg")
 }
 
-//func (w *TextCol) Set(s string) { w.Text = s }
 func (w *TextCol) Reset()                    { w.Text = "-" }
 func (w *TextCol) SetMeta(models.Meta)       {}
 func (w *TextCol) SetMetrics(models.Metrics) {}
+func (w *TextCol) Header() string            { return w.header }
+func (w *TextCol) FixedWidth() int           { return w.fWidth }

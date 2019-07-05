@@ -12,6 +12,10 @@ type CPUCol struct {
 	*GaugeCol
 }
 
+func NewCPUCol() CompactCol {
+	return &CPUCol{NewGaugeCol("CPU")}
+}
+
 func (w *CPUCol) SetMetrics(m models.Metrics) {
 	val := m.CPUUtil
 	w.BarColor = colorScale(val)
@@ -27,6 +31,10 @@ type MemCol struct {
 	*GaugeCol
 }
 
+func NewMemCol() CompactCol {
+	return &MemCol{NewGaugeCol("MEM")}
+}
+
 func (w *MemCol) SetMetrics(m models.Metrics) {
 	w.BarColor = ui.ThemeAttr("gauge.bar.bg")
 	w.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(m.MemUsage), cwidgets.ByteFormat(m.MemLimit))
@@ -35,10 +43,12 @@ func (w *MemCol) SetMetrics(m models.Metrics) {
 
 type GaugeCol struct {
 	*ui.Gauge
+	header string
+	fWidth int
 }
 
-func NewGaugeCol() *GaugeCol {
-	g := &GaugeCol{ui.NewGauge()}
+func NewGaugeCol(header string) *GaugeCol {
+	g := &GaugeCol{ui.NewGauge(), header, 0}
 	g.Height = 1
 	g.Border = false
 	g.PaddingBottom = 0
@@ -63,10 +73,10 @@ func (w *GaugeCol) Buffer() ui.Buffer {
 }
 
 // GaugeCol implements CompactCol
-func (w *GaugeCol) SetMeta(models.Meta) {}
-
-// GaugeCol implements CompactCol
+func (w *GaugeCol) SetMeta(models.Meta)       {}
 func (w *GaugeCol) SetMetrics(models.Metrics) {}
+func (w *GaugeCol) Header() string            { return w.header }
+func (w *GaugeCol) FixedWidth() int           { return w.fWidth }
 
 // GaugeCol implements CompactCol
 func (w *GaugeCol) Highlight() {
