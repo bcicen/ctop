@@ -22,11 +22,12 @@ var (
 	version   = "dev-build"
 	goVersion = runtime.Version()
 
-	log    *logging.CTopLogger
-	cursor *GridCursor
-	cGrid  *compact.CompactGrid
-	header *widgets.CTopHeader
-	status *widgets.StatusLine
+	log     *logging.CTopLogger
+	cursor  *GridCursor
+	cGrid   *compact.CompactGrid
+	header  *widgets.CTopHeader
+	status  *widgets.StatusLine
+	errView *widgets.ErrorView
 
 	versionStr = fmt.Sprintf("ctop version %v, build %v %v", version, build, goVersion)
 
@@ -87,6 +88,10 @@ func main() {
 		config.Toggle("scaleCpu")
 	}
 
+	if *defaultShell != "" {
+		config.Update("shell", *defaultShell)
+	}
+
 	// init ui
 	if *invertFlag {
 		InvertColorMap()
@@ -100,14 +105,15 @@ func main() {
 
 	defer Shutdown()
 	// init grid, cursor, header
-	conn, err := connector.ByName(*connectorFlag)
+	cSuper, err := connector.ByName(*connectorFlag)
 	if err != nil {
 		panic(err)
 	}
-	cursor = &GridCursor{cSource: conn}
+	cursor = &GridCursor{cSuper: cSuper}
 	cGrid = compact.NewCompactGrid()
 	header = widgets.NewCTopHeader()
 	status = widgets.NewStatusLine()
+	errView = widgets.NewErrorView()
 
 	for {
 		exit := Display()
@@ -136,6 +142,7 @@ func validSort(s string) {
 func panicExit() {
 	if r := recover(); r != nil {
 		Shutdown()
+		panic(r)
 		fmt.Printf("error: %s\n", r)
 		os.Exit(1)
 	}
