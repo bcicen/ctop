@@ -20,7 +20,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -31,7 +31,7 @@ brew install ctop
 ```
 or
 ```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.1/ctop-0.7.1-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -40,7 +40,7 @@ sudo chmod +x /usr/local/bin/ctop
 ```bash
 docker run --rm -ti \
   --name=ctop \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  --volume /var/run/docker.sock:/var/run/docker.sock:ro \
   quay.io/vektorlab/ctop:latest
 ```
 
@@ -70,6 +70,7 @@ Option | Description
 -s  | select initial container sort field
 -scale-cpu	| show cpu as % of system total
 -v	| output version information and exit
+-shell | specify shell (default: sh)
 
 ### Keybindings
 
@@ -84,6 +85,7 @@ s | Select container sort field
 r | Reverse container sort order
 o | Open single view
 l | View container logs (`t` to toggle timestamp when open)
+e | Exec Shell
 S | Save current configuration to file
 q | Quit ctop
 
