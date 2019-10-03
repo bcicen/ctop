@@ -28,3 +28,5 @@ require (
 )
 
 replace github.com/gizak/termui => github.com/bcicen/termui v0.0.0-20180326052246-4eb80249d3f5
+
+go 1.13
