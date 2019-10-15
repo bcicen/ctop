@@ -66,15 +66,37 @@ func (t *TextView) Buffer() ui.Buffer {
 	x := t.Block.X + t.padding[0]
 	y := t.Block.Y + t.padding[1]
 
+	colorMap := map[string]string{
+		"[31m": "status.danger",
+		"[33m": "status.warn",
+		"[39m": "menu.text.fg",
+	}
+	colorCode := ""
+	loopSkipper := 0
+
 	for _, line := range t.TextOut {
-		for _, ch := range line {
-			cell = ui.Cell{Ch: ch, Fg: t.TextFgColor, Bg: t.TextBgColor}
+		colorCode = "[39m"
+		for index, ch := range line {
+			if loopSkipper > 0 {
+				loopSkipper--
+				continue
+			}
+
+			// Checking to see the start of the color code
+			if ch == '[' && line[index+3] == 'm' {
+				colorCode = string(line[index]) + string(line[index+1]) + string(line[index+2]) + string(line[index+3])
+				loopSkipper = 3
+				continue
+			}
+			cell = ui.Cell{Ch: ch, Fg: ui.ThemeAttr(colorMap[colorCode]), Bg: t.TextBgColor}
+
 			buf.Set(x, y, cell)
 			x++
 		}
 		x = t.Block.X + t.padding[0]
 		y++
 	}
+
 	return buf
 }
 
