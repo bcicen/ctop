@@ -18,7 +18,7 @@ type Status struct {
 	health []ui.Cell
 }
 
-func NewStatus() *Status {
+func NewStatus() CompactCol {
 	s := &Status{
 		Block:  ui.NewBlock(),
 		health: []ui.Cell{{Ch: ' '}},
