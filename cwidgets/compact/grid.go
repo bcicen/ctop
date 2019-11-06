@@ -4,11 +4,11 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-var header *CompactHeader
-
 type CompactGrid struct {
 	ui.GridBufferer
-	Rows   []ui.GridBufferer
+	header *CompactHeader
+	cols   []CompactCol // reference columns
+	Rows   []RowBufferer
 	X, Y   int
 	Width  int
 	Height int
@@ -16,8 +16,13 @@ type CompactGrid struct {
 }
 
 func NewCompactGrid() *CompactGrid {
-	header = NewCompactHeader() // init column header
-	return &CompactGrid{}
+	cg := &CompactGrid{header: NewCompactHeader()}
+	for _, wFn := range allCols {
+		w := wFn()
+		cg.cols = append(cg.cols, w)
+		cg.header.addFieldPar(w.Header())
+	}
+	return cg
 }
 
 func (cg *CompactGrid) Align() {
@@ -28,22 +33,47 @@ func (cg *CompactGrid) Align() {
 	}
 
 	// update row ypos, width recursively
+	colWidths := cg.calcWidths()
 	for _, r := range cg.pageRows() {
 		r.SetY(y)
 		y += r.GetHeight()
-		r.SetWidth(cg.Width)
+		r.SetWidths(cg.Width, colWidths)
 	}
 }
 
-func (cg *CompactGrid) Clear()         { cg.Rows = []ui.GridBufferer{} }
-func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) + header.Height }
+func (cg *CompactGrid) Clear()         { cg.Rows = []RowBufferer{} }
+func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) + cg.header.Height }
 func (cg *CompactGrid) SetX(x int)     { cg.X = x }
 func (cg *CompactGrid) SetY(y int)     { cg.Y = y }
 func (cg *CompactGrid) SetWidth(w int) { cg.Width = w }
-func (cg *CompactGrid) MaxRows() int   { return ui.TermHeight() - header.Height - cg.Y }
+func (cg *CompactGrid) MaxRows() int   { return ui.TermHeight() - cg.header.Height - cg.Y }
 
-func (cg *CompactGrid) pageRows() (rows []ui.GridBufferer) {
-	rows = append(rows, header)
+// calculate and return per-column width
+func (cg *CompactGrid) calcWidths() []int {
+	var autoCols int
+	width := cg.Width
+	colWidths := make([]int, len(cg.cols))
+
+	for n, w := range cg.cols {
+		colWidths[n] = w.FixedWidth()
+		width -= w.FixedWidth()
+		if w.FixedWidth() == 0 {
+			autoCols++
+		}
+	}
+
+	spacing := colSpacing * len(cg.cols)
+	autoWidth := (width - spacing) / autoCols
+	for n, val := range colWidths {
+		if val == 0 {
+			colWidths[n] = autoWidth
+		}
+	}
+	return colWidths
+}
+
+func (cg *CompactGrid) pageRows() (rows []RowBufferer) {
+	rows = append(rows, cg.header)
 	rows = append(rows, cg.Rows[cg.Offset:]...)
 	return rows
 }
@@ -56,6 +86,6 @@ func (cg *CompactGrid) Buffer() ui.Buffer {
 	return buf
 }
 
-func (cg *CompactGrid) AddRows(rows ...ui.GridBufferer) {
+func (cg *CompactGrid) AddRows(rows ...RowBufferer) {
 	cg.Rows = append(cg.Rows, rows...)
 }

@@ -22,19 +22,6 @@ var colWidths = []int{
 	4, // pids
 }
 
-// Calculate per-column width, given total width
-func calcWidth(width int) int {
-	spacing := colSpacing * len(colWidths)
-	var staticCols int
-	for _, w := range colWidths {
-		width -= w
-		if w == 0 {
-			staticCols++
-		}
-	}
-	return (width - spacing) / staticCols
-}
-
 func centerParText(p *ui.Par) {
 	var text string
 	var padding string
