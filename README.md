@@ -62,32 +62,32 @@ While running, use `S` to save the current filters, sort field, and other option
 
 Option | Description
 --- | ---
--a	| show active containers only
--f \<string\> | set an initial filter string
--h	| display help dialog
--i  | invert default colors
--r	| reverse container sort order
--s  | select initial container sort field
--scale-cpu	| show cpu as % of system total
--v	| output version information and exit
--shell | specify shell (default: sh)
+`-a`	| show active containers only
+`-f <string>` | set an initial filter string
+`-h`	| display help dialog
+`-i`  | invert default colors
+`-r`	| reverse container sort order
+`-s`  | select initial container sort field
+`-scale-cpu`	| show cpu as % of system total
+`-v`	| output version information and exit
+`-shell` | specify shell (default: sh)
 
 ### Keybindings
 
 Key | Action
 --- | ---
-\<enter\> | Open container menu
-a | Toggle display of all (running and non-running) containers
-f | Filter displayed containers (`esc` to clear when open)
-H | Toggle ctop header
-h | Open help dialog
-s | Select container sort field
-r | Reverse container sort order
-o | Open single view
-l | View container logs (`t` to toggle timestamp when open)
-e | Exec Shell
-S | Save current configuration to file
-q | Quit ctop
+`<enter>` | Open container menu
+`a` | Toggle display of all (running and non-running) containers
+`f` | Filter displayed containers (`esc` to clear when open)
+`H` | Toggle ctop header
+`h` | Open help dialog
+`s` | Select container sort field
+`r` | Reverse container sort order
+`o` | Open single view
+`l` | View container logs (`t` to toggle timestamp when open)
+`e` | Exec Shell
+`S` | Save current configuration to file
+`q` | Quit ctop
 
 [build]: _docs/build.md
 [connectors]: _docs/connectors.md
