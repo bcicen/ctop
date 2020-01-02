@@ -16,22 +16,33 @@ var (
 type File struct {
 	Options map[string]string `toml:"options"`
 	Toggles map[string]bool   `toml:"toggles"`
+	Widgets []Widget          `toml:"widget"`
 }
 
 func exportConfig() File {
+	lock.RLock()
+	defer lock.RUnlock()
+
 	c := File{
 		Options: make(map[string]string),
 		Toggles: make(map[string]bool),
+		Widgets: make([]Widget, len(GlobalWidgets)),
 	}
+
 	for _, p := range GlobalParams {
 		c.Options[p.Key] = p.Val
 	}
 	for _, sw := range GlobalSwitches {
 		c.Toggles[sw.Key] = sw.Val
 	}
+	for n, w := range GlobalWidgets {
+		c.Widgets[n] = *w
+	}
+
 	return c
 }
 
+//
 func Read() error {
 	var config File
 
@@ -50,6 +61,10 @@ func Read() error {
 	for k, v := range config.Toggles {
 		UpdateSwitch(k, v)
 	}
+	for _, w := range config.Widgets {
+		UpdateWidget(strings.ToLower(w.Name), w.Enabled)
+	}
+
 	return nil
 }
 

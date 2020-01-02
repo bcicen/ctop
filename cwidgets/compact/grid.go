@@ -17,11 +17,7 @@ type CompactGrid struct {
 
 func NewCompactGrid() *CompactGrid {
 	cg := &CompactGrid{header: NewCompactHeader()}
-	for _, wFn := range allCols {
-		w := wFn()
-		cg.cols = append(cg.cols, w)
-		cg.header.addFieldPar(w.Header())
-	}
+	cg.RebuildHeader()
 	return cg
 }
 
@@ -38,6 +34,14 @@ func (cg *CompactGrid) Align() {
 		r.SetY(y)
 		y += r.GetHeight()
 		r.SetWidths(cg.Width, colWidths)
+	}
+}
+
+func (cg *CompactGrid) RebuildHeader() {
+	cg.cols = newRowWidgets()
+	cg.header.clearFieldPars()
+	for _, col := range cg.cols {
+		cg.header.addFieldPar(col.Header())
 	}
 }
 

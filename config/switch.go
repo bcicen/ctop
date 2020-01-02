@@ -1,7 +1,7 @@
 package config
 
 // defaults
-var switches = []*Switch{
+var defaultSwitches = []*Switch{
 	&Switch{
 		Key:   "sortReversed",
 		Val:   false,
@@ -37,6 +37,9 @@ type Switch struct {
 
 // GetSwitch returns Switch by key
 func GetSwitch(k string) *Switch {
+	lock.RLock()
+	defer lock.RUnlock()
+
 	for _, sw := range GlobalSwitches {
 		if sw.Key == k {
 			return sw
@@ -52,8 +55,12 @@ func GetSwitchVal(k string) bool {
 
 func UpdateSwitch(k string, val bool) {
 	sw := GetSwitch(k)
+
+	lock.Lock()
+	defer lock.Unlock()
+
 	if sw.Val != val {
-		log.Noticef("config change: %s: %t -> %t", k, sw.Val, val)
+		log.Noticef("config change [%s]: %t -> %t", k, sw.Val, val)
 		sw.Val = val
 	}
 }
@@ -61,8 +68,12 @@ func UpdateSwitch(k string, val bool) {
 // Toggle a boolean switch
 func Toggle(k string) {
 	sw := GetSwitch(k)
+
+	lock.Lock()
+	defer lock.Unlock()
+
 	newVal := !sw.Val
-	log.Noticef("config change: %s: %t -> %t", k, sw.Val, newVal)
+	log.Noticef("config change [%s]: %t -> %t", k, sw.Val, newVal)
 	sw.Val = newVal
 	//log.Errorf("ignoring toggle for non-existant switch: %s", k)
 }

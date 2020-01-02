@@ -51,6 +51,10 @@ func (row *CompactHeader) Buffer() ui.Buffer {
 	return buf
 }
 
+func (row *CompactHeader) clearFieldPars() {
+	row.pars = []*ui.Par{}
+}
+
 func (row *CompactHeader) addFieldPar(s string) {
 	p := ui.NewPar(s)
 	p.Height = row.Height
