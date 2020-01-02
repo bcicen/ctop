@@ -2,6 +2,7 @@ package compact
 
 import (
 	"github.com/bcicen/ctop/models"
+
 	ui "github.com/gizak/termui"
 )
 

@@ -1,7 +1,7 @@
 package config
 
 // defaults
-var params = []*Param{
+var defaultParams = []*Param{
 	&Param{
 		Key:   "filterStr",
 		Val:   "",
@@ -27,6 +27,9 @@ type Param struct {
 
 // Get Param by key
 func Get(k string) *Param {
+	lock.RLock()
+	defer lock.RUnlock()
+
 	for _, p := range GlobalParams {
 		if p.Key == k {
 			return p
@@ -43,7 +46,10 @@ func GetVal(k string) string {
 // Set param value
 func Update(k, v string) {
 	p := Get(k)
-	log.Noticef("config change: %s: %s -> %s", k, quote(p.Val), quote(v))
+	log.Noticef("config change [%s]: %s -> %s", k, quote(p.Val), quote(v))
+
+	lock.Lock()
+	defer lock.Unlock()
 	p.Val = v
 	// log.Errorf("ignoring update for non-existant parameter: %s", k)
 }

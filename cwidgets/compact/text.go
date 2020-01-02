@@ -5,6 +5,7 @@ import (
 
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/models"
+
 	ui "github.com/gizak/termui"
 )
 
