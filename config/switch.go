@@ -72,8 +72,7 @@ func Toggle(k string) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	newVal := !sw.Val
-	log.Noticef("config change [%s]: %t -> %t", k, sw.Val, newVal)
-	sw.Val = newVal
+	sw.Val = !sw.Val
+	log.Noticef("config change [%s]: %t -> %t", k, !sw.Val, sw.Val)
 	//log.Errorf("ignoring toggle for non-existant switch: %s", k)
 }

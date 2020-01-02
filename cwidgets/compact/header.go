@@ -14,7 +14,10 @@ type CompactHeader struct {
 }
 
 func NewCompactHeader() *CompactHeader {
-	return &CompactHeader{Height: 2}
+	return &CompactHeader{
+		X:      rowPadding,
+		Height: 2,
+	}
 }
 
 func (row *CompactHeader) GetHeight() int {
