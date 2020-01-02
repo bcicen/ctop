@@ -64,7 +64,10 @@ func Read() error {
 	if len(colStr) > 0 {
 		var colNames []string
 		for _, s := range strings.Split(colStr, ",") {
-			colNames = append(colNames, strings.TrimSpace(s))
+			s = strings.TrimSpace(s)
+			if s != "" {
+				colNames = append(colNames, strings.TrimSpace(s))
+			}
 		}
 		SetColumns(colNames)
 	}
