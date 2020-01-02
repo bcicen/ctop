@@ -16,17 +16,18 @@ var (
 type File struct {
 	Options map[string]string `toml:"options"`
 	Toggles map[string]bool   `toml:"toggles"`
-	Widgets []Widget          `toml:"widget"`
 }
 
 func exportConfig() File {
+	// update columns param from working config
+	Update("columns", ColumnsString())
+
 	lock.RLock()
 	defer lock.RUnlock()
 
 	c := File{
 		Options: make(map[string]string),
 		Toggles: make(map[string]bool),
-		Widgets: make([]Widget, len(GlobalWidgets)),
 	}
 
 	for _, p := range GlobalParams {
@@ -34,9 +35,6 @@ func exportConfig() File {
 	}
 	for _, sw := range GlobalSwitches {
 		c.Toggles[sw.Key] = sw.Val
-	}
-	for n, w := range GlobalWidgets {
-		c.Widgets[n] = *w
 	}
 
 	return c
@@ -54,15 +52,21 @@ func Read() error {
 	if _, err := toml.DecodeFile(path, &config); err != nil {
 		return err
 	}
-
 	for k, v := range config.Options {
 		Update(k, v)
 	}
 	for k, v := range config.Toggles {
 		UpdateSwitch(k, v)
 	}
-	for _, w := range config.Widgets {
-		UpdateWidget(strings.ToLower(w.Name), w.Enabled)
+
+	// set working column config, if provided
+	colStr := GetVal("columns")
+	if len(colStr) > 0 {
+		var colNames []string
+		for _, s := range strings.Split(colStr, ",") {
+			colNames = append(colNames, strings.TrimSpace(s))
+		}
+		SetColumns(colNames)
 	}
 
 	return nil
