@@ -55,6 +55,11 @@ func (m *Menu) DelItem(s string) (success bool) {
 	return success
 }
 
+// ClearItems removes all current menu items
+func (m *Menu) ClearItems() {
+	m.items = m.items[:0]
+}
+
 // Move cursor to an position by Item value or label
 func (m *Menu) SetCursor(s string) (success bool) {
 	for n, i := range m.items {
@@ -77,6 +82,10 @@ func (m *Menu) refresh() {
 
 func (m *Menu) SelectedItem() Item {
 	return m.items[m.cursorPos]
+}
+
+func (m *Menu) SelectedValue() string {
+	return m.items[m.cursorPos].Val
 }
 
 func (m *Menu) Buffer() ui.Buffer {

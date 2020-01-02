@@ -191,6 +191,10 @@ func Display() bool {
 		menu = SortMenu
 		ui.StopLoop()
 	})
+	ui.Handle("/sys/kbd/c", func(ui.Event) {
+		menu = ColumnsMenu
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/S", func(ui.Event) {
 		path, err := config.Write()
 		if err == nil {

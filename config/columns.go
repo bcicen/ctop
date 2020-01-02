@@ -69,6 +69,13 @@ func EnabledColumns() (a []string) {
 	return a
 }
 
+// ColumnToggle toggles the enabled status of a given column name
+func ColumnToggle(name string) {
+	col := GlobalColumns[colIndex(name)]
+	col.Enabled = !col.Enabled
+	log.Noticef("config change [column-%s]: %t -> %t", col.Name, !col.Enabled, col.Enabled)
+}
+
 // ColumnLeft moves the column with given name up one position, if possible
 func ColumnLeft(name string) {
 	idx := colIndex(name)

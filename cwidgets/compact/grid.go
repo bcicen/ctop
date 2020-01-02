@@ -17,7 +17,7 @@ type CompactGrid struct {
 
 func NewCompactGrid() *CompactGrid {
 	cg := &CompactGrid{header: NewCompactHeader()}
-	cg.RebuildHeader()
+	cg.rebuildHeader()
 	return cg
 }
 
@@ -30,6 +30,7 @@ func (cg *CompactGrid) Align() {
 
 	// update row ypos, width recursively
 	colWidths := cg.calcWidths()
+	cg.header.SetWidths(cg.Width, colWidths)
 	for _, r := range cg.pageRows() {
 		r.SetY(y)
 		y += r.GetHeight()
@@ -37,15 +38,11 @@ func (cg *CompactGrid) Align() {
 	}
 }
 
-func (cg *CompactGrid) RebuildHeader() {
-	cg.cols = newRowWidgets()
-	cg.header.clearFieldPars()
-	for _, col := range cg.cols {
-		cg.header.addFieldPar(col.Header())
-	}
+func (cg *CompactGrid) Clear() {
+	cg.Rows = []RowBufferer{}
+	cg.rebuildHeader()
 }
 
-func (cg *CompactGrid) Clear()         { cg.Rows = []RowBufferer{} }
 func (cg *CompactGrid) GetHeight() int { return len(cg.Rows) + cg.header.Height }
 func (cg *CompactGrid) SetX(x int)     { cg.X = x }
 func (cg *CompactGrid) SetY(y int)     { cg.Y = y }
@@ -92,4 +89,12 @@ func (cg *CompactGrid) Buffer() ui.Buffer {
 
 func (cg *CompactGrid) AddRows(rows ...RowBufferer) {
 	cg.Rows = append(cg.Rows, rows...)
+}
+
+func (cg *CompactGrid) rebuildHeader() {
+	cg.cols = newRowWidgets()
+	cg.header.clearFieldPars()
+	for _, col := range cg.cols {
+		cg.header.addFieldPar(col.Header())
+	}
 }
