@@ -42,6 +42,12 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 	}
 }
 
+func (c *Container) RecreateWidgets() {
+	c.SetUpdater(cwidgets.NullWidgetUpdater{})
+	c.Widgets = compact.NewCompactRow()
+	c.SetUpdater(c.Widgets)
+}
+
 func (c *Container) SetUpdater(u cwidgets.WidgetUpdater) {
 	c.updater = u
 	c.updater.SetMeta(c.Meta)

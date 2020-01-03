@@ -19,19 +19,28 @@ type File struct {
 }
 
 func exportConfig() File {
+	// update columns param from working config
+	Update("columns", ColumnsString())
+
+	lock.RLock()
+	defer lock.RUnlock()
+
 	c := File{
 		Options: make(map[string]string),
 		Toggles: make(map[string]bool),
 	}
+
 	for _, p := range GlobalParams {
 		c.Options[p.Key] = p.Val
 	}
 	for _, sw := range GlobalSwitches {
 		c.Toggles[sw.Key] = sw.Val
 	}
+
 	return c
 }
 
+//
 func Read() error {
 	var config File
 
@@ -43,13 +52,26 @@ func Read() error {
 	if _, err := toml.DecodeFile(path, &config); err != nil {
 		return err
 	}
-
 	for k, v := range config.Options {
 		Update(k, v)
 	}
 	for k, v := range config.Toggles {
 		UpdateSwitch(k, v)
 	}
+
+	// set working column config, if provided
+	colStr := GetVal("columns")
+	if len(colStr) > 0 {
+		var colNames []string
+		for _, s := range strings.Split(colStr, ",") {
+			s = strings.TrimSpace(s)
+			if s != "" {
+				colNames = append(colNames, strings.TrimSpace(s))
+			}
+		}
+		SetColumns(colNames)
+	}
+
 	return nil
 }
 

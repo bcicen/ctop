@@ -5,6 +5,7 @@ import (
 
 	"github.com/bcicen/ctop/cwidgets"
 	"github.com/bcicen/ctop/models"
+
 	ui "github.com/gizak/termui"
 )
 
@@ -34,6 +35,9 @@ func NewCIDCol() CompactCol {
 
 func (w *CIDCol) SetMeta(m models.Meta) {
 	w.Text = m.Get("id")
+	if len(w.Text) > 12 {
+		w.Text = w.Text[:12]
+	}
 }
 
 type NetCol struct {

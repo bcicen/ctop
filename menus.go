@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bcicen/ctop/config"
@@ -104,7 +105,90 @@ func SortMenu() MenuFn {
 	HandleKeys("exit", ui.StopLoop)
 
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		config.Update("sortField", m.SelectedItem().Val)
+		config.Update("sortField", m.SelectedValue())
+		ui.StopLoop()
+	})
+
+	ui.Render(m)
+	ui.Loop()
+	return nil
+}
+
+func ColumnsMenu() MenuFn {
+	const (
+		enabledStr  = "[X]"
+		disabledStr = "[ ]"
+		padding     = 2
+	)
+
+	ui.Clear()
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	m := menu.NewMenu()
+	m.Selectable = true
+	m.SortItems = false
+	m.BorderLabel = "Columns"
+	//m.SubText = "Enabled Columns"
+
+	rebuild := func() {
+		// get padding for right alignment of enabled status
+		var maxLen int
+		for _, col := range config.GlobalColumns {
+			if len(col.Label) > maxLen {
+				maxLen = len(col.Label)
+			}
+		}
+		maxLen += padding
+
+		// rebuild menu items
+		m.ClearItems()
+		for _, col := range config.GlobalColumns {
+			txt := col.Label + strings.Repeat(" ", maxLen-len(col.Label))
+			if col.Enabled {
+				txt += enabledStr
+			} else {
+				txt += disabledStr
+			}
+			m.AddItems(menu.Item{col.Name, txt})
+		}
+	}
+
+	upFn := func() {
+		config.ColumnLeft(m.SelectedValue())
+		m.Up()
+		rebuild()
+	}
+
+	downFn := func() {
+		config.ColumnRight(m.SelectedValue())
+		m.Down()
+		rebuild()
+	}
+
+	toggleFn := func() {
+		config.ColumnToggle(m.SelectedValue())
+		rebuild()
+	}
+
+	rebuild()
+
+	HandleKeys("up", m.Up)
+	HandleKeys("down", m.Down)
+	HandleKeys("enter", toggleFn)
+	HandleKeys("pgup", upFn)
+	HandleKeys("pgdown", downFn)
+
+	ui.Handle("/sys/kbd/x", func(ui.Event) { toggleFn() })
+	ui.Handle("/sys/kbd/<enter>", func(ui.Event) { toggleFn() })
+
+	HandleKeys("exit", func() {
+		cSource, err := cursor.cSuper.Get()
+		if err == nil {
+			for _, c := range cSource.All() {
+				c.RecreateWidgets()
+			}
+		}
 		ui.StopLoop()
 	})
 
@@ -202,7 +286,7 @@ func ContainerMenu() MenuFn {
 	})
 
 	ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-		selected = m.SelectedItem().Val
+		selected = m.SelectedValue()
 		ui.StopLoop()
 	})
 	ui.Handle("/sys/kbd/", func(ui.Event) {
@@ -321,7 +405,7 @@ func Confirm(txt string, fn func()) MenuFn {
 		ui.Handle("/sys/kbd/y", func(ui.Event) { yes() })
 
 		ui.Handle("/sys/kbd/<enter>", func(ui.Event) {
-			switch m.SelectedItem().Val {
+			switch m.SelectedValue() {
 			case "cancel":
 				no()
 			case "yes":

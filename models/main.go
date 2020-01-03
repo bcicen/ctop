@@ -14,14 +14,10 @@ type Meta map[string]string
 func NewMeta(kvs ...string) Meta {
 	m := make(Meta)
 
-	var k string
-	for i := 0; i < len(kvs)-1; i++ {
-		if k == "" {
-			k = kvs[i]
-		} else {
-			m[k] = kvs[i]
-			k = ""
-		}
+	var i int
+	for i < len(kvs)-1 {
+		m[kvs[i]] = kvs[i+1]
+		i += 2
 	}
 
 	return m

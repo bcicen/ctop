@@ -11,13 +11,14 @@ type Padding [2]int // x,y padding
 type Menu struct {
 	ui.Block
 	SortItems   bool   // enable automatic sorting of menu items
+	Selectable  bool   // whether menu is navigable
 	SubText     string // optional text to display before items
 	TextFgColor ui.Attribute
 	TextBgColor ui.Attribute
-	Selectable  bool
 	cursorPos   int
 	items       Items
 	padding     Padding
+	toolTip     *ToolTip
 }
 
 func NewMenu() *Menu {
@@ -55,6 +56,11 @@ func (m *Menu) DelItem(s string) (success bool) {
 	return success
 }
 
+// ClearItems removes all current menu items
+func (m *Menu) ClearItems() {
+	m.items = m.items[:0]
+}
+
 // Move cursor to an position by Item value or label
 func (m *Menu) SetCursor(s string) (success bool) {
 	for n, i := range m.items {
@@ -66,17 +72,17 @@ func (m *Menu) SetCursor(s string) (success bool) {
 	return false
 }
 
-// Sort menu items(if enabled) and re-calculate window size
-func (m *Menu) refresh() {
-	if m.SortItems {
-		sort.Sort(m.items)
-	}
-	m.calcSize()
-	ui.Render(m)
+// SetToolTip sets an optional tooltip string to show at bottom of screen
+func (m *Menu) SetToolTip(lines ...string) {
+	m.toolTip = NewToolTip(lines...)
 }
 
 func (m *Menu) SelectedItem() Item {
 	return m.items[m.cursorPos]
+}
+
+func (m *Menu) SelectedValue() string {
+	return m.items[m.cursorPos].Val
 }
 
 func (m *Menu) Buffer() ui.Buffer {
@@ -108,6 +114,10 @@ func (m *Menu) Buffer() ui.Buffer {
 		}
 	}
 
+	if m.toolTip != nil {
+		buf.Merge(m.toolTip.Buffer())
+	}
+
 	return buf
 }
 
@@ -123,6 +133,15 @@ func (m *Menu) Down() {
 		m.cursorPos++
 		ui.Render(m)
 	}
+}
+
+// Sort menu items(if enabled) and re-calculate window size
+func (m *Menu) refresh() {
+	if m.SortItems {
+		sort.Sort(m.items)
+	}
+	m.calcSize()
+	ui.Render(m)
 }
 
 // Set width and height based on menu items
