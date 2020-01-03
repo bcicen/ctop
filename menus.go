@@ -129,6 +129,7 @@ func ColumnsMenu() MenuFn {
 	m.Selectable = true
 	m.SortItems = false
 	m.BorderLabel = "Columns"
+	//m.SubText = "Enabled Columns"
 
 	rebuild := func() {
 		// get padding for right alignment of enabled status
