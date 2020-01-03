@@ -27,6 +27,7 @@ var helpDialog = []menu.Item{
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
 	{"[e] - exec shell", ""},
+	{"[c] - configure columns", ""},
 	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
 }
