@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bcicen/ctop/config"
@@ -114,6 +115,12 @@ func SortMenu() MenuFn {
 }
 
 func ColumnsMenu() MenuFn {
+	const (
+		enabledStr  = "[X]"
+		disabledStr = "[ ]"
+		padding     = 2
+	)
+
 	ui.Clear()
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
@@ -124,9 +131,24 @@ func ColumnsMenu() MenuFn {
 	m.BorderLabel = "Columns"
 
 	rebuild := func() {
+		// get padding for right alignment of enabled status
+		var maxLen int
+		for _, col := range config.GlobalColumns {
+			if len(col.Label) > maxLen {
+				maxLen = len(col.Label)
+			}
+		}
+		maxLen += padding
+
+		// rebuild menu items
 		m.ClearItems()
 		for _, col := range config.GlobalColumns {
-			txt := fmt.Sprintf("%s [%t]", col.Label, col.Enabled)
+			txt := col.Label + strings.Repeat(" ", maxLen-len(col.Label))
+			if col.Enabled {
+				txt += enabledStr
+			} else {
+				txt += disabledStr
+			}
 			m.AddItems(menu.Item{col.Name, txt})
 		}
 	}
