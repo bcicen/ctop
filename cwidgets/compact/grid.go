@@ -30,7 +30,6 @@ func (cg *CompactGrid) Align() {
 
 	// update row ypos, width recursively
 	colWidths := cg.calcWidths()
-	cg.header.SetWidths(cg.Width, colWidths)
 	for _, r := range cg.pageRows() {
 		r.SetY(y)
 		y += r.GetHeight()
