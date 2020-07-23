@@ -74,6 +74,7 @@ func (c *Docker) Logs() LogCollector {
 
 // Stop collector
 func (c *Docker) Stop() {
+	c.running = false
 	c.done <- true
 }
 
