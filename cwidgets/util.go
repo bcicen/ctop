@@ -23,18 +23,18 @@ func ByteFormat(n int64) string {
 	}
 	if n < mb {
 		n = n / kb
-		return fmt.Sprintf("%sK", strconv.FormatInt(n, 10))
+		return fmt.Sprintf("%sKiB", strconv.FormatInt(n, 10))
 	}
 	if n < gb {
 		n = n / mb
-		return fmt.Sprintf("%sM", strconv.FormatInt(n, 10))
+		return fmt.Sprintf("%sMiB", strconv.FormatInt(n, 10))
 	}
 	if n < tb {
 		nf := float64(n) / gb
-		return fmt.Sprintf("%sG", unpadFloat(nf))
+		return fmt.Sprintf("%sGiB", unpadFloat(nf))
 	}
 	nf := float64(n) / tb
-	return fmt.Sprintf("%sT", unpadFloat(nf))
+	return fmt.Sprintf("%sTiB", unpadFloat(nf))
 }
 
 func unpadFloat(f float64) string {
