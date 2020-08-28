@@ -9,7 +9,7 @@ Top-like interface for container metrics
 `ctop` provides a concise and condensed overview of real-time metrics for multiple containers:
 <p align="center"><img src="_docs/img/grid.gif" alt="ctop"/></p>
 
-as well as an [single container view][single_view] for inspecting a specific container.
+as well as a [single container view][single_view] for inspecting a specific container.
 
 `ctop` comes with built-in support for Docker and runC; connectors for other container and cluster systems are planned for future releases.
 
@@ -74,20 +74,20 @@ Option | Description
 
 ### Keybindings
 
-Key | Action
---- | ---
-`<enter>` | Open container menu
-`a` | Toggle display of all (running and non-running) containers
-`f` | Filter displayed containers (`esc` to clear when open)
-`H` | Toggle ctop header
-`h` | Open help dialog
-`s` | Select container sort field
-`r` | Reverse container sort order
-`o` | Open single view
-`l` | View container logs (`t` to toggle timestamp when open)
-`e` | Exec Shell
-`S` | Save current configuration to file
-`q` | Quit ctop
+|           Key            | Action                                                     |
+| :----------------------: | ---------------------------------------------------------- |
+| <kbd>&lt;ENTER&gt;</kbd> | Open container menu                                        |
+|       <kbd>a</kbd>       | Toggle display of all (running and non-running) containers |
+|       <kbd>f</kbd>       | Filter displayed containers (`esc` to clear when open)     |
+|       <kbd>H</kbd>       | Toggle ctop header                                         |
+|       <kbd>h</kbd>       | Open help dialog                                           |
+|       <kbd>s</kbd>       | Select container sort field                                |
+|       <kbd>r</kbd>       | Reverse container sort order                               |
+|       <kbd>o</kbd>       | Open single view                                           |
+|       <kbd>l</kbd>       | View container logs (`t` to toggle timestamp when open)    |
+|       <kbd>e</kbd>       | Exec Shell                                                 |
+|       <kbd>S</kbd>       | Save current configuration to file                         |
+|       <kbd>q</kbd>       | Quit ctop                                                  |
 
 [build]: _docs/build.md
 [connectors]: _docs/connectors.md
