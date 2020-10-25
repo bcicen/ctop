@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 17.05.0-ce
+          version: 19.03.13
       - run: make image
       - deploy: 
           command: |

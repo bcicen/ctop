@@ -20,7 +20,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 #### Linux
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.3/ctop-0.7.3-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.4/ctop-0.7.4-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -31,7 +31,7 @@ brew install ctop
 ```
 or
 ```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.3/ctop-0.7.3-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.4/ctop-0.7.4-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -56,7 +56,9 @@ Build steps can be found [here][build].
 
 ### Config file
 
-While running, use `S` to save the current filters, sort field, and other options to a default config path. These settings will be loaded and applied the next time `ctop` is started.
+While running, use `S` to save the current filters, sort field, and other options to a default config path (`~/.config/ctop/config` on XDG systems, else `~/.ctop`).
+
+Config file values will be loaded and applied the next time `ctop` is started.
 
 ### Options
 
@@ -86,6 +88,7 @@ Option | Description
 |       <kbd>o</kbd>       | Open single view                                           |
 |       <kbd>l</kbd>       | View container logs (`t` to toggle timestamp when open)    |
 |       <kbd>e</kbd>       | Exec Shell                                                 |
+|       <kbd>c</kbd>       | Configure columns                                          |
 |       <kbd>S</kbd>       | Save current configuration to file                         |
 |       <kbd>q</kbd>       | Quit ctop                                                  |
 
