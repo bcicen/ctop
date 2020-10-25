@@ -22,7 +22,7 @@ type Connector interface {
 	All() container.Containers
 	// Get returns a single container.Container by ID
 	Get(string) (*container.Container, bool)
-	// Wait waits for the underlying connection to be lost before returning
+	// Wait blocks until the underlying connection is lost
 	Wait() struct{}
 }
 

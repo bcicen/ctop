@@ -114,10 +114,10 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 	var read, write int64
 	for _, blk := range stats.BlkioStats.IOServiceBytesRecursive {
 		if blk.Op == "Read" {
-			read = int64(blk.Value)
+			read += int64(blk.Value)
 		}
 		if blk.Op == "Write" {
-			write = int64(blk.Value)
+			write += int64(blk.Value)
 		}
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
