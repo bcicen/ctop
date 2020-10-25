@@ -37,8 +37,9 @@ func NewMemCol() CompactCol {
 }
 
 func (w *MemCol) SetMetrics(m models.Metrics) {
+	log.Warningf("MEM WIDTH: %d", w.Width)
 	w.BarColor = ui.ThemeAttr("gauge.bar.bg")
-	w.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat(m.MemUsage), cwidgets.ByteFormat(m.MemLimit))
+	w.Label = fmt.Sprintf("%s / %s", cwidgets.ByteFormat64Short(m.MemUsage), cwidgets.ByteFormat64Short(m.MemLimit))
 	w.Percent = m.MemPercent
 }
 

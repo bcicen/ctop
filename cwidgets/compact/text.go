@@ -49,7 +49,7 @@ func NewNetCol() CompactCol {
 }
 
 func (w *NetCol) SetMetrics(m models.Metrics) {
-	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(m.NetRx), cwidgets.ByteFormat(m.NetTx))
+	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat64Short(m.NetRx), cwidgets.ByteFormat64Short(m.NetTx))
 	w.Text = label
 }
 
@@ -62,7 +62,7 @@ func NewIOCol() CompactCol {
 }
 
 func (w *IOCol) SetMetrics(m models.Metrics) {
-	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat(m.IOBytesRead), cwidgets.ByteFormat(m.IOBytesWrite))
+	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat64Short(m.IOBytesRead), cwidgets.ByteFormat64Short(m.IOBytesWrite))
 	w.Text = label
 }
 
