@@ -42,10 +42,10 @@ func (w *Net) Update(rx int64, tx int64) {
 	var rate string
 
 	w.rxHist.Append(int(rx))
-	rate = strings.ToLower(cwidgets.ByteFormatInt(w.rxHist.Val))
+	rate = strings.ToLower(cwidgets.ByteFormat(w.rxHist.Val))
 	w.Lines[0].Title = fmt.Sprintf("RX [%s/s]", rate)
 
 	w.txHist.Append(int(tx))
-	rate = strings.ToLower(cwidgets.ByteFormatInt(w.txHist.Val))
+	rate = strings.ToLower(cwidgets.ByteFormat(w.txHist.Val))
 	w.Lines[1].Title = fmt.Sprintf("TX [%s/s]", rate)
 }

@@ -70,7 +70,7 @@ func newMemChart() *ui.MBarChart {
 	mbar.BarColor[1] = ui.ColorBlack
 	mbar.NumColor[1] = ui.ColorBlack
 
-	mbar.NumFmt = cwidgets.ByteFormatInt
+	mbar.NumFmt = cwidgets.ByteFormatShort
 	//mbar.ShowScale = true
 	return mbar
 }
@@ -78,6 +78,6 @@ func newMemChart() *ui.MBarChart {
 func (w *Mem) Update(val int, limit int) {
 	w.valHist.Append(val)
 	w.limitHist.Append(limit - val)
-	w.InnerLabel.Text = fmt.Sprintf("%v / %v", cwidgets.ByteFormatInt(val), cwidgets.ByteFormatInt(limit))
+	w.InnerLabel.Text = fmt.Sprintf("%v / %v", cwidgets.ByteFormatShort(val), cwidgets.ByteFormatShort(limit))
 	//w.Data[0] = w.hist.data
 }

@@ -5,10 +5,12 @@ package collector
 import (
 	"time"
 
-	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/models"
 	"github.com/opencontainers/runc/libcontainer"
 	"github.com/opencontainers/runc/libcontainer/cgroups"
+	"github.com/opencontainers/runc/types"
+
+	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/models"
 )
 
 // Runc collector
@@ -112,7 +114,7 @@ func (c *Runc) ReadMem(stats *cgroups.Stats) {
 	c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
 }
 
-func (c *Runc) ReadNet(interfaces []*libcontainer.NetworkInterface) {
+func (c *Runc) ReadNet(interfaces []*types.NetworkInterface) {
 	var rx, tx int64
 	for _, network := range interfaces {
 		rx += int64(network.RxBytes)

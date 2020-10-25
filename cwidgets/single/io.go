@@ -42,10 +42,10 @@ func (w *IO) Update(read int64, write int64) {
 	var rate string
 
 	w.readHist.Append(int(read))
-	rate = strings.ToLower(cwidgets.ByteFormatInt(w.readHist.Val))
+	rate = strings.ToLower(cwidgets.ByteFormatShort(w.readHist.Val))
 	w.Lines[0].Title = fmt.Sprintf("read [%s/s]", rate)
 
 	w.writeHist.Append(int(write))
-	rate = strings.ToLower(cwidgets.ByteFormatInt(w.writeHist.Val))
+	rate = strings.ToLower(cwidgets.ByteFormatShort(w.writeHist.Val))
 	w.Lines[1].Title = fmt.Sprintf("write [%s/s]", rate)
 }

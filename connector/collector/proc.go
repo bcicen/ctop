@@ -4,13 +4,14 @@ package collector
 
 import (
 	linuxproc "github.com/c9s/goprocinfo/linux"
-	"github.com/opencontainers/runc/libcontainer/system"
 )
 
 var sysMemTotal = getSysMemTotal()
-var clockTicksPerSecond = uint64(system.GetClockTicks())
 
-const nanoSecondsPerSecond = 1e9
+const (
+	clockTicksPerSecond  uint64 = 100
+	nanoSecondsPerSecond        = 1e9
+)
 
 func getSysMemTotal() int64 {
 	stat, err := linuxproc.ReadMemInfo("/proc/meminfo")
