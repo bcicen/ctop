@@ -33,16 +33,6 @@ var (
 		[2]string{"T", "TiB"},
 		[2]string{"P", "PiB"},
 	}
-
-	// maximum displayed precision per unit
-	maxPrecision = []int{
-		0, // B
-		0, // kib
-		1, // mib
-		1, // gib
-		2, // tib
-		2, // pib
-	}
 )
 
 // convenience methods
@@ -63,9 +53,9 @@ func byteFormat(n float64, short bool) string {
 	}
 
 	if short {
-		return unpadFloat(n, maxPrecision[i]) + labels[i][0]
+		return unpadFloat(n, 0) + labels[i][0]
 	}
-	return unpadFloat(n, maxPrecision[i]) + labels[i][1]
+	return unpadFloat(n, 2) + labels[i][1]
 }
 
 func unpadFloat(f float64, maxp int) string {
