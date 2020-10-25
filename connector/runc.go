@@ -247,7 +247,7 @@ func (cm *Runc) All() (containers container.Containers) {
 func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
 	cgroupManager := libcontainer.Cgroupfs
 	if opts.systemdCgroups {
-		if systemd.UseSystemd() {
+		if systemd.IsRunningSystemd() {
 			cgroupManager = libcontainer.SystemdCgroups
 		} else {
 			return nil, fmt.Errorf("systemd cgroup enabled, but systemd support for managing cgroups is not available")
