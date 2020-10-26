@@ -90,6 +90,13 @@ func Write() (path string, err error) {
 		}
 	}
 
+	// remove prior to writing new file
+	if err := os.Remove(path); err != nil {
+		if !os.IsNotExist(err) {
+			return path, err
+		}
+	}
+
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return path, fmt.Errorf("failed to open config for writing: %s", err)

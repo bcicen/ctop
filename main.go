@@ -65,7 +65,9 @@ func main() {
 
 	// init global config and read config file if exists
 	config.Init()
-	config.Read()
+	if err := config.Read(); err != nil {
+		log.Warningf("reading config: %s", err)
+	}
 
 	// override default config values with command line flags
 	if *filterFlag != "" {
