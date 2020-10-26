@@ -32,11 +32,11 @@ func (cs *Mock) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
 
 	for i := 0; i < 4; i++ {
-		cs.makeContainer(3)
+		cs.makeContainer(3, true)
 	}
 
 	for i := 0; i < 16; i++ {
-		cs.makeContainer(1)
+		cs.makeContainer(1, false)
 	}
 
 }
@@ -50,12 +50,28 @@ func (cs *Mock) Wait() struct{} {
 	return <-ch
 }
 
-func (cs *Mock) makeContainer(aggression int64) {
+var healthStates = []string{"starting", "healthy", "unhealthy"}
+
+func (cs *Mock) makeContainer(aggression int64, health bool) {
 	collector := collector.NewMock(aggression)
 	manager := manager.NewMock()
 	c := container.New(makeID(), collector, manager)
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
+	if health {
+		var i int
+		c.SetMeta("health", healthStates[i])
+		go func() {
+			for {
+				i++
+				if i >= len(healthStates) {
+					i = 0
+				}
+				c.SetMeta("health", healthStates[i])
+				time.Sleep(12 * time.Second)
+			}
+		}()
+	}
 	cs.containers = append(cs.containers, c)
 }
 
