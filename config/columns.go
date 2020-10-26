@@ -46,6 +46,11 @@ var defaultColumns = []Column{
 		Label:   "Container PID Count",
 		Enabled: true,
 	},
+	Column{
+		Name:    "uptime",
+		Label:   "Running uptime duration",
+		Enabled: true,
+	},
 }
 
 type Column struct {

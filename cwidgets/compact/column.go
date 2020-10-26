@@ -17,6 +17,7 @@ var (
 		"net":    NewNetCol,
 		"io":     NewIOCol,
 		"pids":   NewPIDCol,
+		"uptime": NewUptimeCol,
 	}
 )
 

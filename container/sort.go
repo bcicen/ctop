@@ -79,6 +79,15 @@ var Sorters = map[string]sortMethod{
 		}
 		return stateMap[c1state] > stateMap[c2state]
 	},
+	"uptime": func(c1, c2 *Container) bool {
+		// Use secondary sort method if equal values
+		c1Uptime := c1.GetMeta("uptime")
+		c2Uptime := c2.GetMeta("uptime")
+		if c1Uptime == c2Uptime {
+			return nameSorter(c1, c2)
+		}
+		return c1Uptime > c2Uptime
+	},
 }
 
 func SortFields() (fields []string) {
