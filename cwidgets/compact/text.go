@@ -19,10 +19,6 @@ func NewNameCol() CompactCol {
 
 func (w *NameCol) SetMeta(m models.Meta) {
 	w.Text = m.Get("name")
-	// truncate container id
-	if len(w.Text) > 12 {
-		w.Text = w.Text[:12]
-	}
 }
 
 type CIDCol struct {
@@ -35,9 +31,6 @@ func NewCIDCol() CompactCol {
 
 func (w *CIDCol) SetMeta(m models.Meta) {
 	w.Text = m.Get("id")
-	if len(w.Text) > 12 {
-		w.Text = w.Text[:12]
-	}
 }
 
 type NetCol struct {
