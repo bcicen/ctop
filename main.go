@@ -46,7 +46,7 @@ func main() {
 		invertFlag      = flag.Bool("i", false, "invert default colors")
 		scaleCpu        = flag.Bool("scale-cpu", false, "show cpu as % of system total")
 		connectorFlag   = flag.String("connector", "docker", "container connector to use")
-		defaultShell    = flag.String("shell", "", "default shell")
+		defaultShell    = flag.String("shell", "sh", "exec shell to use")
 	)
 	flag.Parse()
 
@@ -65,7 +65,9 @@ func main() {
 
 	// init global config and read config file if exists
 	config.Init()
-	config.Read()
+	if err := config.Read(); err != nil {
+		log.Warningf("reading config: %s", err)
+	}
 
 	// override default config values with command line flags
 	if *filterFlag != "" {
