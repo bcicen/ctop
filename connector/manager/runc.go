@@ -7,29 +7,29 @@ func NewRunc() *Runc {
 }
 
 func (rc *Runc) Start() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (rc *Runc) Stop() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (rc *Runc) Remove() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (rc *Runc) Pause() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (rc *Runc) Unpause() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (rc *Runc) Restart() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (rc *Runc) Exec(cmd []string) error {
-	return nil
+	return ActionNotImplErr
 }

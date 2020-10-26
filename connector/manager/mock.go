@@ -7,29 +7,29 @@ func NewMock() *Mock {
 }
 
 func (m *Mock) Start() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (m *Mock) Stop() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (m *Mock) Remove() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (m *Mock) Pause() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (m *Mock) Unpause() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (m *Mock) Restart() error {
-	return nil
+	return ActionNotImplErr
 }
 
 func (m *Mock) Exec(cmd []string) error {
-	return nil
+	return ActionNotImplErr
 }
