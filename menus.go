@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"strings"
 	"time"
@@ -27,6 +28,7 @@ var helpDialog = []menu.Item{
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
 	{"[e] - exec shell", ""},
+	{"[i] - inspect", ""},
 	{"[c] - configure columns", ""},
 	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
@@ -214,6 +216,7 @@ func ContainerMenu() MenuFn {
 	items := []menu.Item{
 		menu.Item{Val: "single", Label: "[o] single view"},
 		menu.Item{Val: "logs", Label: "[l] log view"},
+		menu.Item{Val: "inspect", Label: "[i] inspect"},
 	}
 
 	if c.Meta["state"] == "running" {
@@ -303,6 +306,8 @@ func ContainerMenu() MenuFn {
 		nextMenu = LogMenu
 	case "exec":
 		nextMenu = ExecShell
+	case "inspect":
+		nextMenu = InspectView
 	case "start":
 		nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 	case "stop":
@@ -371,6 +376,34 @@ func ExecShell() MenuFn {
 		log.StatusErr(err)
 	}
 
+	return nil
+}
+
+func InspectView() MenuFn {
+	c := cursor.Selected()
+	if c == nil {
+		return nil
+	}
+
+	ui.DefaultEvtStream.ResetHandlers()
+	defer ui.DefaultEvtStream.ResetHandlers()
+
+	inspectLines, quit := inspectReader(c)
+	m := widgets.NewTextView(inspectLines)
+	m.BorderLabel = fmt.Sprintf("Inspect [%s]", c.GetMeta("name"))
+	ui.Render(m)
+
+	ui.Handle("/sys/wnd/resize", func(e ui.Event) {
+		m.Resize()
+	})
+	ui.Handle("/sys/kbd/t", func(ui.Event) {
+		m.Toggle()
+	})
+	ui.Handle("/sys/kbd/q", func(ui.Event) {
+		quit <- true
+		ui.StopLoop()
+	})
+	ui.Loop()
 	return nil
 }
 
@@ -457,6 +490,34 @@ func logReader(container *container.Container) (logs chan widgets.ToggleText, qu
 			case <-quit:
 				logCollector.Stop()
 				close(logs)
+				return
+			}
+		}
+	}()
+	return
+}
+
+type toggleInspect struct {
+	json string
+}
+
+func (t *toggleInspect) Toggle(on bool) string {
+	return t.json
+}
+
+func inspectReader(container *container.Container) (lines chan widgets.ToggleText, quit chan bool) {
+	inspectLines := container.Inspect()
+	lines = make(chan widgets.ToggleText)
+	quit = make(chan bool)
+	go func() {
+		// Split inspectLines to lines
+		scanner := bufio.NewScanner(strings.NewReader(inspectLines))
+		for scanner.Scan() {
+			lines <- &toggleInspect{json: scanner.Text()}
+		}
+		for {
+			select {
+			case <-quit:
 				return
 			}
 		}

@@ -33,3 +33,7 @@ func (rc *Runc) Restart() error {
 func (rc *Runc) Exec(cmd []string) error {
 	return ActionNotImplErr
 }
+
+func (rc *Runc) Inspect() string {
+	return ""
+}

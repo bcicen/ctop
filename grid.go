@@ -162,6 +162,10 @@ func Display() bool {
 		menu = ExecShell
 		ui.StopLoop()
 	})
+	ui.Handle("/sys/kbd/i", func(ui.Event) {
+		menu = InspectView
+		ui.StopLoop()
+	})
 	ui.Handle("/sys/kbd/o", func(ui.Event) {
 		menu = SingleView
 		ui.StopLoop()

@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"encoding/json"
 	"fmt"
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/pkg/errors"
@@ -100,6 +101,19 @@ func (dc *Docker) Exec(cmd []string) error {
 		ErrorStream:  os.Stderr,
 		RawTerminal:  true,
 	})
+}
+
+func (dc *Docker) Inspect() string {
+	i, err := dc.client.InspectContainer(dc.id)
+	if err != nil {
+		return err.Error()
+	}
+	// Convert Container struct back to JSON but pretty print
+	out, err := json.MarshalIndent(i, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(out)
 }
 
 func (dc *Docker) Start() error {
