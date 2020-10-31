@@ -18,7 +18,7 @@ func NewNameCol() CompactCol {
 }
 
 func (w *NameCol) SetMeta(m models.Meta) {
-	w.Text = m.Get("name")
+	w.setText(m.Get("name"))
 }
 
 type CIDCol struct {
@@ -26,11 +26,13 @@ type CIDCol struct {
 }
 
 func NewCIDCol() CompactCol {
-	return &CIDCol{NewTextCol("CID")}
+	c := &CIDCol{NewTextCol("CID")}
+	c.fWidth = 12
+	return c
 }
 
 func (w *CIDCol) SetMeta(m models.Meta) {
-	w.Text = m.Get("id")
+	w.setText(m.Get("id"))
 }
 
 type NetCol struct {
@@ -43,7 +45,7 @@ func NewNetCol() CompactCol {
 
 func (w *NetCol) SetMetrics(m models.Metrics) {
 	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat64Short(m.NetRx), cwidgets.ByteFormat64Short(m.NetTx))
-	w.Text = label
+	w.setText(label)
 }
 
 type IOCol struct {
@@ -56,7 +58,7 @@ func NewIOCol() CompactCol {
 
 func (w *IOCol) SetMetrics(m models.Metrics) {
 	label := fmt.Sprintf("%s / %s", cwidgets.ByteFormat64Short(m.IOBytesRead), cwidgets.ByteFormat64Short(m.IOBytesWrite))
-	w.Text = label
+	w.setText(label)
 }
 
 type PIDCol struct {
@@ -70,7 +72,7 @@ func NewPIDCol() CompactCol {
 }
 
 func (w *PIDCol) SetMetrics(m models.Metrics) {
-	w.Text = fmt.Sprintf("%d", m.Pids)
+	w.setText(fmt.Sprintf("%d", m.Pids))
 }
 
 type TextCol struct {
@@ -84,7 +86,12 @@ func NewTextCol(header string) *TextCol {
 	p.Border = false
 	p.Height = 1
 	p.Width = 20
-	return &TextCol{p, header, 0}
+
+	return &TextCol{
+		Par:    p,
+		header: header,
+		fWidth: 0,
+	}
 }
 
 func (w *TextCol) Highlight() {
@@ -99,8 +106,16 @@ func (w *TextCol) UnHighlight() {
 	w.TextBgColor = ui.ThemeAttr("par.text.bg")
 }
 
-func (w *TextCol) Reset()                    { w.Text = "-" }
+// TextCol implements CompactCol
+func (w *TextCol) Reset()                    { w.setText("-") }
 func (w *TextCol) SetMeta(models.Meta)       {}
 func (w *TextCol) SetMetrics(models.Metrics) {}
 func (w *TextCol) Header() string            { return w.header }
 func (w *TextCol) FixedWidth() int           { return w.fWidth }
+
+func (w *TextCol) setText(s string) {
+	if w.fWidth > 0 && len(s) > w.fWidth {
+		s = s[0:w.fWidth]
+	}
+	w.Text = s
+}
