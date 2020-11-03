@@ -23,12 +23,9 @@ type Single struct {
 	Width int
 }
 
-func NewSingle(id string) *Single {
-	if len(id) > 12 {
-		id = id[:12]
-	}
+func NewSingle() *Single {
 	return &Single{
-		Info:  NewInfo(id),
+		Info:  NewInfo(),
 		Net:   NewNet(),
 		Cpu:   NewCpu(),
 		Mem:   NewMem(),

@@ -83,7 +83,7 @@ func SingleView() MenuFn {
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	ex := single.NewSingle(c.Id)
+	ex := single.NewSingle()
 	c.SetUpdater(ex)
 
 	ex.Align()
