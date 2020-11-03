@@ -34,7 +34,7 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 	return &Container{
 		Metrics:   models.NewMetrics(),
 		Id:        id,
-		Meta:      models.NewMeta("id", id),
+		Meta:      models.NewMeta("id", id[:12]),
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
