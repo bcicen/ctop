@@ -17,7 +17,17 @@ as well as a [single container view][single_view] for inspecting a specific cont
 
 Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your platform:
 
-#### Linux
+#### Debian/Ubuntu
+
+Maintained by a (third party)[https://packages.azlux.fr/]
+```bash
+echo "deb http://packages.azlux.fr/debian/ buster main" | sudo tee /etc/apt/sources.list.d/azlux.list
+wget -qO - https://azlux.fr/repo.gpg.key | sudo apt-key add -
+sudo apt update
+sudo apt install docker-ctop
+```
+
+#### Linux (Generic)
 
 ```bash
 sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.4/ctop-0.7.4-linux-amd64 -O /usr/local/bin/ctop
