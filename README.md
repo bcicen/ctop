@@ -27,6 +27,10 @@ sudo apt update
 sudo apt install docker-ctop
 ```
 
+#### Arch
+
+`ctop` is available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)
+
 #### Linux (Generic)
 
 ```bash
@@ -53,8 +57,6 @@ docker run --rm -ti \
   --volume /var/run/docker.sock:/var/run/docker.sock:ro \
   quay.io/vektorlab/ctop:latest
 ```
-
-`ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)
 
 ## Building
 
