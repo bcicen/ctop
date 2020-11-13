@@ -38,6 +38,7 @@ func (c *Mock) Start() {
 }
 
 func (c *Mock) Stop() {
+	c.running = false
 	c.done = true
 }
 

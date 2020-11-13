@@ -49,6 +49,7 @@ func (c *Runc) Start() {
 }
 
 func (c *Runc) Stop() {
+	c.running = false
 	c.done = true
 }
 
