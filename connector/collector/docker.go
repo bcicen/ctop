@@ -86,9 +86,9 @@ func (c *Docker) ReadCPU(stats *api.Stats) {
 	syscpudiff := system - c.lastSysCpu
 
 	if c.scaleCpu {
-		c.CPUUtil = round((cpudiff / syscpudiff * 100))
+		c.CPUUtil = percent(cpudiff, syscpudiff)
 	} else {
-		c.CPUUtil = round((cpudiff / syscpudiff * 100) * ncpus)
+		c.CPUUtil = percent(ncpus*cpudiff, syscpudiff)
 	}
 	c.lastCpu = total
 	c.lastSysCpu = system
