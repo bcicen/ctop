@@ -24,6 +24,7 @@ type Project struct {
 	Config  string
 	Count   int // Containers Count
 	Widgets *compact.CompactRow
+	Metrics models.Metrics
 }
 
 // Metrics and metadata representing a container
@@ -105,10 +106,15 @@ func (c *Container) Logs() collector.LogCollector {
 func (c *Container) Read(stream chan models.Metrics) {
 	go func() {
 		for metrics := range stream {
+			oldContainerMetrics := c.Metrics
+			c.Project.Metrics.Subtract(oldContainerMetrics)
+			c.Project.Metrics.Add(metrics)
+			c.Project.Widgets.SetMetrics(c.Project.Metrics)
 			c.Metrics = metrics
 			c.updater.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
+		c.Project.Metrics.Subtract(c.Metrics)
 		c.Metrics = models.Metrics{}
 		c.Widgets.Reset()
 	}()

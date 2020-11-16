@@ -42,6 +42,30 @@ type Metrics struct {
 	Pids         int
 }
 
+func (m *Metrics) Add(otherMetrics Metrics) {
+	m.CPUUtil += otherMetrics.CPUUtil
+	m.NetTx += otherMetrics.NetTx
+	m.NetRx += otherMetrics.NetRx
+	m.MemLimit += otherMetrics.MemLimit
+	m.MemPercent += otherMetrics.MemPercent
+	m.MemUsage += otherMetrics.MemUsage
+	m.IOBytesRead += otherMetrics.IOBytesRead
+	m.IOBytesWrite += otherMetrics.IOBytesWrite
+	m.Pids += otherMetrics.Pids
+}
+
+func (m *Metrics) Subtract(otherMetrics Metrics) {
+	m.CPUUtil -= otherMetrics.CPUUtil
+	m.NetTx -= otherMetrics.NetTx
+	m.NetRx -= otherMetrics.NetRx
+	m.MemLimit -= otherMetrics.MemLimit
+	m.MemPercent -= otherMetrics.MemPercent
+	m.MemUsage -= otherMetrics.MemUsage
+	m.IOBytesRead -= otherMetrics.IOBytesRead
+	m.IOBytesWrite -= otherMetrics.IOBytesWrite
+	m.Pids -= otherMetrics.Pids
+}
+
 func (m *Metrics) SumNet() int64 { return m.NetRx + m.NetTx }
 
 func (m *Metrics) SumIO() int64 { return m.IOBytesRead + m.IOBytesWrite }
