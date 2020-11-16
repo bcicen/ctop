@@ -38,6 +38,9 @@ var Sorters = map[string]sortMethod{
 		return cmpByName(c1, c2)
 	},
 	"cpu": func(c1, c2 *Container) bool {
+		if c1.Project.Metrics.CPUUtil != c2.Project.Metrics.CPUUtil {
+			return c1.Project.Metrics.CPUUtil > c2.Project.Metrics.CPUUtil
+		}
 		// Use secondary sort method if equal values
 		if c1.CPUUtil == c2.CPUUtil {
 			return cmpByName(c1, c2)
@@ -45,6 +48,9 @@ var Sorters = map[string]sortMethod{
 		return c1.CPUUtil > c2.CPUUtil
 	},
 	"mem": func(c1, c2 *Container) bool {
+		if c1.Project.Metrics.MemUsage != c2.Project.Metrics.MemUsage {
+			return c1.Project.Metrics.MemUsage > c2.Project.Metrics.MemUsage
+		}
 		// Use secondary sort method if equal values
 		if c1.MemUsage == c2.MemUsage {
 			return cmpByName(c1, c2)
@@ -52,6 +58,9 @@ var Sorters = map[string]sortMethod{
 		return c1.MemUsage > c2.MemUsage
 	},
 	"mem %": func(c1, c2 *Container) bool {
+		if c1.Project.Metrics.MemPercent != c2.Project.Metrics.MemPercent {
+			return c1.Project.Metrics.MemPercent > c2.Project.Metrics.MemPercent
+		}
 		// Use secondary sort method if equal values
 		if c1.MemPercent == c2.MemPercent {
 			return cmpByName(c1, c2)
@@ -59,6 +68,9 @@ var Sorters = map[string]sortMethod{
 		return c1.MemPercent > c2.MemPercent
 	},
 	"net": func(c1, c2 *Container) bool {
+		if c1.Project.Metrics.SumNet() != c2.Project.Metrics.SumNet() {
+			return c1.Project.Metrics.SumNet() > c2.Project.Metrics.SumNet()
+		}
 		sum1 := c1.SumNet()
 		sum2 := c2.SumNet()
 		// Use secondary sort method if equal values
@@ -68,6 +80,9 @@ var Sorters = map[string]sortMethod{
 		return sum1 > sum2
 	},
 	"pids": func(c1, c2 *Container) bool {
+		if c1.Project.Metrics.Pids != c2.Project.Metrics.Pids {
+			return c1.Project.Metrics.Pids > c2.Project.Metrics.Pids
+		}
 		// Use secondary sort method if equal values
 		if c1.Pids == c2.Pids {
 			return cmpByName(c1, c2)
@@ -75,6 +90,9 @@ var Sorters = map[string]sortMethod{
 		return c1.Pids > c2.Pids
 	},
 	"io": func(c1, c2 *Container) bool {
+		if c1.Project.Metrics.SumIO() != c2.Project.Metrics.SumIO() {
+			return c1.Project.Metrics.SumIO() > c2.Project.Metrics.SumIO()
+		}
 		sum1 := c1.SumIO()
 		sum2 := c2.SumIO()
 		// Use secondary sort method if equal values
