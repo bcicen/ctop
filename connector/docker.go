@@ -177,6 +177,11 @@ func (cm *Docker) initContainerProject(c *container.Container, labels map[string
 			c.Project.WorkDir = labels["com.docker.compose.project.working_dir"]
 			c.Project.Config = labels["com.docker.compose.project.config_files"]
 			cm.projects[projectName] = c.Project
+			// set compose service for the container
+			composeService := labels["com.docker.compose.service"]
+			if composeService != "" {
+				c.SetMeta("service", composeService)
+			}
 		}
 	}
 	c.Project.Count++
