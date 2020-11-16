@@ -32,7 +32,7 @@ type Container struct {
 func New(id string, collector collector.Collector, manager manager.Manager) *Container {
 	widgets := compact.NewCompactRow()
 	return &Container{
-		Metrics:   models.NewMetrics(),
+		Metrics:   models.Metrics{},
 		Id:        id,
 		Meta:      models.NewMeta("id", id[:12]),
 		Widgets:   widgets,
@@ -88,7 +88,7 @@ func (c *Container) Read(stream chan models.Metrics) {
 			c.updater.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
-		c.Metrics = models.NewMetrics()
+		c.Metrics = models.Metrics{}
 		c.Widgets.Reset()
 	}()
 	log.Infof("reader started for container: %s", c.Id)
