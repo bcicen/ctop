@@ -22,6 +22,7 @@ type Project struct {
 	Name    string
 	WorkDir string
 	Config  string
+	Count   int // Containers Count
 	Widgets *compact.CompactRow
 }
 

@@ -64,6 +64,7 @@ func (cs *Mock) makeContainer(aggression int64, health bool, project *container.
 	manager := manager.NewMock()
 	c := container.New(makeID(), collector, manager)
 	c.Project = project
+	c.Project.Count++
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
 	if health {
@@ -117,6 +118,7 @@ func (cs *Mock) All() container.Containers {
 func (cs *Mock) delByID(id string) {
 	for n, c := range cs.containers {
 		if c.Id == id {
+			c.Project.Count--
 			cs.del(n)
 			return
 		}

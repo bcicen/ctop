@@ -196,6 +196,7 @@ func (cm *Runc) MustGet(id string) *container.Container {
 		manager := manager.NewRunc()
 		c = container.New(id, collector, manager)
 		c.Project = cm.noneProject
+		c.Project.Count++
 
 		name := libc.ID()
 		// set initial metadata
@@ -218,7 +219,11 @@ func (cm *Runc) MustGet(id string) *container.Container {
 // Remove containers by ID
 func (cm *Runc) delByID(id string) {
 	cm.lock.Lock()
-	delete(cm.containers, id)
+	c, hasContainer := cm.containers[id]
+	if hasContainer {
+		c.Project.Count--
+		delete(cm.containers, id)
+	}
 	delete(cm.libContainers, id)
 	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)

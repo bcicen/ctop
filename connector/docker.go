@@ -179,6 +179,7 @@ func (cm *Docker) initContainerProject(c *container.Container, labels map[string
 			cm.projects[projectName] = c.Project
 		}
 	}
+	c.Project.Count++
 }
 
 func (cm *Docker) Loop() {
@@ -222,7 +223,15 @@ func (cm *Docker) Get(id string) (*container.Container, bool) {
 // Remove containers by ID
 func (cm *Docker) delByID(id string) {
 	cm.lock.Lock()
-	delete(cm.containers, id)
+	c, hasContainer := cm.containers[id]
+	if hasContainer {
+		c.Project.Count--
+		// if this was the last container in project then remove project
+		if c.Project != cm.noneProject && c.Project.Count <= 0 {
+			delete(cm.projects, c.Project.Name)
+		}
+		delete(cm.containers, id)
+	}
 	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)
 }
