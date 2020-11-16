@@ -27,7 +27,12 @@ func cmpByName(c1, c2 *Container) bool {
 	return c1.GetMeta("name") < c2.GetMeta("name")
 }
 
-var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
+var idSorter = func(c1, c2 *Container) bool {
+	if projCmp := cmpByProject(c1, c2); projCmp != 0 {
+		return projCmp < 0
+	}
+	return c1.Id < c2.Id
+}
 
 var Sorters = map[string]sortMethod{
 	"id": idSorter,
@@ -102,6 +107,9 @@ var Sorters = map[string]sortMethod{
 		return sum1 > sum2
 	},
 	"state": func(c1, c2 *Container) bool {
+		if projCmp := cmpByProject(c1, c2); projCmp != 0 {
+			return projCmp < 0
+		}
 		// Use secondary sort method if equal values
 		c1state := c1.GetMeta("state")
 		c2state := c2.GetMeta("state")
