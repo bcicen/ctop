@@ -41,3 +41,7 @@ type Metrics struct {
 	IOBytesWrite int64
 	Pids         int
 }
+
+func (m *Metrics) SumNet() int64 { return m.NetRx + m.NetTx }
+
+func (m *Metrics) SumIO() int64 { return m.IOBytesRead + m.IOBytesWrite }

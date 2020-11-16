@@ -46,8 +46,8 @@ var Sorters = map[string]sortMethod{
 		return c1.MemPercent > c2.MemPercent
 	},
 	"net": func(c1, c2 *Container) bool {
-		sum1 := sumNet(c1)
-		sum2 := sumNet(c2)
+		sum1 := c1.SumNet()
+		sum2 := c2.SumNet()
 		// Use secondary sort method if equal values
 		if sum1 == sum2 {
 			return nameSorter(c1, c2)
@@ -62,8 +62,8 @@ var Sorters = map[string]sortMethod{
 		return c1.Pids > c2.Pids
 	},
 	"io": func(c1, c2 *Container) bool {
-		sum1 := sumIO(c1)
-		sum2 := sumIO(c2)
+		sum1 := c1.SumIO()
+		sum2 := c2.SumIO()
 		// Use secondary sort method if equal values
 		if sum1 == sum2 {
 			return nameSorter(c1, c2)
@@ -117,7 +117,3 @@ func (a Containers) Filter() {
 		}
 	}
 }
-
-func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }
-
-func sumIO(c *Container) int64 { return c.IOBytesRead + c.IOBytesWrite }
