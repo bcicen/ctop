@@ -18,30 +18,33 @@ var stateMap = map[string]int{
 	"":        0,
 }
 
+func cmpByName(c1, c2 *Container) bool {
+	return c1.GetMeta("name") < c2.GetMeta("name")
+}
+
 var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
-var nameSorter = func(c1, c2 *Container) bool { return c1.GetMeta("name") < c2.GetMeta("name") }
 
 var Sorters = map[string]sortMethod{
 	"id":   idSorter,
-	"name": nameSorter,
+	"name": cmpByName,
 	"cpu": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
 		if c1.CPUUtil == c2.CPUUtil {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.CPUUtil > c2.CPUUtil
 	},
 	"mem": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
 		if c1.MemUsage == c2.MemUsage {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.MemUsage > c2.MemUsage
 	},
 	"mem %": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
 		if c1.MemPercent == c2.MemPercent {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.MemPercent > c2.MemPercent
 	},
@@ -50,14 +53,14 @@ var Sorters = map[string]sortMethod{
 		sum2 := c2.SumNet()
 		// Use secondary sort method if equal values
 		if sum1 == sum2 {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return sum1 > sum2
 	},
 	"pids": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
 		if c1.Pids == c2.Pids {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.Pids > c2.Pids
 	},
@@ -66,7 +69,7 @@ var Sorters = map[string]sortMethod{
 		sum2 := c2.SumIO()
 		// Use secondary sort method if equal values
 		if sum1 == sum2 {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return sum1 > sum2
 	},
@@ -75,7 +78,7 @@ var Sorters = map[string]sortMethod{
 		c1state := c1.GetMeta("state")
 		c2state := c2.GetMeta("state")
 		if c1state == c2state {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return stateMap[c1state] > stateMap[c2state]
 	},
