@@ -17,11 +17,20 @@ const (
 	running = "running"
 )
 
+// docker compose project
+type Project struct {
+	Name    string
+	WorkDir string
+	Config  string
+	Widgets *compact.CompactRow
+}
+
 // Metrics and metadata representing a container
 type Container struct {
 	models.Metrics
 	Id        string
 	Meta      models.Meta
+	Project   *Project
 	Widgets   *compact.CompactRow
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
@@ -35,11 +44,22 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 		Metrics:   models.Metrics{},
 		Id:        id,
 		Meta:      models.NewMeta("id", id[:12]),
+		Project:   nil,
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
 		manager:   manager,
 	}
+}
+
+func NewProject(name string) *Project {
+	p := &Project{Name: name}
+	// create a compact row for the project
+	widgets := compact.NewCompactRow()
+	meta := models.NewMeta("name", name)
+	widgets.SetMeta(meta)
+	p.Widgets = widgets
+	return p
 }
 
 func (c *Container) RecreateWidgets() {

@@ -16,6 +16,8 @@ func init() { enabled["docker"] = NewDocker }
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
+	noneProject  *container.Project
+	projects     map[string]*container.Project
 	needsRefresh chan string // container IDs requiring refresh
 	closed       chan struct{}
 	lock         sync.RWMutex
@@ -30,6 +32,8 @@ func NewDocker() (Connector, error) {
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
+		noneProject:  container.NewProject(""),
+		projects:     make(map[string]*container.Project),
 		needsRefresh: make(chan string, 60),
 		closed:       make(chan struct{}),
 		lock:         sync.RWMutex{},
@@ -118,7 +122,7 @@ func (cm *Docker) refresh(id string) {
 		cm.delByID(id)
 		return
 	}
-	c := cm.MustGet(id)
+	c := cm.MustGet(id, insp.Config.Labels)
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
@@ -151,10 +155,29 @@ func (cm *Docker) refreshAll() {
 	}
 
 	for _, i := range allContainers {
-		c := cm.MustGet(i.ID)
+		c := cm.MustGet(i.ID, i.Labels)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
+	}
+}
+
+func (cm *Docker) initContainerProject(c *container.Container, labels map[string]string) {
+	projectName := labels["com.docker.compose.project"]
+	if projectName == "" {
+		c.Project = cm.noneProject
+	} else {
+		// try to find the existing project
+		project := cm.projects[projectName]
+		if project != nil {
+			c.Project = project
+		} else {
+			// create and remember the new project
+			c.Project = container.NewProject(projectName)
+			c.Project.WorkDir = labels["com.docker.compose.project.working_dir"]
+			c.Project.Config = labels["com.docker.compose.project.config_files"]
+			cm.projects[projectName] = c.Project
+		}
 	}
 }
 
@@ -170,7 +193,7 @@ func (cm *Docker) Loop() {
 }
 
 // MustGet gets a single container, creating one anew if not existing
-func (cm *Docker) MustGet(id string) *container.Container {
+func (cm *Docker) MustGet(id string, labels map[string]string) *container.Container {
 	c, ok := cm.Get(id)
 	// append container struct for new containers
 	if !ok {
@@ -182,6 +205,7 @@ func (cm *Docker) MustGet(id string) *container.Container {
 		c = container.New(id, collector, manager)
 		cm.lock.Lock()
 		cm.containers[id] = c
+		cm.initContainerProject(c, labels)
 		cm.lock.Unlock()
 	}
 	return c

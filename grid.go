@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 )
@@ -58,7 +59,14 @@ func RedrawRows(clr bool) {
 
 	cGrid.SetY(y)
 
+	// containers grouped by project
+	var prevProj *container.Project = nil
 	for _, c := range cursor.filtered {
+		// next project header
+		if c.Project != prevProj {
+			prevProj = c.Project
+			cGrid.AddRows(c.Project.Widgets)
+		}
 		cGrid.AddRows(c.Widgets)
 	}
 

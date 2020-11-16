@@ -64,6 +64,8 @@ func (s *Status) setState(val string) {
 	color := ui.ColorDefault
 
 	switch val {
+	case "":
+		text = "▼"
 	case "running":
 		color = ui.ThemeAttr("status.ok")
 	case "exited":

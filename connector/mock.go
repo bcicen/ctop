@@ -17,11 +17,14 @@ import (
 func init() { enabled["mock"] = NewMock }
 
 type Mock struct {
-	containers container.Containers
+	containers  container.Containers
+	noneProject *container.Project
 }
 
 func NewMock() (Connector, error) {
-	cs := &Mock{}
+	cs := &Mock{
+		noneProject: container.NewProject(""),
+	}
 	go cs.Init()
 	go cs.Loop()
 	return cs, nil
@@ -30,13 +33,17 @@ func NewMock() (Connector, error) {
 // Create Mock containers
 func (cs *Mock) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
+	project1 := container.NewProject("proj1")
+	project2 := container.NewProject("proj2")
 
-	for i := 0; i < 4; i++ {
-		cs.makeContainer(3, true)
+	for i := 0; i < 2; i++ {
+		cs.makeContainer(3, true, cs.noneProject)
+		cs.makeContainer(3, true, project1)
 	}
 
-	for i := 0; i < 16; i++ {
-		cs.makeContainer(1, false)
+	for i := 0; i < 8; i++ {
+		cs.makeContainer(1, false, cs.noneProject)
+		cs.makeContainer(1, false, project2)
 	}
 
 }
@@ -52,10 +59,11 @@ func (cs *Mock) Wait() struct{} {
 
 var healthStates = []string{"starting", "healthy", "unhealthy"}
 
-func (cs *Mock) makeContainer(aggression int64, health bool) {
+func (cs *Mock) makeContainer(aggression int64, health bool, project *container.Project) {
 	collector := collector.NewMock(aggression)
 	manager := manager.NewMock()
 	c := container.New(makeID(), collector, manager)
+	c.Project = project
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
 	if health {

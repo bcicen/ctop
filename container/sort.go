@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/bcicen/ctop/config"
 )
@@ -18,6 +19,10 @@ var stateMap = map[string]int{
 	"":        0,
 }
 
+func cmpByProject(c1, c2 *Container) int {
+	return strings.Compare(c1.Project.Name, c2.Project.Name)
+}
+
 func cmpByName(c1, c2 *Container) bool {
 	return c1.GetMeta("name") < c2.GetMeta("name")
 }
@@ -25,8 +30,13 @@ func cmpByName(c1, c2 *Container) bool {
 var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
 
 var Sorters = map[string]sortMethod{
-	"id":   idSorter,
-	"name": cmpByName,
+	"id": idSorter,
+	"name": func(c1, c2 *Container) bool {
+		if projCmp := cmpByProject(c1, c2); projCmp != 0 {
+			return projCmp < 0
+		}
+		return cmpByName(c1, c2)
+	},
 	"cpu": func(c1, c2 *Container) bool {
 		// Use secondary sort method if equal values
 		if c1.CPUUtil == c2.CPUUtil {
