@@ -111,13 +111,14 @@ func ipsFormat(networks map[string]api.ContainerNetwork) string {
 	return strings.Join(ips, "\n")
 }
 
-func (cm *Docker) refresh(c *container.Container) {
-	insp := cm.inspect(c.Id)
+func (cm *Docker) refresh(id string) {
+	insp := cm.inspect(id)
 	// remove container if no longer exists
 	if insp == nil {
-		cm.delByID(c.Id)
+		cm.delByID(id)
 		return
 	}
+	c := cm.MustGet(id)
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
@@ -161,8 +162,7 @@ func (cm *Docker) Loop() {
 	for {
 		select {
 		case id := <-cm.needsRefresh:
-			c := cm.MustGet(id)
-			cm.refresh(c)
+			cm.refresh(id)
 		case <-cm.closed:
 			return
 		}
