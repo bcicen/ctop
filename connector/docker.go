@@ -14,6 +14,15 @@ import (
 
 func init() { enabled["docker"] = NewDocker }
 
+var actionToStatus = map[string]string{
+	"create":  "created",
+	"start":   "running",
+	"kill":    "exited",
+	"stop":    "exited",
+	"pause":   "paused",
+	"unpause": "running",
+}
+
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
@@ -77,9 +86,16 @@ func (cm *Docker) watchEvents() {
 		}
 
 		switch actionName {
-		case "start", "die", "pause", "unpause", "health_status":
+		// most frequent event is a health checks
+		case "health_status":
+			healthStatus := e.Action[sepIdx+2:]
 			if log.IsEnabledFor(logging.DEBUG) {
-				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+				log.Debugf("handling docker event: action=health_status id=%s %s", e.ID, healthStatus)
+			}
+			cm.needsRefresh <- e.ID
+		case "create":
+			if log.IsEnabledFor(logging.DEBUG) {
+				log.Debugf("handling docker event: action=create id=%s", e.ID)
 			}
 			cm.needsRefresh <- e.ID
 		case "destroy":
@@ -87,6 +103,15 @@ func (cm *Docker) watchEvents() {
 				log.Debugf("handling docker event: action=destroy id=%s", e.ID)
 			}
 			cm.delByID(e.ID)
+		default:
+			// check if this action changes status e.g. start -> running
+			status := actionToStatus[actionName]
+			if status != "" {
+				if log.IsEnabledFor(logging.DEBUG) {
+					log.Debugf("handling docker event: action=%s id=%s %s", actionName, e.ID, status)
+				}
+				cm.needsRefresh <- e.ID
+			}
 		}
 	}
 	log.Info("docker event listener exited")
