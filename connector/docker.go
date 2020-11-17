@@ -23,10 +23,17 @@ var actionToStatus = map[string]string{
 	"unpause": "running",
 }
 
+type StatusUpdate struct {
+	Cid    string
+	Field  string // "status" or "health"
+	Status string
+}
+
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
 	needsRefresh chan string // container IDs requiring refresh
+	statuses     chan StatusUpdate
 	closed       chan struct{}
 	lock         sync.RWMutex
 }
@@ -41,6 +48,7 @@ func NewDocker() (Connector, error) {
 		client:       client,
 		containers:   make(map[string]*container.Container),
 		needsRefresh: make(chan string, 60),
+		statuses:     make(chan StatusUpdate, 60),
 		closed:       make(chan struct{}),
 		lock:         sync.RWMutex{},
 	}
@@ -58,6 +66,7 @@ func NewDocker() (Connector, error) {
 	log.Debugf("docker-connector ServerVersion: %s", info.ServerVersion)
 
 	go cm.Loop()
+	go cm.LoopStatuses()
 	cm.refreshAll()
 	go cm.watchEvents()
 	return cm, nil
@@ -92,7 +101,7 @@ func (cm *Docker) watchEvents() {
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=health_status id=%s %s", e.ID, healthStatus)
 			}
-			cm.needsRefresh <- e.ID
+			cm.statuses <- StatusUpdate{e.ID, "health", healthStatus}
 		case "create":
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=create id=%s", e.ID)
@@ -110,7 +119,7 @@ func (cm *Docker) watchEvents() {
 				if log.IsEnabledFor(logging.DEBUG) {
 					log.Debugf("handling docker event: action=%s id=%s %s", actionName, e.ID, status)
 				}
-				cm.needsRefresh <- e.ID
+				cm.statuses <- StatusUpdate{e.ID, "status", status}
 			}
 		}
 	}
@@ -199,6 +208,24 @@ func (cm *Docker) Loop() {
 		case id := <-cm.needsRefresh:
 			c := cm.MustGet(id)
 			cm.refresh(c)
+		case <-cm.closed:
+			return
+		}
+	}
+}
+
+func (cm *Docker) LoopStatuses() {
+	for {
+		select {
+		case statusUpdate := <-cm.statuses:
+			c, _ := cm.Get(statusUpdate.Cid)
+			if c != nil {
+				if statusUpdate.Field == "health" {
+					c.SetMeta("health", statusUpdate.Status)
+				} else {
+					c.SetState(statusUpdate.Status)
+				}
+			}
 		case <-cm.closed:
 			return
 		}
