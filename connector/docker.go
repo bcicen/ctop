@@ -68,7 +68,13 @@ func (cm *Docker) watchEvents() {
 			continue
 		}
 
-		actionName := strings.Split(e.Action, ":")[0]
+		actionName := e.Action
+		// Action may have additional param: "exec_create: redis-cli ping" or "health_status: healthy"
+		// We need to strip to have only action name
+		sepIdx := strings.Index(actionName, ": ")
+		if sepIdx != -1 {
+			actionName = actionName[:sepIdx]
+		}
 
 		switch actionName {
 		case "start", "die", "pause", "unpause", "health_status":
