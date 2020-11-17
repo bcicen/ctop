@@ -2,6 +2,7 @@ package connector
 
 import (
 	"fmt"
+	"github.com/op/go-logging"
 	"strings"
 	"sync"
 
@@ -71,10 +72,14 @@ func (cm *Docker) watchEvents() {
 
 		switch actionName {
 		case "start", "die", "pause", "unpause", "health_status":
-			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+			if log.IsEnabledFor(logging.DEBUG) {
+				log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+			}
 			cm.needsRefresh <- e.ID
 		case "destroy":
-			log.Debugf("handling docker event: action=%s id=%s", e.Action, e.ID)
+			if log.IsEnabledFor(logging.DEBUG) {
+				log.Debugf("handling docker event: action=destroy id=%s", e.ID)
+			}
 			cm.delByID(e.ID)
 		}
 	}
