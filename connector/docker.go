@@ -87,7 +87,11 @@ func (cm *Docker) watchEvents() {
 		}
 
 		actionName := e.Action
-		// Action may have additional param: "exec_create: redis-cli ping" or "health_status: healthy"
+		// fast skip all exec_* events: exec_create, exec_start, exec_die
+		if strings.HasPrefix(actionName, "exec_") {
+			continue
+		}
+		// Action may have additional param i.e. "health_status: healthy"
 		// We need to strip to have only action name
 		sepIdx := strings.Index(actionName, ": ")
 		if sepIdx != -1 {
