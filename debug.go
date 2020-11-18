@@ -12,6 +12,10 @@ import (
 var mstats = &runtime.MemStats{}
 
 func logEvent(e ui.Event) {
+	// skip timer events e.g. /timer/1s
+	if e.From == "timer" {
+		return
+	}
 	var s string
 	s += fmt.Sprintf("Type=%s", quote(e.Type))
 	s += fmt.Sprintf(" Path=%s", quote(e.Path))
