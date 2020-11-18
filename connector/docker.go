@@ -17,7 +17,7 @@ func init() { enabled["docker"] = NewDocker }
 var actionToStatus = map[string]string{
 	"create":  "created",
 	"start":   "running",
-	"kill":    "exited",
+	"die":     "exited",
 	"stop":    "exited",
 	"pause":   "paused",
 	"unpause": "running",
