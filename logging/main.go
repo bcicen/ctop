@@ -61,15 +61,18 @@ func Init() *CTopLogger {
 			[]statusMsg{},
 		}
 
-		if debugMode() {
+		debugMode := debugMode()
+		if debugMode {
 			level = logging.DEBUG
-			StartServer()
 		}
-
 		backendLvl := logging.AddModuleLevel(Log.backend)
 		backendLvl.SetLevel(level, "")
 
 		logging.SetBackend(backendLvl)
+
+		if debugMode {
+			StartServer()
+		}
 		Log.Notice("logger initialized")
 	}
 	return Log
