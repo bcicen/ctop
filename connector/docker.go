@@ -160,9 +160,12 @@ func ipsFormat(networks map[string]api.ContainerNetwork) string {
 }
 
 func (cm *Docker) refresh(c *container.Container) {
-	insp := cm.inspect(c.Id)
+	insp, found, failed := cm.inspect(c.Id)
+	if failed {
+		return
+	}
 	// remove container if no longer exists
-	if insp == nil {
+	if !found {
 		cm.delByID(c.Id)
 		return
 	}
@@ -178,14 +181,17 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetState(insp.State.Status)
 }
 
-func (cm *Docker) inspect(id string) *api.Container {
+func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bool) {
 	c, err := cm.client.InspectContainer(id)
 	if err != nil {
-		if _, ok := err.(*api.NoSuchContainer); !ok {
-			log.Errorf("%s (%T)", err.Error(), err)
+		if _, notFound := err.(*api.NoSuchContainer); notFound {
+			return c, false, false
 		}
+		// other error e.g. connection failed
+		log.Errorf("%s (%T)", err.Error(), err)
+		return c, false, true
 	}
-	return c
+	return c, true, false
 }
 
 // Mark all container IDs for refresh
