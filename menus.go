@@ -359,8 +359,8 @@ func ExecShell() MenuFn {
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
 
-	shell := config.Get("shell")
-	if err := c.Exec([]string{shell.Val, "-c", "printf '\\e[0m\\e[?25h' && clear && " + shell.Val}); err != nil {
+	shell := config.GetVal("shell")
+	if err := c.Exec([]string{shell, "-c", "printf '\\e[0m\\e[?25h' && clear && " + shell}); err != nil {
 		log.Fatal(err)
 	}
 
