@@ -54,3 +54,18 @@ CTOP_DEBUG=1 CTOP_DEBUG_TCP=1 ./ctop
 ```
 
 A TCP listener for streaming log messages will be started on the default listen address(`0.0.0.0:9000`)
+
+## Log to file
+
+You can also log to a file by specifying `CTOP_DEBUG_FILE=/path/to/ctop.log` environment variable:
+```sh
+CTOP_DEBUG=1 CTOP_DEBUG_FILE=ctop.log ./ctop
+```
+
+This is useful for GoLand to see logs right in debug panel: 
+* Edit Run configuration 
+* Go to Logs tab
+* Specify this log file in "Log file to be shown in console".
+Then during debugging you'll see the log tab in debug panel:
+
+![Debug in GoLand](img/goland_debug.png)

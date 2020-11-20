@@ -1,3 +1,4 @@
 ctop
 .idea
 /vendor/
+*.log
