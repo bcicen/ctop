@@ -361,7 +361,7 @@ func ExecShell() MenuFn {
 
 	shell := config.GetVal("shell")
 	if err := c.Exec([]string{shell, "-c", "printf '\\e[0m\\e[?25h' && clear && " + shell}); err != nil {
-		log.Fatal(err)
+		log.StatusErr(err)
 	}
 
 	return nil
