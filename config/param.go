@@ -13,11 +13,6 @@ var defaultParams = []*Param{
 		Label: "Container Sort Field",
 	},
 	&Param{
-		Key:   "shell",
-		Val:   "sh",
-		Label: "Shell",
-	},
-	&Param{
 		Key:   "columns",
 		Val:   "status,name,id,cpu,mem,net,io,pids",
 		Label: "Enabled Columns",
