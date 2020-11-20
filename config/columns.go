@@ -27,6 +27,11 @@ var defaultColumns = []Column{
 		Enabled: true,
 	},
 	Column{
+		Name:    "cpus",
+		Label:   "CPU Usage as % of system total",
+		Enabled: false,
+	},
+	Column{
 		Name:    "mem",
 		Label:   "Memory Usage",
 		Enabled: true,
