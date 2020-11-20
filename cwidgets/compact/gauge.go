@@ -24,10 +24,10 @@ func NewCpuScaledCol() CompactCol {
 
 func (w *CPUCol) SetMetrics(m models.Metrics) {
 	val := m.CPUUtil
+	w.BarColor = colorScale(val)
 	if !w.scaleCpu {
 		val = val * int(m.NCpus)
 	}
-	w.BarColor = colorScale(val)
 	w.Label = fmt.Sprintf("%d%%", val)
 
 	if val > 100 {
