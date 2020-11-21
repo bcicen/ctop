@@ -13,6 +13,7 @@ var (
 		"name":   NewNameCol,
 		"id":     NewCIDCol,
 		"cpu":    NewCPUCol,
+		"cpus":   NewCpuScaledCol,
 		"mem":    NewMemCol,
 		"net":    NewNetCol,
 		"io":     NewIOCol,
