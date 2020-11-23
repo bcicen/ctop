@@ -32,16 +32,8 @@ func NewStatus() CompactCol {
 
 func (s *Status) Buffer() ui.Buffer {
 	buf := s.Block.Buffer()
-	x := 0
-	for _, c := range s.health {
-		buf.Set(s.InnerX()+x, s.InnerY(), c)
-		x += c.Width()
-	}
-	x += 1
-	for _, c := range s.status {
-		buf.Set(s.InnerX()+x, s.InnerY(), c)
-		x += c.Width()
-	}
+	buf.Set(s.InnerX(), s.InnerY(), s.health[0])
+	buf.Set(s.InnerX()+2, s.InnerY(), s.status[0])
 	return buf
 }
 
