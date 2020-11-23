@@ -100,10 +100,10 @@ func (w *GaugeCol) UnHighlight() {
 }
 
 func colorScale(n int) ui.Attribute {
-	if n <= 30 {
+	if n <= 70 {
 		return ui.ThemeAttr("status.ok")
 	}
-	if n <= 70 {
+	if n <= 90 {
 		return ui.ThemeAttr("status.warn")
 	}
 	return ui.ThemeAttr("status.danger")
