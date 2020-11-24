@@ -110,6 +110,10 @@ func (cm *Docker) watchEvents() {
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=create id=%s", e.ID)
 			}
+			c := cm.MustGet(e.ID)
+			c.SetMeta("name", shortName(e.Actor.Attributes["name"]))
+			c.SetMeta("image", e.Actor.Attributes["image"])
+			c.SetState("created")
 			cm.needsRefresh <- e.ID
 		case "destroy":
 			if log.IsEnabledFor(logging.DEBUG) {
