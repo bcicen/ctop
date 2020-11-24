@@ -5,6 +5,7 @@ import (
 	"github.com/op/go-logging"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
@@ -136,12 +137,32 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 
 	for k, v := range ports {
 		if len(v) == 0 {
+			// 3306/tcp
 			exposed = append(exposed, string(k))
 			continue
 		}
 		for _, binding := range v {
+			// 0.0.0.0:3307 -> 3306/tcp
 			s := fmt.Sprintf("%s:%s -> %s", binding.HostIP, binding.HostPort, k)
 			published = append(published, s)
+		}
+	}
+
+	return strings.Join(append(exposed, published...), "\n")
+}
+
+func portsFormatArr(ports []api.APIPort) string {
+	var exposed []string
+	var published []string
+	for _, binding := range ports {
+		if binding.PublicPort != 0 {
+			// 0.0.0.0:3307 -> 3306/tcp
+			s := fmt.Sprintf("%s:%d -> %d/%s", binding.IP, binding.PublicPort, binding.PrivatePort, binding.Type)
+			published = append(published, s)
+		} else {
+			// 3306/tcp
+			s := fmt.Sprintf("%d/%s", binding.PrivatePort, binding.Type)
+			exposed = append(exposed, s)
 		}
 	}
 
@@ -206,9 +227,29 @@ func (cm *Docker) refreshAll() {
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
 		c.SetMeta("name", shortName(i.Names[0]))
+		c.SetMeta("image", i.Image)
+		c.SetMeta("IPs", ipsFormat(i.Networks.Networks))
+		c.SetMeta("ports", portsFormatArr(i.Ports))
+		c.SetMeta("created", time.Unix(i.Created, 0).Format("Mon Jan 2 15:04:05 2006"))
+		parseStatusHealth(c, i.Status)
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
 	}
+}
+
+func parseStatusHealth(c *container.Container, status string) {
+	// Status may look like:
+	//  Up About a minute (healthy)
+	//  Up 7 minutes (unhealthy)
+	var health string
+	if strings.Contains(status, "(healthy)") {
+		health = "healthy"
+	} else if strings.Contains(status, "(unhealthy)") {
+		health = "unhealthy"
+	} else {
+		return
+	}
+	c.SetMeta("health", health)
 }
 
 func (cm *Docker) Loop() {
