@@ -22,11 +22,11 @@ type Status struct {
 func NewStatus() CompactCol {
 	s := &Status{
 		Block:  ui.NewBlock(),
+		status: []ui.Cell{{Ch: ' '}},
 		health: []ui.Cell{{Ch: ' '}},
 	}
 	s.Height = 1
 	s.Border = false
-	s.setState("")
 	return s
 }
 
@@ -51,17 +51,25 @@ func (s *Status) Header() string            { return "" }
 func (s *Status) FixedWidth() int           { return 3 }
 
 func (s *Status) setState(val string) {
-	// defaults
-	text := mark
 	color := ui.ColorDefault
+	var text string
 
 	switch val {
+	case "":
+		return
+	case "created":
+		text = mark
 	case "running":
+		text = mark
 		color = ui.ThemeAttr("status.ok")
 	case "exited":
+		text = mark
 		color = ui.ThemeAttr("status.danger")
 	case "paused":
 		text = vBar
+	default:
+		text = " "
+		log.Warningf("unknown status string: \"%v\"", val)
 	}
 
 	s.status = ui.TextCells(text, color, ui.ColorDefault)
@@ -69,18 +77,22 @@ func (s *Status) setState(val string) {
 
 func (s *Status) setHealth(val string) {
 	color := ui.ColorDefault
-	mark := healthMark
+	var mark string
 
 	switch val {
 	case "":
 		return
 	case "healthy":
+		mark = healthMark
 		color = ui.ThemeAttr("status.ok")
 	case "unhealthy":
+		mark = healthMark
 		color = ui.ThemeAttr("status.danger")
 	case "starting":
+		mark = healthMark
 		color = ui.ThemeAttr("status.warn")
 	default:
+		mark = " "
 		log.Warningf("unknown health state string: \"%v\"", val)
 	}
 
