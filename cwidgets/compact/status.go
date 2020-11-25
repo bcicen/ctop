@@ -6,12 +6,6 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-const (
-	mark       = "◉"
-	healthMark = "✚"
-	vBar       = string('\u25AE') + string('\u25AE')
-)
-
 // Status indicator
 type Status struct {
 	*ui.Block
@@ -52,27 +46,27 @@ func (s *Status) FixedWidth() int           { return 3 }
 
 func (s *Status) setState(val string) {
 	color := ui.ColorDefault
-	var text string
+	var mark string
 
 	switch val {
 	case "":
 		return
 	case "created":
-		text = mark
+		mark = "◉"
 	case "running":
-		text = mark
+		mark = "⏵"
 		color = ui.ThemeAttr("status.ok")
 	case "exited":
-		text = mark
+		mark = "⏹"
 		color = ui.ThemeAttr("status.danger")
 	case "paused":
-		text = vBar
+		mark = "⏸"
 	default:
-		text = " "
+		mark = " "
 		log.Warningf("unknown status string: \"%v\"", val)
 	}
 
-	s.status = ui.TextCells(text, color, ui.ColorDefault)
+	s.status = ui.TextCells(mark, color, ui.ColorDefault)
 }
 
 func (s *Status) setHealth(val string) {
@@ -83,13 +77,13 @@ func (s *Status) setHealth(val string) {
 	case "":
 		return
 	case "healthy":
-		mark = healthMark
+		mark = "☼"
 		color = ui.ThemeAttr("status.ok")
 	case "unhealthy":
-		mark = healthMark
+		mark = "⚠"
 		color = ui.ThemeAttr("status.danger")
 	case "starting":
-		mark = healthMark
+		mark = "◌"
 		color = ui.ThemeAttr("status.warn")
 	default:
 		mark = " "
