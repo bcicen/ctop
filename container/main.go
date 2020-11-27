@@ -17,8 +17,8 @@ const (
 	running = "running"
 )
 
-// docker compose project
-type Project struct {
+// Docker compose project
+type Stack struct {
 	Name    string
 	WorkDir string
 	Config  string
@@ -32,7 +32,7 @@ type Container struct {
 	models.Metrics
 	Id        string
 	Meta      models.Meta
-	Project   *Project
+	Stack     *Stack
 	Widgets   *compact.CompactRow
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
@@ -46,7 +46,7 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 		Metrics:   models.Metrics{},
 		Id:        id,
 		Meta:      models.NewMeta("id", id[:12]),
-		Project:   nil,
+		Stack:     nil,
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
@@ -54,9 +54,9 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 	}
 }
 
-func NewProject(name string) *Project {
-	p := &Project{Name: name}
-	// create a compact row for the project
+func NewStack(name string) *Stack {
+	p := &Stack{Name: name}
+	// create a compact row for the stack
 	widgets := compact.NewCompactRow()
 	meta := models.NewMeta("name", name)
 	widgets.SetMeta(meta)
@@ -107,14 +107,14 @@ func (c *Container) Read(stream chan models.Metrics) {
 	go func() {
 		for metrics := range stream {
 			oldContainerMetrics := c.Metrics
-			c.Project.Metrics.Subtract(oldContainerMetrics)
-			c.Project.Metrics.Add(metrics)
-			c.Project.Widgets.SetMetrics(c.Project.Metrics)
+			c.Stack.Metrics.Subtract(oldContainerMetrics)
+			c.Stack.Metrics.Add(metrics)
+			c.Stack.Widgets.SetMetrics(c.Stack.Metrics)
 			c.Metrics = metrics
 			c.updater.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
-		c.Project.Metrics.Subtract(c.Metrics)
+		c.Stack.Metrics.Subtract(c.Metrics)
 		c.Metrics = models.Metrics{}
 		c.Widgets.Reset()
 	}()

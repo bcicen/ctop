@@ -31,8 +31,8 @@ type StatusUpdate struct {
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
-	noneProject  *container.Project
-	projects     map[string]*container.Project
+	noneStack    *container.Stack
+	stacks       map[string]*container.Stack
 	needsRefresh chan string // container IDs requiring refresh
 	statuses     chan StatusUpdate
 	closed       chan struct{}
@@ -48,8 +48,8 @@ func NewDocker() (Connector, error) {
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
-		noneProject:  container.NewProject(""),
-		projects:     make(map[string]*container.Project),
+		noneStack:    container.NewStack(""),
+		stacks:       make(map[string]*container.Stack),
 		needsRefresh: make(chan string, 60),
 		statuses:     make(chan StatusUpdate, 60),
 		closed:       make(chan struct{}),
@@ -216,21 +216,21 @@ func (cm *Docker) refreshAll() {
 	}
 }
 
-func (cm *Docker) initContainerProject(c *container.Container, labels map[string]string) {
-	projectName := labels["com.docker.compose.project"]
-	if projectName == "" {
-		c.Project = cm.noneProject
+func (cm *Docker) initContainerStack(c *container.Container, labels map[string]string) {
+	stackName := labels["com.docker.compose.project"]
+	if stackName == "" {
+		c.Stack = cm.noneStack
 	} else {
-		// try to find the existing project
-		project := cm.projects[projectName]
-		if project != nil {
-			c.Project = project
+		// try to find the existing stack
+		stack := cm.stacks[stackName]
+		if stack != nil {
+			c.Stack = stack
 		} else {
-			// create and remember the new project
-			c.Project = container.NewProject(projectName)
-			c.Project.WorkDir = labels["com.docker.compose.project.working_dir"]
-			c.Project.Config = labels["com.docker.compose.project.config_files"]
-			cm.projects[projectName] = c.Project
+			// create and remember the new stack
+			c.Stack = container.NewStack(stackName)
+			c.Stack.WorkDir = labels["com.docker.compose.project.working_dir"]
+			c.Stack.Config = labels["com.docker.compose.project.config_files"]
+			cm.stacks[stackName] = c.Stack
 			// set compose service for the container
 			composeService := labels["com.docker.compose.service"]
 			if composeService != "" {
@@ -238,7 +238,7 @@ func (cm *Docker) initContainerProject(c *container.Container, labels map[string
 			}
 		}
 	}
-	c.Project.Count++
+	c.Stack.Count++
 }
 
 func (cm *Docker) Loop() {
@@ -283,7 +283,7 @@ func (cm *Docker) MustGet(id string, labels map[string]string) *container.Contai
 		c = container.New(id, collector, manager)
 		cm.lock.Lock()
 		cm.containers[id] = c
-		cm.initContainerProject(c, labels)
+		cm.initContainerStack(c, labels)
 		cm.lock.Unlock()
 	}
 	return c
@@ -302,10 +302,10 @@ func (cm *Docker) delByID(id string) {
 	cm.lock.Lock()
 	c, hasContainer := cm.containers[id]
 	if hasContainer {
-		c.Project.Count--
-		// if this was the last container in project then remove project
-		if c.Project != cm.noneProject && c.Project.Count <= 0 {
-			delete(cm.projects, c.Project.Name)
+		c.Stack.Count--
+		// if this was the last container in stack then remove stack
+		if c.Stack != cm.noneStack && c.Stack.Count <= 0 {
+			delete(cm.stacks, c.Stack.Name)
 		}
 		delete(cm.containers, id)
 	}

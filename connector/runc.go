@@ -57,7 +57,7 @@ type Runc struct {
 	closed        chan struct{}
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
-	noneProject   *container.Project
+	noneStack     *container.Stack
 }
 
 func NewRunc() (Connector, error) {
@@ -75,7 +75,7 @@ func NewRunc() (Connector, error) {
 		opts:          opts,
 		factory:       factory,
 		containers:    make(map[string]*container.Container),
-		noneProject:   container.NewProject(""),
+		noneStack:     container.NewStack(""),
 		libContainers: make(map[string]libcontainer.Container),
 		closed:        make(chan struct{}),
 		lock:          sync.RWMutex{},
@@ -195,8 +195,8 @@ func (cm *Runc) MustGet(id string) *container.Container {
 		// create container
 		manager := manager.NewRunc()
 		c = container.New(id, collector, manager)
-		c.Project = cm.noneProject
-		c.Project.Count++
+		c.Stack = cm.noneStack
+		c.Stack.Count++
 
 		name := libc.ID()
 		// set initial metadata
@@ -221,7 +221,7 @@ func (cm *Runc) delByID(id string) {
 	cm.lock.Lock()
 	c, hasContainer := cm.containers[id]
 	if hasContainer {
-		c.Project.Count--
+		c.Stack.Count--
 		delete(cm.containers, id)
 	}
 	delete(cm.libContainers, id)

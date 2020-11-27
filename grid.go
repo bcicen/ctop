@@ -59,13 +59,13 @@ func RedrawRows(clr bool) {
 
 	cGrid.SetY(y)
 
-	// containers grouped by project
-	var prevProj *container.Project = nil
+	// containers grouped by stack
+	var prevStack *container.Stack = nil
 	for _, c := range cursor.filtered {
-		// next project header
-		if c.Project != prevProj {
-			prevProj = c.Project
-			cGrid.AddRows(c.Project.Widgets)
+		// next stack header
+		if c.Stack != prevStack {
+			prevStack = c.Stack
+			cGrid.AddRows(c.Stack.Widgets)
 		}
 		cGrid.AddRows(c.Widgets)
 	}
