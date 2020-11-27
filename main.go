@@ -44,9 +44,7 @@ func main() {
 		sortFieldFlag   = flag.String("s", "", "select container sort field")
 		reverseSortFlag = flag.Bool("r", false, "reverse container sort order")
 		invertFlag      = flag.Bool("i", false, "invert default colors")
-		scaleCpu        = flag.Bool("scale-cpu", false, "show cpu as % of system total")
 		connectorFlag   = flag.String("connector", "docker", "container connector to use")
-		defaultShell    = flag.String("shell", "sh", "exec shell to use")
 	)
 	flag.Parse()
 
@@ -85,14 +83,6 @@ func main() {
 
 	if *reverseSortFlag {
 		config.Toggle("sortReversed")
-	}
-
-	if *scaleCpu {
-		config.Toggle("scaleCpu")
-	}
-
-	if *defaultShell != "" {
-		config.Update("shell", *defaultShell)
 	}
 
 	// init ui

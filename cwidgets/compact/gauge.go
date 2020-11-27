@@ -11,15 +11,23 @@ import (
 
 type CPUCol struct {
 	*GaugeCol
+	scaleCpu bool
 }
 
 func NewCPUCol() CompactCol {
-	return &CPUCol{NewGaugeCol("CPU")}
+	return &CPUCol{NewGaugeCol("CPU"), false}
+}
+
+func NewCpuScaledCol() CompactCol {
+	return &CPUCol{NewGaugeCol("CPUS"), true}
 }
 
 func (w *CPUCol) SetMetrics(m models.Metrics) {
 	val := m.CPUUtil
 	w.BarColor = colorScale(val)
+	if !w.scaleCpu {
+		val = val * int(m.NCpus)
+	}
 	w.Label = fmt.Sprintf("%d%%", val)
 
 	if val > 100 {

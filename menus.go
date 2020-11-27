@@ -358,10 +358,17 @@ func ExecShell() MenuFn {
 
 	ui.DefaultEvtStream.ResetHandlers()
 	defer ui.DefaultEvtStream.ResetHandlers()
-
-	shell := config.Get("shell")
-	if err := c.Exec([]string{shell.Val, "-c", "printf '\\e[0m\\e[?25h' && clear && " + shell.Val}); err != nil {
-		log.Fatal(err)
+	// Detect and execute default shell in container.
+	// Execute Ash shell command: /bin/sh -c
+	// Reset colors: printf '\e[0m\e[?25h'
+	// Clear screen
+	// Run default shell for the user. It's configured in /etc/passwd and looks like root:x:0:0:root:/root:/bin/bash:
+	//  1. Get current user id: id -un
+	//  2. Find user's line in /etc/passwd by grep
+	//  3. Extract default user's shell by cutting seven's column separated by :
+	//  4. Execute the shell path with eval
+	if err := c.Exec([]string{"/bin/sh", "-c", "printf '\\e[0m\\e[?25h' && clear && eval `grep ^$(id -un): /etc/passwd | cut -d : -f 7-`"}); err != nil {
+		log.StatusErr(err)
 	}
 
 	return nil

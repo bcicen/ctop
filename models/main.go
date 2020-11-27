@@ -31,6 +31,7 @@ func (m Meta) Get(k string) string {
 }
 
 type Metrics struct {
+	NCpus        uint8
 	CPUUtil      int
 	NetTx        int64
 	NetRx        int64

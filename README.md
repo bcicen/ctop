@@ -82,9 +82,7 @@ Option | Description
 `-i`  | invert default colors
 `-r`	| reverse container sort order
 `-s`  | select initial container sort field
-`-scale-cpu`	| show cpu as % of system total
 `-v`	| output version information and exit
-`-shell` | exec shell to use (default: sh)
 
 ### Keybindings
 

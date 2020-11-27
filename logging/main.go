@@ -29,6 +29,7 @@ type statusMsg struct {
 type CTopLogger struct {
 	*logging.Logger
 	backend *logging.MemoryBackend
+	logFile *os.File
 	sLog    []statusMsg
 }
 
@@ -58,18 +59,37 @@ func Init() *CTopLogger {
 		Log = &CTopLogger{
 			logging.MustGetLogger("ctop"),
 			logging.NewMemoryBackend(size),
+			nil,
 			[]statusMsg{},
 		}
 
-		if debugMode() {
+		debugMode := debugMode()
+		if debugMode {
 			level = logging.DEBUG
-			StartServer()
 		}
-
 		backendLvl := logging.AddModuleLevel(Log.backend)
 		backendLvl.SetLevel(level, "")
 
-		logging.SetBackend(backendLvl)
+		logFilePath := debugModeFile()
+		if logFilePath == "" {
+			logging.SetBackend(backendLvl)
+		} else {
+			logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+			if err != nil {
+				logging.SetBackend(backendLvl)
+				Log.Error("Unable to create log file: %s", err.Error())
+			} else {
+				backendFile := logging.NewLogBackend(logFile, "", 0)
+				backendFileLvl := logging.AddModuleLevel(backendFile)
+				backendFileLvl.SetLevel(level, "")
+				logging.SetBackend(backendLvl, backendFileLvl)
+				Log.logFile = logFile
+			}
+		}
+
+		if debugMode {
+			StartServer()
+		}
 		Log.Notice("logger initialized")
 	}
 	return Log
@@ -102,8 +122,12 @@ func (log *CTopLogger) tail() chan string {
 
 func (log *CTopLogger) Exit() {
 	exited = true
+	if log.logFile != nil {
+		_ = log.logFile.Close()
+	}
 	StopServer()
 }
 
-func debugMode() bool    { return os.Getenv("CTOP_DEBUG") == "1" }
-func debugModeTCP() bool { return os.Getenv("CTOP_DEBUG_TCP") == "1" }
+func debugMode() bool       { return os.Getenv("CTOP_DEBUG") == "1" }
+func debugModeTCP() bool    { return os.Getenv("CTOP_DEBUG_TCP") == "1" }
+func debugModeFile() string { return os.Getenv("CTOP_DEBUG_FILE") }

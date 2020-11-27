@@ -22,11 +22,6 @@ var defaultSwitches = []*Switch{
 		Val:   true,
 		Label: "Enable status header",
 	},
-	&Switch{
-		Key:   "scaleCpu",
-		Val:   false,
-		Label: "Show CPU as %% of system total",
-	},
 }
 
 type Switch struct {
