@@ -7,6 +7,7 @@ import (
 	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/container"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
@@ -83,20 +84,22 @@ func (cm *Docker) Wait() struct{} { return <-cm.closed }
 func (cm *Docker) watchEvents() {
 	log.Info("docker event listener starting")
 	ctx := context.Background()
+	filter := filters.NewArgs()
+	filter.Add("type", "container")
+	filter.Add("event", "health_status")
+	filter.Add("event", "create")
+	filter.Add("event", "destroy")
+	filter.Add("event", "start")
+	filter.Add("event", "die")
+	filter.Add("event", "stop")
+	filter.Add("event", "pause")
+	filter.Add("event", "unpause")
 
-	eventsOpts := types.EventsOptions{}
+	eventsOpts := types.EventsOptions{Filters: filter}
 	events, _ := cm.client.Events(ctx, eventsOpts)
 
 	for e := range events {
-		if e.Type != "container" {
-			continue
-		}
-
 		actionName := e.Action
-		// fast skip all exec_* events: exec_create, exec_start, exec_die
-		if strings.HasPrefix(actionName, "exec_") {
-			continue
-		}
 		// Action may have additional param i.e. "health_status: healthy"
 		// We need to strip to have only action name
 		sepIdx := strings.Index(actionName, ": ")
