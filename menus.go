@@ -258,7 +258,7 @@ func ContainerMenu() MenuFn {
 			ui.StopLoop()
 		})
 	}
-	if c.Meta["state"] != "exited" || c.Meta["state"] != "created" {
+	if c.Meta["state"] != "exited" && c.Meta["state"] != "created" {
 		ui.Handle("/sys/kbd/p", func(ui.Event) {
 			if c.Meta["state"] == "paused" {
 				selected = "unpause"
