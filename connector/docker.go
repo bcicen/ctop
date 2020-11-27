@@ -1,15 +1,19 @@
 package connector
 
 import (
+	"context"
 	"fmt"
-	"github.com/op/go-logging"
-	"strings"
-	"sync"
-
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/container"
-	api "github.com/fsouza/go-dockerclient"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
+	"github.com/op/go-logging"
+	"strings"
+	"sync"
+	"time"
 )
 
 func init() { enabled["docker"] = NewDocker }
@@ -29,7 +33,7 @@ type StatusUpdate struct {
 }
 
 type Docker struct {
-	client       *api.Client
+	client       *client.Client
 	containers   map[string]*container.Container
 	needsRefresh chan string // container IDs requiring refresh
 	statuses     chan StatusUpdate
@@ -39,7 +43,8 @@ type Docker struct {
 
 func NewDocker() (Connector, error) {
 	// init docker client
-	client, err := api.NewClientFromEnv()
+	ctx := context.Background()
+	client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +58,7 @@ func NewDocker() (Connector, error) {
 	}
 
 	// query info as pre-flight healthcheck
-	info, err := client.Info()
+	info, err := client.Info(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +82,10 @@ func (cm *Docker) Wait() struct{} { return <-cm.closed }
 // Docker events watcher
 func (cm *Docker) watchEvents() {
 	log.Info("docker event listener starting")
-	events := make(chan *api.APIEvents)
-	cm.client.AddEventListener(events)
+	ctx := context.Background()
+
+	eventsOpts := types.EventsOptions{}
+	events, _ := cm.client.Events(ctx, eventsOpts)
 
 	for e := range events {
 		if e.Type != "container" {
@@ -130,7 +137,7 @@ func (cm *Docker) watchEvents() {
 	close(cm.closed)
 }
 
-func portsFormat(ports map[api.Port][]api.PortBinding) string {
+func portsFormat(ports nat.PortMap) string {
 	var exposed []string
 	var published []string
 
@@ -148,7 +155,7 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 	return strings.Join(append(exposed, published...), "\n")
 }
 
-func ipsFormat(networks map[string]api.ContainerNetwork) string {
+func ipsFormat(networks map[string]*network.EndpointSettings) string {
 	var ips []string
 
 	for k, v := range networks {
@@ -173,18 +180,23 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
-	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
-	c.SetMeta("health", insp.State.Health.Status)
+	if created, err := time.Parse(time.RFC3339, insp.Created); err == nil {
+		c.SetMeta("created", created.Format("Mon Jan 2 15:04:05 2006"))
+	}
+	if insp.State.Health != nil {
+		c.SetMeta("health", insp.State.Health.Status)
+	}
 	for _, env := range insp.Config.Env {
 		c.SetMeta("[ENV-VAR]", env)
 	}
 	c.SetState(insp.State.Status)
 }
 
-func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bool) {
-	c, err := cm.client.InspectContainer(id)
+func (cm *Docker) inspect(id string) (insp types.ContainerJSON, found bool, error bool) {
+	ctx := context.Background()
+	c, err := cm.client.ContainerInspect(ctx, id)
 	if err != nil {
-		if _, notFound := err.(*api.NoSuchContainer); notFound {
+		if client.IsErrNotFound(err) {
 			return c, false, false
 		}
 		// other error e.g. connection failed
@@ -196,8 +208,9 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 
 // Mark all container IDs for refresh
 func (cm *Docker) refreshAll() {
-	opts := api.ListContainersOptions{All: true}
-	allContainers, err := cm.client.ListContainers(opts)
+	ctx := context.Background()
+	opts := types.ContainerListOptions{All: true}
+	allContainers, err := cm.client.ContainerList(ctx, opts)
 	if err != nil {
 		log.Errorf("%s (%T)", err.Error(), err)
 		return

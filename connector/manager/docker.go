@@ -1,19 +1,21 @@
 package manager
 
 import (
+	"context"
 	"fmt"
-	api "github.com/fsouza/go-dockerclient"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"io"
-	"os"
+	"time"
 )
 
 type Docker struct {
 	id     string
-	client *api.Client
+	client *client.Client
 }
 
-func NewDocker(client *api.Client, id string) *Docker {
+func NewDocker(client *client.Client, id string) *Docker {
 	return &Docker{
 		id:     id,
 		client: client,
@@ -81,69 +83,76 @@ func (w *frameWriter) Write(p []byte) (n int, err error) {
 }
 
 func (dc *Docker) Exec(cmd []string) error {
-	execCmd, err := dc.client.CreateExec(api.CreateExecOptions{
+	ctx := context.Background()
+	execConfig := types.ExecConfig{
 		AttachStdin:  true,
 		AttachStdout: true,
 		AttachStderr: true,
 		Cmd:          cmd,
-		Container:    dc.id,
 		Tty:          true,
-	})
-
+	}
+	execCmd, err := dc.client.ContainerExecCreate(ctx, dc.id, execConfig)
 	if err != nil {
 		return err
 	}
 
-	return dc.client.StartExec(execCmd.ID, api.StartExecOptions{
-		InputStream:  &noClosableReader{os.Stdin},
-		OutputStream: &frameWriter{os.Stdout, os.Stderr, os.Stdin},
-		ErrorStream:  os.Stderr,
-		RawTerminal:  true,
-	})
+	execStartConfig := types.ExecStartCheck{}
+	//execStartConfig := types.ExecStartCheck{
+	//	InputStream:  &noClosableReader{os.Stdin},
+	//	OutputStream: &frameWriter{os.Stdout, os.Stderr, os.Stdin},
+	//	ErrorStream:  os.Stderr,
+	//	RawTerminal:  true,
+	//}
+	return dc.client.ContainerExecStart(ctx, execCmd.ID, execStartConfig)
 }
 
 func (dc *Docker) Start() error {
-	c, err := dc.client.InspectContainer(dc.id)
-	if err != nil {
-		return fmt.Errorf("cannot inspect container: %v", err)
-	}
-
-	if err := dc.client.StartContainer(c.ID, c.HostConfig); err != nil {
+	ctx := context.Background()
+	opts := types.ContainerStartOptions{}
+	if err := dc.client.ContainerStart(ctx, dc.id, opts); err != nil {
 		return fmt.Errorf("cannot start container: %v", err)
 	}
 	return nil
 }
 
 func (dc *Docker) Stop() error {
-	if err := dc.client.StopContainer(dc.id, 3); err != nil {
+	ctx := context.Background()
+	timeout := 3 * time.Second
+	if err := dc.client.ContainerStop(ctx, dc.id, &timeout); err != nil {
 		return fmt.Errorf("cannot stop container: %v", err)
 	}
 	return nil
 }
 
 func (dc *Docker) Remove() error {
-	if err := dc.client.RemoveContainer(api.RemoveContainerOptions{ID: dc.id}); err != nil {
+	ctx := context.Background()
+	opts := types.ContainerRemoveOptions{}
+	if err := dc.client.ContainerRemove(ctx, dc.id, opts); err != nil {
 		return fmt.Errorf("cannot remove container: %v", err)
 	}
 	return nil
 }
 
 func (dc *Docker) Pause() error {
-	if err := dc.client.PauseContainer(dc.id); err != nil {
+	ctx := context.Background()
+	if err := dc.client.ContainerPause(ctx, dc.id); err != nil {
 		return fmt.Errorf("cannot pause container: %v", err)
 	}
 	return nil
 }
 
 func (dc *Docker) Unpause() error {
-	if err := dc.client.UnpauseContainer(dc.id); err != nil {
+	ctx := context.Background()
+	if err := dc.client.ContainerUnpause(ctx, dc.id); err != nil {
 		return fmt.Errorf("cannot unpause container: %v", err)
 	}
 	return nil
 }
 
 func (dc *Docker) Restart() error {
-	if err := dc.client.RestartContainer(dc.id, 3); err != nil {
+	ctx := context.Background()
+	timeout := 3 * time.Second
+	if err := dc.client.ContainerRestart(ctx, dc.id, &timeout); err != nil {
 		return fmt.Errorf("cannot restart container: %v", err)
 	}
 	return nil

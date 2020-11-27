@@ -1,23 +1,19 @@
 package collector
 
 import (
-	"bufio"
-	"context"
-	"io"
-	"strings"
+	"github.com/docker/docker/client"
 	"time"
 
 	"github.com/bcicen/ctop/models"
-	api "github.com/fsouza/go-dockerclient"
 )
 
 type DockerLogs struct {
 	id     string
-	client *api.Client
+	client *client.Client
 	done   chan bool
 }
 
-func NewDockerLogs(id string, client *api.Client) *DockerLogs {
+func NewDockerLogs(id string, client *client.Client) *DockerLogs {
 	return &DockerLogs{
 		id:     id,
 		client: client,
@@ -26,9 +22,9 @@ func NewDockerLogs(id string, client *api.Client) *DockerLogs {
 }
 
 func (l *DockerLogs) Stream() chan models.Log {
-	r, w := io.Pipe()
+	//r, w := io.Pipe()
 	logCh := make(chan models.Log)
-	ctx, cancel := context.WithCancel(context.Background())
+	/*ctx, cancel := context.WithCancel(context.Background())
 
 	opts := api.LogsOptions{
 		Context:      ctx,
@@ -65,7 +61,7 @@ func (l *DockerLogs) Stream() chan models.Log {
 	go func() {
 		<-l.done
 		cancel()
-	}()
+	}()*/
 
 	log.Infof("log reader started for container: %s", l.id)
 	return logCh
