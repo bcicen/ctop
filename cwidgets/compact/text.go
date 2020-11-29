@@ -14,7 +14,9 @@ type NameCol struct {
 }
 
 func NewNameCol() CompactCol {
-	return &NameCol{NewTextCol("NAME")}
+	c := &NameCol{NewTextCol("NAME")}
+	c.fWidth = 30
+	return c
 }
 
 func (w *NameCol) SetMeta(m models.Meta) {
