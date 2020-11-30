@@ -107,3 +107,7 @@ Option | Description
 [single_view]: _docs/single.md
 [release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
 [homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"
+
+## Alternatives
+
+See [Awesome Docker list](https://github.com/veggiemonk/awesome-docker/blob/master/README.md#terminal) for similar tools to work with Docker. 
