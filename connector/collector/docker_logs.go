@@ -47,9 +47,9 @@ func (l *DockerLogs) Stream() chan models.Log {
 	go func() {
 		scanner := bufio.NewScanner(r)
 		for scanner.Scan() {
-			parts := strings.Split(scanner.Text(), " ")
+			parts := strings.SplitN(scanner.Text(), " ", 2)
 			ts := l.parseTime(parts[0])
-			logCh <- models.Log{Timestamp: ts, Message: strings.Join(parts[1:], " ")}
+			logCh <- models.Log{Timestamp: ts, Message: parts[1]}
 		}
 	}()
 
@@ -74,12 +74,12 @@ func (l *DockerLogs) Stream() chan models.Log {
 func (l *DockerLogs) Stop() { l.done <- true }
 
 func (l *DockerLogs) parseTime(s string) time.Time {
-	ts, err := time.Parse("2006-01-02T15:04:05.000000000Z", s)
+	ts, err := time.Parse(time.RFC3339Nano, s)
 	if err == nil {
 		return ts
 	}
 
-	ts, err2 := time.Parse("2006-01-02T15:04:05.000000000Z", l.stripPfx(s))
+	ts, err2 := time.Parse(time.RFC3339Nano, l.stripPfx(s))
 	if err2 == nil {
 		return ts
 	}
