@@ -75,7 +75,7 @@ func NewRunc() (Connector, error) {
 		opts:          opts,
 		factory:       factory,
 		containers:    make(map[string]*container.Container),
-		noneStack:     container.NewStack(""),
+		noneStack:     container.NewStack("", "none"),
 		libContainers: make(map[string]libcontainer.Container),
 		closed:        make(chan struct{}),
 		lock:          sync.RWMutex{},

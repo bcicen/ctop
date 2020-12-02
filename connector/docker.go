@@ -48,7 +48,7 @@ func NewDocker() (Connector, error) {
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
-		noneStack:    container.NewStack(""),
+		noneStack:    container.NewStack("", "none"),
 		stacks:       make(map[string]*container.Stack),
 		needsRefresh: make(chan string, 60),
 		statuses:     make(chan StatusUpdate, 60),
@@ -227,7 +227,7 @@ func (cm *Docker) initContainerStack(c *container.Container, labels map[string]s
 			c.Stack = stack
 		} else {
 			// create and remember the new stack
-			c.Stack = container.NewStack(stackName)
+			c.Stack = container.NewStack(stackName, "compose")
 			c.Stack.WorkDir = labels["com.docker.compose.project.working_dir"]
 			c.Stack.Config = labels["com.docker.compose.project.config_files"]
 			cm.stacks[stackName] = c.Stack

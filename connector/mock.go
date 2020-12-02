@@ -23,7 +23,7 @@ type Mock struct {
 
 func NewMock() (Connector, error) {
 	cs := &Mock{
-		noneStack: container.NewStack(""),
+		noneStack: container.NewStack("", "none"),
 	}
 	go cs.Init()
 	go cs.Loop()
@@ -33,8 +33,8 @@ func NewMock() (Connector, error) {
 // Create Mock containers
 func (cs *Mock) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
-	stack1 := container.NewStack("stack1")
-	stack2 := container.NewStack("stack2")
+	stack1 := container.NewStack("stack1", "compose")
+	stack2 := container.NewStack("stack2", "compose")
 
 	for i := 0; i < 2; i++ {
 		cs.makeContainer(3, true, cs.noneStack)

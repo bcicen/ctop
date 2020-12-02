@@ -54,11 +54,11 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 	}
 }
 
-func NewStack(name string) *Stack {
+func NewStack(name string, stackType string) *Stack {
 	p := &Stack{Name: name}
 	// create a compact row for the stack
 	widgets := compact.NewCompactRow()
-	meta := models.NewMeta("name", name)
+	meta := models.NewMeta("name", name, "stackType", stackType)
 	widgets.SetMeta(meta)
 	p.Widgets = widgets
 	return p
