@@ -28,7 +28,7 @@ var defaultColumns = []Column{
 	},
 	Column{
 		Name:    "cpus",
-		Label:   "CPU Usage as % of system total",
+		Label:   "CPU Usage (% of system total)",
 		Enabled: false,
 	},
 	Column{

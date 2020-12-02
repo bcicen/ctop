@@ -130,7 +130,7 @@ func ColumnsMenu() MenuFn {
 	m.Selectable = true
 	m.SortItems = false
 	m.BorderLabel = "Columns"
-	//m.SubText = "Enabled Columns"
+	m.SubText = "Re-order: <Page Up> / <Page Down>"
 
 	rebuild := func() {
 		// get padding for right alignment of enabled status
@@ -258,7 +258,7 @@ func ContainerMenu() MenuFn {
 			ui.StopLoop()
 		})
 	}
-	if c.Meta["state"] != "exited" || c.Meta["state"] != "created" {
+	if c.Meta["state"] != "exited" && c.Meta["state"] != "created" {
 		ui.Handle("/sys/kbd/p", func(ui.Event) {
 			if c.Meta["state"] == "paused" {
 				selected = "unpause"

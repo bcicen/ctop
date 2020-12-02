@@ -328,5 +328,5 @@ func (cm *Docker) All() (containers container.Containers) {
 
 // use primary container name
 func shortName(name string) string {
-	return strings.Replace(name, "/", "", 1)
+	return strings.TrimPrefix(name, "/")
 }
