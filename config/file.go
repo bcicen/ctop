@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -81,7 +82,7 @@ func Write() (path string, err error) {
 		return path, err
 	}
 
-	cfgdir := basedir(path)
+	cfgdir := filepath.Dir(path)
 	// create config dir if not exist
 	if _, err := os.Stat(cfgdir); err != nil {
 		err = os.MkdirAll(cfgdir, 0755)
@@ -140,9 +141,4 @@ func xdgSupport() bool {
 		}
 	}
 	return false
-}
-
-func basedir(path string) string {
-	parts := strings.Split(path, "/")
-	return strings.Join((parts[0 : len(parts)-1]), "/")
 }
