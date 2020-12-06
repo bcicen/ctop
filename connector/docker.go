@@ -1,7 +1,6 @@
 package connector
 
 import (
-	"fmt"
 	"github.com/op/go-logging"
 	"strings"
 	"sync"
@@ -111,7 +110,7 @@ func (cm *Docker) watchEvents() {
 				log.Debugf("handling docker event: action=create id=%s", e.ID)
 			}
 			c := cm.MustGet(e.ID)
-			c.SetMeta("name", shortName(e.Actor.Attributes["name"]))
+			c.SetMeta("name", manager.ShortName(e.Actor.Attributes["name"]))
 			c.SetMeta("image", e.Actor.Attributes["image"])
 			c.SetState("created")
 			cm.needsRefresh <- e.ID
@@ -135,55 +134,6 @@ func (cm *Docker) watchEvents() {
 	close(cm.closed)
 }
 
-func portsFormat(ports map[api.Port][]api.PortBinding) string {
-	var exposed []string
-	var published []string
-
-	for k, v := range ports {
-		if len(v) == 0 {
-			// 3306/tcp
-			exposed = append(exposed, string(k))
-			continue
-		}
-		for _, binding := range v {
-			// 0.0.0.0:3307 -> 3306/tcp
-			s := fmt.Sprintf("%s:%s -> %s", binding.HostIP, binding.HostPort, k)
-			published = append(published, s)
-		}
-	}
-
-	return strings.Join(append(exposed, published...), "\n")
-}
-
-func portsFormatArr(ports []api.APIPort) string {
-	var exposed []string
-	var published []string
-	for _, binding := range ports {
-		if binding.PublicPort != 0 {
-			// 0.0.0.0:3307 -> 3306/tcp
-			s := fmt.Sprintf("%s:%d -> %d/%s", binding.IP, binding.PublicPort, binding.PrivatePort, binding.Type)
-			published = append(published, s)
-		} else {
-			// 3306/tcp
-			s := fmt.Sprintf("%d/%s", binding.PrivatePort, binding.Type)
-			exposed = append(exposed, s)
-		}
-	}
-
-	return strings.Join(append(exposed, published...), "\n")
-}
-
-func ipsFormat(networks map[string]api.ContainerNetwork) string {
-	var ips []string
-
-	for k, v := range networks {
-		s := fmt.Sprintf("%s:%s", k, v.IPAddress)
-		ips = append(ips, s)
-	}
-
-	return strings.Join(ips, "\n")
-}
-
 func (cm *Docker) refresh(c *container.Container) {
 	insp, found, failed := cm.inspect(c.Id)
 	if failed {
@@ -194,10 +144,10 @@ func (cm *Docker) refresh(c *container.Container) {
 		cm.delByID(c.Id)
 		return
 	}
-	c.SetMeta("name", shortName(insp.Name))
+	c.SetMeta("name", manager.ShortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
-	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
-	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
+	c.SetMeta("IPs", manager.IpsFormat(insp.NetworkSettings.Networks))
+	c.SetMeta("ports", manager.PortsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetMeta("health", insp.State.Health.Status)
 	for _, env := range insp.Config.Env {
@@ -230,10 +180,10 @@ func (cm *Docker) refreshAll() {
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
-		c.SetMeta("name", shortName(i.Names[0]))
+		c.SetMeta("name", manager.ShortName(i.Names[0]))
 		c.SetMeta("image", i.Image)
-		c.SetMeta("IPs", ipsFormat(i.Networks.Networks))
-		c.SetMeta("ports", portsFormatArr(i.Ports))
+		c.SetMeta("IPs", manager.IpsFormat(i.Networks.Networks))
+		c.SetMeta("ports", manager.PortsFormatArr(i.Ports))
 		c.SetMeta("created", time.Unix(i.Created, 0).Format("Mon Jan 2 15:04:05 2006"))
 		parseStatusHealth(c, i.Status)
 		c.SetState(i.State)
@@ -331,9 +281,4 @@ func (cm *Docker) All() (containers container.Containers) {
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers
-}
-
-// use primary container name
-func shortName(name string) string {
-	return strings.TrimPrefix(name, "/")
 }
