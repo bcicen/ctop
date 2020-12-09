@@ -230,12 +230,16 @@ func parseStatusHealth(c *container.Container, status string) {
 }
 
 func (cm *Docker) Loop() {
+	ticker := time.NewTicker(5 * time.Minute)
 	for {
 		select {
+		case <-ticker.C:
+			cm.refreshAll()
 		case id := <-cm.needsRefresh:
 			c := cm.MustGet(id)
 			cm.refresh(c)
 		case <-cm.closed:
+			ticker.Stop()
 			return
 		}
 	}
