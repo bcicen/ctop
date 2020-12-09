@@ -135,38 +135,7 @@ func (cm *Docker) watchEvents() {
 }
 
 func (cm *Docker) refresh(c *container.Container) {
-	insp, found, failed := cm.inspect(c.Id)
-	if failed {
-		return
-	}
-	// remove container if no longer exists
-	if !found {
-		cm.delByID(c.Id)
-		return
-	}
-	c.SetMeta("name", manager.ShortName(insp.Name))
-	c.SetMeta("image", insp.Config.Image)
-	c.SetMeta("IPs", manager.IpsFormat(insp.NetworkSettings.Networks))
-	c.SetMeta("ports", manager.PortsFormat(insp.NetworkSettings.Ports))
-	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
-	c.SetMeta("health", insp.State.Health.Status)
-	for _, env := range insp.Config.Env {
-		c.SetMeta("[ENV-VAR]", env)
-	}
-	c.SetState(insp.State.Status)
-}
-
-func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bool) {
-	c, err := cm.client.InspectContainer(id)
-	if err != nil {
-		if _, notFound := err.(*api.NoSuchContainer); notFound {
-			return c, false, false
-		}
-		// other error e.g. connection failed
-		log.Errorf("%s (%T)", err.Error(), err)
-		return c, false, true
-	}
-	return c, true, false
+	cm.updateContainers(false, []string{c.Id})
 }
 
 // Mark all container IDs for refresh
