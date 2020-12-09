@@ -171,13 +171,24 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 
 // Mark all container IDs for refresh
 func (cm *Docker) refreshAll() {
+	cm.updateContainers(true, nil)
+}
+
+func (cm *Docker) updateContainers(all bool, cidsToRefresh []string) {
 	opts := api.ListContainersOptions{All: true}
+	if !all {
+		opts.Filters = map[string][]string{
+			"id": cidsToRefresh,
+		}
+	}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
 		log.Errorf("%s (%T)", err.Error(), err)
 		return
 	}
-	cm.cleanupDestroyedContainers(allContainers)
+	if all {
+		cm.cleanupDestroyedContainers(allContainers)
+	}
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
@@ -188,7 +199,6 @@ func (cm *Docker) refreshAll() {
 		c.SetMeta("created", time.Unix(i.Created, 0).Format("Mon Jan 2 15:04:05 2006"))
 		parseStatusHealth(c, i.Status)
 		c.SetState(i.State)
-		cm.needsRefresh <- c.Id
 	}
 }
 
