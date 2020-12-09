@@ -31,7 +31,8 @@ type StatusUpdate struct {
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
-	needsRefresh chan string // container IDs requiring refresh
+	needsRefresh []string // container IDs requiring refresh
+	lastRefresh  time.Time
 	statuses     chan StatusUpdate
 	closed       chan struct{}
 	lock         sync.RWMutex
@@ -44,12 +45,11 @@ func NewDocker() (Connector, error) {
 		return nil, err
 	}
 	cm := &Docker{
-		client:       client,
-		containers:   make(map[string]*container.Container),
-		needsRefresh: make(chan string, 60),
-		statuses:     make(chan StatusUpdate, 60),
-		closed:       make(chan struct{}),
-		lock:         sync.RWMutex{},
+		client:     client,
+		containers: make(map[string]*container.Container),
+		statuses:   make(chan StatusUpdate, 60),
+		closed:     make(chan struct{}),
+		lock:       sync.RWMutex{},
 	}
 
 	// query info as pre-flight healthcheck
@@ -113,7 +113,7 @@ func (cm *Docker) watchEvents() {
 			c.SetMeta("name", manager.ShortName(e.Actor.Attributes["name"]))
 			c.SetMeta("image", e.Actor.Attributes["image"])
 			c.SetState("created")
-			cm.needsRefresh <- e.ID
+			cm.requestRefresh(c)
 		case "destroy":
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=destroy id=%s", e.ID)
@@ -134,20 +134,16 @@ func (cm *Docker) watchEvents() {
 	close(cm.closed)
 }
 
-func (cm *Docker) refresh(c *container.Container) {
-	cm.updateContainers(false, []string{c.Id})
-}
-
 // Mark all container IDs for refresh
 func (cm *Docker) refreshAll() {
-	cm.updateContainers(true, nil)
+	cm.updateContainers(true)
 }
 
-func (cm *Docker) updateContainers(all bool, cidsToRefresh []string) {
+func (cm *Docker) updateContainers(all bool) {
 	opts := api.ListContainersOptions{All: true}
 	if !all {
 		opts.Filters = map[string][]string{
-			"id": cidsToRefresh,
+			"id": cm.needsRefresh,
 		}
 	}
 	allContainers, err := cm.client.ListContainers(opts)
@@ -169,6 +165,21 @@ func (cm *Docker) updateContainers(all bool, cidsToRefresh []string) {
 		parseStatusHealth(c, i.Status)
 		c.SetState(i.State)
 	}
+	cm.lastRefresh = time.Now()
+	cm.needsRefresh = nil
+}
+
+func (cm *Docker) requestRefresh(c *container.Container) {
+	cm.needsRefresh = append(cm.needsRefresh, c.Id)
+	refreshRequestedOn := time.Now()
+	go func() {
+		time.Sleep(5 * time.Second)
+		if refreshRequestedOn.Before(cm.lastRefresh) {
+			return
+		}
+		// batch refresh
+		cm.updateContainers(false)
+	}()
 }
 
 func (cm *Docker) cleanupDestroyedContainers(allContainers []api.APIContainers) {
@@ -214,9 +225,6 @@ func (cm *Docker) Loop() {
 		select {
 		case <-ticker.C:
 			cm.refreshAll()
-		case id := <-cm.needsRefresh:
-			c := cm.MustGet(id)
-			cm.refresh(c)
 		case <-cm.closed:
 			ticker.Stop()
 			return
