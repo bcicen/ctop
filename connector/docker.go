@@ -177,6 +177,7 @@ func (cm *Docker) refreshAll() {
 		log.Errorf("%s (%T)", err.Error(), err)
 		return
 	}
+	cm.cleanupDestroyedContainers(allContainers)
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
@@ -189,6 +190,28 @@ func (cm *Docker) refreshAll() {
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
 	}
+}
+
+func (cm *Docker) cleanupDestroyedContainers(allContainers []api.APIContainers) {
+	var nonExistingContainers []string
+	for _, oldContainer := range cm.containers {
+		if !cm.hasContainer(oldContainer.Id, allContainers) {
+			nonExistingContainers = append(nonExistingContainers, oldContainer.Id)
+		}
+	}
+	// remove containers that no longer exists
+	for _, cid := range nonExistingContainers {
+		cm.delByID(cid)
+	}
+}
+
+func (cm *Docker) hasContainer(oldContainerId string, newContainers []api.APIContainers) bool {
+	for _, newContainer := range newContainers {
+		if newContainer.ID == oldContainerId {
+			return true
+		}
+	}
+	return false
 }
 
 func parseStatusHealth(c *container.Container, status string) {
