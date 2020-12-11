@@ -31,6 +31,24 @@ func NewCIDCol() CompactCol {
 	return c
 }
 
+func NewImageCol() CompactCol {
+	return &MetaCol{NewTextCol("IMAGE"), "image"}
+}
+
+func NewPortsCol() CompactCol {
+	return &MetaCol{NewTextCol("PORTS"), "ports"}
+}
+
+func NewIpsCol() CompactCol {
+	return &MetaCol{NewTextCol("IPs"), "IPs"}
+}
+
+func NewCreatedCol() CompactCol {
+	c := &MetaCol{NewTextCol("CREATED"), "created"}
+	c.fWidth = 19 // Year will be stripped e.g. "Thu Nov 26 07:44:03" without 2020 at end
+	return c
+}
+
 type NetCol struct {
 	*TextCol
 }

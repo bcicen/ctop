@@ -22,6 +22,26 @@ var defaultColumns = []Column{
 		Enabled: true,
 	},
 	{
+		Name:    "image",
+		Label:   "Image name",
+		Enabled: false,
+	},
+	{
+		Name:    "ports",
+		Label:   "Exposed ports",
+		Enabled: false,
+	},
+	{
+		Name:    "IPs",
+		Label:   "Exposed IPs",
+		Enabled: false,
+	},
+	{
+		Name:    "created",
+		Label:   "Date created",
+		Enabled: false,
+	},
+	{
 		Name:    "cpu",
 		Label:   "CPU Usage",
 		Enabled: true,
