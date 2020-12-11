@@ -9,32 +9,26 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-type NameCol struct {
+// Column that shows container's meta property i.e. name, id, image tc.
+type MetaCol struct {
 	*TextCol
+	metaName string
+}
+
+func (w *MetaCol) SetMeta(m models.Meta) {
+	w.setText(m.Get(w.metaName))
 }
 
 func NewNameCol() CompactCol {
-	c := &NameCol{NewTextCol("NAME")}
+	c := &MetaCol{NewTextCol("NAME"), "name"}
 	c.fWidth = 30
 	return c
 }
 
-func (w *NameCol) SetMeta(m models.Meta) {
-	w.setText(m.Get("name"))
-}
-
-type CIDCol struct {
-	*TextCol
-}
-
 func NewCIDCol() CompactCol {
-	c := &CIDCol{NewTextCol("CID")}
+	c := &MetaCol{NewTextCol("CID"), "id"}
 	c.fWidth = 12
 	return c
-}
-
-func (w *CIDCol) SetMeta(m models.Meta) {
-	w.setText(m.Get("id"))
 }
 
 type NetCol struct {
