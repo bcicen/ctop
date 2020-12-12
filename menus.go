@@ -223,7 +223,9 @@ func ContainerMenu() MenuFn {
 		items = append(items, menu.Item{Val: "pause", Label: "[p] pause"})
 		items = append(items, menu.Item{Val: "restart", Label: "[r] restart"})
 		items = append(items, menu.Item{Val: "exec", Label: "[e] exec shell"})
-		items = append(items, menu.Item{Val: "browser", Label: "[w] open in browser"})
+		if c.Meta["Web Port"] != "" {
+			items = append(items, menu.Item{Val: "browser", Label: "[w] open in browser"})
+		}
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "[s] start"})
@@ -280,9 +282,11 @@ func ContainerMenu() MenuFn {
 			selected = "restart"
 			ui.StopLoop()
 		})
-		ui.Handle("/sys/kbd/w", func(ui.Event) {
-			selected = "browser"
-		})
+		if c.Meta["Web Port"] != "" {
+			ui.Handle("/sys/kbd/w", func(ui.Event) {
+				selected = "browser"
+			})
+		}
 	}
 	ui.Handle("/sys/kbd/R", func(ui.Event) {
 		selected = "remove"
