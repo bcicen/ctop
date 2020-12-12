@@ -10,6 +10,7 @@ import (
 	"github.com/bcicen/ctop/widgets"
 	"github.com/bcicen/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
+	"github.com/pkg/browser"
 )
 
 // MenuFn executes a menu window, returning the next menu or nil
@@ -27,6 +28,7 @@ var helpDialog = []menu.Item{
 	{"[o] - open single view", ""},
 	{"[l] - view container logs ([t] to toggle timestamp when open)", ""},
 	{"[e] - exec shell", ""},
+	{"[w] - open browser (first port is http)", ""},
 	{"[c] - configure columns", ""},
 	{"[S] - save current configuration to file", ""},
 	{"[q] - exit ctop", ""},
@@ -221,6 +223,7 @@ func ContainerMenu() MenuFn {
 		items = append(items, menu.Item{Val: "pause", Label: "[p] pause"})
 		items = append(items, menu.Item{Val: "restart", Label: "[r] restart"})
 		items = append(items, menu.Item{Val: "exec", Label: "[e] exec shell"})
+		items = append(items, menu.Item{Val: "browser", Label: "[w] open in browser"})
 	}
 	if c.Meta["state"] == "exited" || c.Meta["state"] == "created" {
 		items = append(items, menu.Item{Val: "start", Label: "[s] start"})
@@ -277,6 +280,9 @@ func ContainerMenu() MenuFn {
 			selected = "restart"
 			ui.StopLoop()
 		})
+		ui.Handle("/sys/kbd/w", func(ui.Event) {
+			selected = "browser"
+		})
 	}
 	ui.Handle("/sys/kbd/R", func(ui.Event) {
 		selected = "remove"
@@ -303,6 +309,8 @@ func ContainerMenu() MenuFn {
 		nextMenu = LogMenu
 	case "exec":
 		nextMenu = ExecShell
+	case "browser":
+		nextMenu = OpenInBrowser
 	case "start":
 		nextMenu = Confirm(confirmTxt("start", c.GetMeta("name")), c.Start)
 	case "stop":
@@ -371,6 +379,21 @@ func ExecShell() MenuFn {
 		log.StatusErr(err)
 	}
 
+	return nil
+}
+
+func OpenInBrowser() MenuFn {
+	c := cursor.Selected()
+	if c == nil {
+		return nil
+	}
+
+	webPort := c.Meta.Get("Web Port")
+	if webPort == "" {
+		return nil
+	}
+	link := "http://" + webPort + "/"
+	browser.OpenURL(link)
 	return nil
 }
 

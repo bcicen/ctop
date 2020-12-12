@@ -148,6 +148,23 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 	return strings.Join(append(exposed, published...), "\n")
 }
 
+func webPort(ports map[api.Port][]api.PortBinding) string {
+	for _, v := range ports {
+		if len(v) == 0 {
+			continue
+		}
+		for _, binding := range v {
+			publishedIp := binding.HostIP
+			if publishedIp == "0.0.0.0" {
+				publishedIp = "localhost"
+			}
+			publishedWebPort := fmt.Sprintf("%s:%s", publishedIp, binding.HostPort)
+			return publishedWebPort
+		}
+	}
+	return ""
+}
+
 func ipsFormat(networks map[string]api.ContainerNetwork) string {
 	var ips []string
 
@@ -173,6 +190,10 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
+	webPort := webPort(insp.NetworkSettings.Ports)
+	if webPort != "" {
+		c.SetMeta("Web Port", webPort)
+	}
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetMeta("health", insp.State.Health.Status)
 	for _, env := range insp.Config.Env {
