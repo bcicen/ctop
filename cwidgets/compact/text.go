@@ -9,32 +9,44 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-type NameCol struct {
+// Column that shows container's meta property i.e. name, id, image tc.
+type MetaCol struct {
 	*TextCol
+	metaName string
+}
+
+func (w *MetaCol) SetMeta(m models.Meta) {
+	w.setText(m.Get(w.metaName))
 }
 
 func NewNameCol() CompactCol {
-	c := &NameCol{NewTextCol("NAME")}
+	c := &MetaCol{NewTextCol("NAME"), "name"}
 	c.fWidth = 30
 	return c
 }
 
-func (w *NameCol) SetMeta(m models.Meta) {
-	w.setText(m.Get("name"))
-}
-
-type CIDCol struct {
-	*TextCol
-}
-
 func NewCIDCol() CompactCol {
-	c := &CIDCol{NewTextCol("CID")}
+	c := &MetaCol{NewTextCol("CID"), "id"}
 	c.fWidth = 12
 	return c
 }
 
-func (w *CIDCol) SetMeta(m models.Meta) {
-	w.setText(m.Get("id"))
+func NewImageCol() CompactCol {
+	return &MetaCol{NewTextCol("IMAGE"), "image"}
+}
+
+func NewPortsCol() CompactCol {
+	return &MetaCol{NewTextCol("PORTS"), "ports"}
+}
+
+func NewIpsCol() CompactCol {
+	return &MetaCol{NewTextCol("IPs"), "IPs"}
+}
+
+func NewCreatedCol() CompactCol {
+	c := &MetaCol{NewTextCol("CREATED"), "created"}
+	c.fWidth = 19 // Year will be stripped e.g. "Thu Nov 26 07:44:03" without 2020 at end
+	return c
 }
 
 type NetCol struct {
