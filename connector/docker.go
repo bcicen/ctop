@@ -175,9 +175,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
 	c.SetMeta("health", insp.State.Health.Status)
-	for _, env := range insp.Config.Env {
-		c.SetMeta("[ENV-VAR]", env)
-	}
+	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
 	c.SetState(insp.State.Status)
 }
 
