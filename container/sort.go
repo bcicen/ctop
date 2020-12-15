@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/bcicen/ctop/config"
 )
@@ -18,64 +19,102 @@ var stateMap = map[string]int{
 	"":        0,
 }
 
-var idSorter = func(c1, c2 *Container) bool { return c1.Id < c2.Id }
-var nameSorter = func(c1, c2 *Container) bool { return c1.GetMeta("name") < c2.GetMeta("name") }
+func cmpByStack(c1, c2 *Container) int {
+	return strings.Compare(c1.Stack.Name, c2.Stack.Name)
+}
+
+func cmpByName(c1, c2 *Container) bool {
+	return c1.GetMeta("name") < c2.GetMeta("name")
+}
+
+var idSorter = func(c1, c2 *Container) bool {
+	if stackCmp := cmpByStack(c1, c2); stackCmp != 0 {
+		return stackCmp < 0
+	}
+	return c1.Id < c2.Id
+}
 
 var Sorters = map[string]sortMethod{
-	"id":   idSorter,
-	"name": nameSorter,
+	"id": idSorter,
+	"name": func(c1, c2 *Container) bool {
+		if stackCmp := cmpByStack(c1, c2); stackCmp != 0 {
+			return stackCmp < 0
+		}
+		return cmpByName(c1, c2)
+	},
 	"cpu": func(c1, c2 *Container) bool {
+		if c1.Stack.Metrics.CPUUtil != c2.Stack.Metrics.CPUUtil {
+			return c1.Stack.Metrics.CPUUtil > c2.Stack.Metrics.CPUUtil
+		}
 		// Use secondary sort method if equal values
 		if c1.CPUUtil == c2.CPUUtil {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.CPUUtil > c2.CPUUtil
 	},
 	"mem": func(c1, c2 *Container) bool {
+		if c1.Stack.Metrics.MemUsage != c2.Stack.Metrics.MemUsage {
+			return c1.Stack.Metrics.MemUsage > c2.Stack.Metrics.MemUsage
+		}
 		// Use secondary sort method if equal values
 		if c1.MemUsage == c2.MemUsage {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.MemUsage > c2.MemUsage
 	},
 	"mem %": func(c1, c2 *Container) bool {
+		if c1.Stack.Metrics.MemPercent != c2.Stack.Metrics.MemPercent {
+			return c1.Stack.Metrics.MemPercent > c2.Stack.Metrics.MemPercent
+		}
 		// Use secondary sort method if equal values
 		if c1.MemPercent == c2.MemPercent {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.MemPercent > c2.MemPercent
 	},
 	"net": func(c1, c2 *Container) bool {
-		sum1 := sumNet(c1)
-		sum2 := sumNet(c2)
+		if c1.Stack.Metrics.SumNet() != c2.Stack.Metrics.SumNet() {
+			return c1.Stack.Metrics.SumNet() > c2.Stack.Metrics.SumNet()
+		}
+		sum1 := c1.SumNet()
+		sum2 := c2.SumNet()
 		// Use secondary sort method if equal values
 		if sum1 == sum2 {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return sum1 > sum2
 	},
 	"pids": func(c1, c2 *Container) bool {
+		if c1.Stack.Metrics.Pids != c2.Stack.Metrics.Pids {
+			return c1.Stack.Metrics.Pids > c2.Stack.Metrics.Pids
+		}
 		// Use secondary sort method if equal values
 		if c1.Pids == c2.Pids {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return c1.Pids > c2.Pids
 	},
 	"io": func(c1, c2 *Container) bool {
-		sum1 := sumIO(c1)
-		sum2 := sumIO(c2)
+		if c1.Stack.Metrics.SumIO() != c2.Stack.Metrics.SumIO() {
+			return c1.Stack.Metrics.SumIO() > c2.Stack.Metrics.SumIO()
+		}
+		sum1 := c1.SumIO()
+		sum2 := c2.SumIO()
 		// Use secondary sort method if equal values
 		if sum1 == sum2 {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return sum1 > sum2
 	},
 	"state": func(c1, c2 *Container) bool {
+		if stackCmp := cmpByStack(c1, c2); stackCmp != 0 {
+			return stackCmp < 0
+		}
 		// Use secondary sort method if equal values
 		c1state := c1.GetMeta("state")
 		c2state := c2.GetMeta("state")
 		if c1state == c2state {
-			return nameSorter(c1, c2)
+			return cmpByName(c1, c2)
 		}
 		return stateMap[c1state] > stateMap[c2state]
 	},
@@ -117,7 +156,3 @@ func (a Containers) Filter() {
 		}
 	}
 }
-
-func sumNet(c *Container) int64 { return c.NetRx + c.NetTx }
-
-func sumIO(c *Container) int64 { return c.IOBytesRead + c.IOBytesWrite }

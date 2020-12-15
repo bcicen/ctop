@@ -31,6 +31,8 @@ type StatusUpdate struct {
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
+	noneStack    *container.Stack
+	stacks       map[string]*container.Stack
 	needsRefresh chan string // container IDs requiring refresh
 	statuses     chan StatusUpdate
 	closed       chan struct{}
@@ -46,6 +48,8 @@ func NewDocker() (Connector, error) {
 	cm := &Docker{
 		client:       client,
 		containers:   make(map[string]*container.Container),
+		noneStack:    container.NewStack("", "none"),
+		stacks:       make(map[string]*container.Stack),
 		needsRefresh: make(chan string, 60),
 		statuses:     make(chan StatusUpdate, 60),
 		closed:       make(chan struct{}),
@@ -159,16 +163,17 @@ func ipsFormat(networks map[string]api.ContainerNetwork) string {
 	return strings.Join(ips, "\n")
 }
 
-func (cm *Docker) refresh(c *container.Container) {
-	insp, found, failed := cm.inspect(c.Id)
+func (cm *Docker) refresh(id string) {
+	insp, found, failed := cm.inspect(id)
 	if failed {
 		return
 	}
 	// remove container if no longer exists
 	if !found {
-		cm.delByID(c.Id)
+		cm.delByID(id)
 		return
 	}
+	c := cm.MustGet(id, insp.Config.Labels)
 	c.SetMeta("name", shortName(insp.Name))
 	c.SetMeta("image", insp.Config.Image)
 	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
@@ -202,19 +207,43 @@ func (cm *Docker) refreshAll() {
 	}
 
 	for _, i := range allContainers {
-		c := cm.MustGet(i.ID)
+		c := cm.MustGet(i.ID, i.Labels)
 		c.SetMeta("name", shortName(i.Names[0]))
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
 	}
 }
 
+func (cm *Docker) initContainerStack(c *container.Container, labels map[string]string) {
+	stackName := labels["com.docker.compose.project"]
+	if stackName == "" {
+		c.Stack = cm.noneStack
+	} else {
+		// try to find the existing stack
+		stack := cm.stacks[stackName]
+		if stack != nil {
+			c.Stack = stack
+		} else {
+			// create and remember the new stack
+			c.Stack = container.NewStack(stackName, "compose")
+			c.Stack.WorkDir = labels["com.docker.compose.project.working_dir"]
+			c.Stack.Config = labels["com.docker.compose.project.config_files"]
+			cm.stacks[stackName] = c.Stack
+			// set compose service for the container
+			composeService := labels["com.docker.compose.service"]
+			if composeService != "" {
+				c.SetMeta("service", composeService)
+			}
+		}
+	}
+	c.Stack.Count++
+}
+
 func (cm *Docker) Loop() {
 	for {
 		select {
 		case id := <-cm.needsRefresh:
-			c := cm.MustGet(id)
-			cm.refresh(c)
+			cm.refresh(id)
 		case <-cm.closed:
 			return
 		}
@@ -240,7 +269,7 @@ func (cm *Docker) LoopStatuses() {
 }
 
 // MustGet gets a single container, creating one anew if not existing
-func (cm *Docker) MustGet(id string) *container.Container {
+func (cm *Docker) MustGet(id string, labels map[string]string) *container.Container {
 	c, ok := cm.Get(id)
 	// append container struct for new containers
 	if !ok {
@@ -252,6 +281,7 @@ func (cm *Docker) MustGet(id string) *container.Container {
 		c = container.New(id, collector, manager)
 		cm.lock.Lock()
 		cm.containers[id] = c
+		cm.initContainerStack(c, labels)
 		cm.lock.Unlock()
 	}
 	return c
@@ -268,7 +298,15 @@ func (cm *Docker) Get(id string) (*container.Container, bool) {
 // Remove containers by ID
 func (cm *Docker) delByID(id string) {
 	cm.lock.Lock()
-	delete(cm.containers, id)
+	c, hasContainer := cm.containers[id]
+	if hasContainer {
+		c.Stack.Count--
+		// if this was the last container in stack then remove stack
+		if c.Stack != cm.noneStack && c.Stack.Count <= 0 {
+			delete(cm.stacks, c.Stack.Name)
+		}
+		delete(cm.containers, id)
+	}
 	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)
 }

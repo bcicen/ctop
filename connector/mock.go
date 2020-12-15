@@ -18,10 +18,13 @@ func init() { enabled["mock"] = NewMock }
 
 type Mock struct {
 	containers container.Containers
+	noneStack  *container.Stack
 }
 
 func NewMock() (Connector, error) {
-	cs := &Mock{}
+	cs := &Mock{
+		noneStack: container.NewStack("", "none"),
+	}
 	go cs.Init()
 	go cs.Loop()
 	return cs, nil
@@ -30,13 +33,17 @@ func NewMock() (Connector, error) {
 // Create Mock containers
 func (cs *Mock) Init() {
 	rand.Seed(int64(time.Now().Nanosecond()))
+	stack1 := container.NewStack("stack1", "compose")
+	stack2 := container.NewStack("stack2", "compose")
 
-	for i := 0; i < 4; i++ {
-		cs.makeContainer(3, true)
+	for i := 0; i < 2; i++ {
+		cs.makeContainer(3, true, cs.noneStack)
+		cs.makeContainer(3, true, stack1)
 	}
 
-	for i := 0; i < 16; i++ {
-		cs.makeContainer(1, false)
+	for i := 0; i < 8; i++ {
+		cs.makeContainer(1, false, cs.noneStack)
+		cs.makeContainer(1, false, stack2)
 	}
 
 }
@@ -52,10 +59,12 @@ func (cs *Mock) Wait() struct{} {
 
 var healthStates = []string{"starting", "healthy", "unhealthy"}
 
-func (cs *Mock) makeContainer(aggression int64, health bool) {
+func (cs *Mock) makeContainer(aggression int64, health bool, stack *container.Stack) {
 	collector := collector.NewMock(aggression)
 	manager := manager.NewMock()
 	c := container.New(makeID(), collector, manager)
+	c.Stack = stack
+	c.Stack.Count++
 	c.SetMeta("name", makeName())
 	c.SetState(makeState())
 	if health {
@@ -109,6 +118,7 @@ func (cs *Mock) All() container.Containers {
 func (cs *Mock) delByID(id string) {
 	for n, c := range cs.containers {
 		if c.Id == id {
+			c.Stack.Count--
 			cs.del(n)
 			return
 		}

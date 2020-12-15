@@ -15,6 +15,7 @@ const (
 // Status indicator
 type Status struct {
 	*ui.Block
+	stack  []ui.Cell
 	status []ui.Cell
 	health []ui.Cell
 }
@@ -22,6 +23,7 @@ type Status struct {
 func NewStatus() CompactCol {
 	s := &Status{
 		Block:  ui.NewBlock(),
+		stack:  []ui.Cell{{Ch: ' '}},
 		health: []ui.Cell{{Ch: ' '}},
 	}
 	s.Height = 1
@@ -33,6 +35,10 @@ func NewStatus() CompactCol {
 func (s *Status) Buffer() ui.Buffer {
 	buf := s.Block.Buffer()
 	x := 0
+	for _, c := range s.stack {
+		buf.Set(s.InnerX()+x, s.InnerY(), c)
+		x += c.Width()
+	}
 	for _, c := range s.health {
 		buf.Set(s.InnerX()+x, s.InnerY(), c)
 		x += c.Width()
@@ -46,6 +52,7 @@ func (s *Status) Buffer() ui.Buffer {
 }
 
 func (s *Status) SetMeta(m models.Meta) {
+	s.setStackType(m.Get("stackType"))
 	s.setState(m.Get("state"))
 	s.setHealth(m.Get("health"))
 }
@@ -56,7 +63,7 @@ func (s *Status) SetMetrics(models.Metrics) {}
 func (s *Status) Highlight()                {}
 func (s *Status) UnHighlight()              {}
 func (s *Status) Header() string            { return "" }
-func (s *Status) FixedWidth() int           { return 3 }
+func (s *Status) FixedWidth() int           { return 4 }
 
 func (s *Status) setState(val string) {
 	// defaults
@@ -64,6 +71,8 @@ func (s *Status) setState(val string) {
 	color := ui.ColorDefault
 
 	switch val {
+	case "":
+		text = " "
 	case "running":
 		color = ui.ThemeAttr("status.ok")
 	case "exited":
@@ -93,4 +102,16 @@ func (s *Status) setHealth(val string) {
 	}
 
 	s.health = ui.TextCells(mark, color, ui.ColorDefault)
+}
+
+func (s *Status) setStackType(stackType string) {
+	var text string
+	// stackType may be compose or none
+	if stackType != "" {
+		text = "▾"
+	} else {
+		text = " "
+	}
+	color := ui.ColorDefault
+	s.stack = ui.TextCells(text, color, ui.ColorDefault)
 }

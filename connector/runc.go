@@ -57,6 +57,7 @@ type Runc struct {
 	closed        chan struct{}
 	needsRefresh  chan string // container IDs requiring refresh
 	lock          sync.RWMutex
+	noneStack     *container.Stack
 }
 
 func NewRunc() (Connector, error) {
@@ -74,6 +75,7 @@ func NewRunc() (Connector, error) {
 		opts:          opts,
 		factory:       factory,
 		containers:    make(map[string]*container.Container),
+		noneStack:     container.NewStack("", "none"),
 		libContainers: make(map[string]libcontainer.Container),
 		closed:        make(chan struct{}),
 		lock:          sync.RWMutex{},
@@ -193,6 +195,8 @@ func (cm *Runc) MustGet(id string) *container.Container {
 		// create container
 		manager := manager.NewRunc()
 		c = container.New(id, collector, manager)
+		c.Stack = cm.noneStack
+		c.Stack.Count++
 
 		name := libc.ID()
 		// set initial metadata
@@ -215,7 +219,11 @@ func (cm *Runc) MustGet(id string) *container.Container {
 // Remove containers by ID
 func (cm *Runc) delByID(id string) {
 	cm.lock.Lock()
-	delete(cm.containers, id)
+	c, hasContainer := cm.containers[id]
+	if hasContainer {
+		c.Stack.Count--
+		delete(cm.containers, id)
+	}
 	delete(cm.libContainers, id)
 	cm.lock.Unlock()
 	log.Infof("removed dead container: %s", id)

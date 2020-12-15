@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bcicen/ctop/config"
+	"github.com/bcicen/ctop/container"
 	"github.com/bcicen/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 )
@@ -58,7 +59,14 @@ func RedrawRows(clr bool) {
 
 	cGrid.SetY(y)
 
+	// containers grouped by stack
+	var prevStack *container.Stack = nil
 	for _, c := range cursor.filtered {
+		// next stack header
+		if c.Stack != prevStack {
+			prevStack = c.Stack
+			cGrid.AddRows(c.Stack.Widgets)
+		}
 		cGrid.AddRows(c.Widgets)
 	}
 

@@ -17,11 +17,22 @@ const (
 	running = "running"
 )
 
+// Docker compose project
+type Stack struct {
+	Name    string
+	WorkDir string
+	Config  string
+	Count   int // Containers Count
+	Widgets *compact.CompactRow
+	Metrics models.Metrics
+}
+
 // Metrics and metadata representing a container
 type Container struct {
 	models.Metrics
 	Id        string
 	Meta      models.Meta
+	Stack     *Stack
 	Widgets   *compact.CompactRow
 	Display   bool // display this container in compact view
 	updater   cwidgets.WidgetUpdater
@@ -32,14 +43,25 @@ type Container struct {
 func New(id string, collector collector.Collector, manager manager.Manager) *Container {
 	widgets := compact.NewCompactRow()
 	return &Container{
-		Metrics:   models.NewMetrics(),
+		Metrics:   models.Metrics{},
 		Id:        id,
 		Meta:      models.NewMeta("id", id[:12]),
+		Stack:     nil,
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
 		manager:   manager,
 	}
+}
+
+func NewStack(name string, stackType string) *Stack {
+	p := &Stack{Name: name}
+	// create a compact row for the stack
+	widgets := compact.NewCompactRow()
+	meta := models.NewMeta("name", name, "stackType", stackType)
+	widgets.SetMeta(meta)
+	p.Widgets = widgets
+	return p
 }
 
 func (c *Container) RecreateWidgets() {
@@ -84,11 +106,16 @@ func (c *Container) Logs() collector.LogCollector {
 func (c *Container) Read(stream chan models.Metrics) {
 	go func() {
 		for metrics := range stream {
+			oldContainerMetrics := c.Metrics
+			c.Stack.Metrics.Subtract(oldContainerMetrics)
+			c.Stack.Metrics.Add(metrics)
+			c.Stack.Widgets.SetMetrics(c.Stack.Metrics)
 			c.Metrics = metrics
 			c.updater.SetMetrics(metrics)
 		}
 		log.Infof("reader stopped for container: %s", c.Id)
-		c.Metrics = models.NewMetrics()
+		c.Stack.Metrics.Subtract(c.Metrics)
+		c.Metrics = models.Metrics{}
 		c.Widgets.Reset()
 	}()
 	log.Infof("reader started for container: %s", c.Id)

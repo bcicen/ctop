@@ -61,6 +61,9 @@ func (c *Mock) run() {
 	c.IOBytesWrite = rand.Int63n(8098) * c.aggression
 
 	for {
+		if c.done {
+			break
+		}
 		c.CPUUtil += rand.Intn(2) * int(c.aggression)
 		if c.CPUUtil >= 100 {
 			c.CPUUtil = 0
@@ -74,9 +77,6 @@ func (c *Mock) run() {
 		}
 		c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
 		c.stream <- c.Metrics
-		if c.done {
-			break
-		}
 		time.Sleep(1 * time.Second)
 	}
 
