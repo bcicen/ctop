@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"os"
+	"strings"
 )
 
 var (
@@ -133,9 +134,7 @@ func (dc *Docker) Inspect() (models.Meta, error) {
 	newMeta["ports"] = PortsFormat(insp.NetworkSettings.Ports)
 	newMeta["created"] = insp.Created.Format("Mon Jan 2 15:04:05 2006")
 	newMeta["health"] = insp.State.Health.Status
-	for _, env := range insp.Config.Env {
-		newMeta["[ENV-VAR]"] = env
-	}
+	newMeta["[ENV-VAR]"] = strings.Join(insp.Config.Env, ";")
 	newMeta["state"] = insp.State.Status
 
 	return newMeta, nil
