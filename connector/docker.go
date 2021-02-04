@@ -87,16 +87,10 @@ func (cm *Docker) watchEvents() {
 
 	for e := range events {
 		actionName := e.Action
-		// Action may have additional param i.e. "health_status: healthy"
-		// We need to strip to have only action name
-		sepIdx := strings.Index(actionName, ": ")
-		if sepIdx != -1 {
-			actionName = actionName[:sepIdx]
-		}
-
 		switch actionName {
 		// most frequent event is a health checks
-		case "health_status":
+		case "health_status: healthy", "health_status: unhealthy":
+			sepIdx := strings.Index(actionName, ": ")
 			healthStatus := e.Action[sepIdx+2:]
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=health_status id=%s %s", e.ID, healthStatus)
