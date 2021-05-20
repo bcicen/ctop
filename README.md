@@ -2,7 +2,7 @@
 
 #
 
-![release][release] ![homebrew][homebrew]
+![release][release] ![homebrew][homebrew] ![macports][macports]
 
 Top-like interface for container metrics
 
@@ -42,6 +42,10 @@ sudo chmod +x /usr/local/bin/ctop
 
 ```bash
 brew install ctop
+```
+or
+```bash
+sudo port install ctop
 ```
 or
 ```bash
@@ -107,6 +111,7 @@ Option | Description
 [single_view]: _docs/single.md
 [release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
 [homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"
+[macports]: https://repology.org/badge/version-for-repo/macports/ctop.svg?header=macports "ctop"
 
 ## Alternatives
 
