@@ -162,6 +162,9 @@ func Display() bool {
 		menu = ExecShell
 		ui.StopLoop()
 	})
+	ui.Handle("/sys/kbd/w", func(ui.Event) {
+		menu = OpenInBrowser()
+	})
 	ui.Handle("/sys/kbd/o", func(ui.Event) {
 		menu = SingleView
 		ui.StopLoop()
