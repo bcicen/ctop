@@ -2,9 +2,11 @@ package connector
 
 import (
 	"fmt"
-	"github.com/op/go-logging"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/op/go-logging"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
@@ -174,6 +176,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
 	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
 	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
+	c.SetMeta("uptime", calcUptime(insp))
 	c.SetMeta("health", insp.State.Health.Status)
 	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
 	c.SetState(insp.State.Status)
@@ -190,6 +193,15 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 		return c, false, true
 	}
 	return c, true, false
+}
+
+func calcUptime(insp *api.Container) string {
+	endTime := insp.State.FinishedAt
+	if endTime.IsZero() {
+		endTime = time.Now()
+	}
+	uptime := endTime.Sub(insp.State.StartedAt)
+	return uptime.Truncate(time.Second).String()
 }
 
 // Mark all container IDs for refresh

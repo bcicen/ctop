@@ -14,7 +14,7 @@ var defaultParams = []*Param{
 	},
 	&Param{
 		Key:   "columns",
-		Val:   "status,name,id,cpu,mem,net,io,pids",
+		Val:   "status,name,id,cpu,mem,net,io,pids,uptime",
 		Label: "Enabled Columns",
 	},
 }

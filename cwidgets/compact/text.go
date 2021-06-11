@@ -89,6 +89,18 @@ func (w *PIDCol) SetMetrics(m models.Metrics) {
 	w.setText(fmt.Sprintf("%d", m.Pids))
 }
 
+type UptimeCol struct {
+	*TextCol
+}
+
+func NewUptimeCol() CompactCol {
+	return &UptimeCol{NewTextCol("UPTIME")}
+}
+
+func (w *UptimeCol) SetMeta(m models.Meta) {
+	w.Text = m.Get("uptime")
+}
+
 type TextCol struct {
 	*ui.Par
 	header string
