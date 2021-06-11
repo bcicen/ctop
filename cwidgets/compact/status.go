@@ -6,12 +6,6 @@ import (
 	ui "github.com/gizak/termui"
 )
 
-const (
-	mark       = "◉"
-	healthMark = "✚"
-	vBar       = string('\u25AE') + string('\u25AE')
-)
-
 // Status indicator
 type Status struct {
 	*ui.Block
@@ -22,26 +16,18 @@ type Status struct {
 func NewStatus() CompactCol {
 	s := &Status{
 		Block:  ui.NewBlock(),
+		status: []ui.Cell{{Ch: ' '}},
 		health: []ui.Cell{{Ch: ' '}},
 	}
 	s.Height = 1
 	s.Border = false
-	s.setState("")
 	return s
 }
 
 func (s *Status) Buffer() ui.Buffer {
 	buf := s.Block.Buffer()
-	x := 0
-	for _, c := range s.health {
-		buf.Set(s.InnerX()+x, s.InnerY(), c)
-		x += c.Width()
-	}
-	x += 1
-	for _, c := range s.status {
-		buf.Set(s.InnerX()+x, s.InnerY(), c)
-		x += c.Width()
-	}
+	buf.Set(s.InnerX(), s.InnerY(), s.health[0])
+	buf.Set(s.InnerX()+2, s.InnerY(), s.status[0])
 	return buf
 }
 
@@ -59,36 +45,48 @@ func (s *Status) Header() string            { return "" }
 func (s *Status) FixedWidth() int           { return 3 }
 
 func (s *Status) setState(val string) {
-	// defaults
-	text := mark
 	color := ui.ColorDefault
+	var mark string
 
 	switch val {
+	case "":
+		return
+	case "created":
+		mark = "◉"
 	case "running":
+		mark = "⏵"
 		color = ui.ThemeAttr("status.ok")
 	case "exited":
+		mark = "⏹"
 		color = ui.ThemeAttr("status.danger")
 	case "paused":
-		text = vBar
+		mark = "⏸"
+	default:
+		mark = " "
+		log.Warningf("unknown status string: \"%v\"", val)
 	}
 
-	s.status = ui.TextCells(text, color, ui.ColorDefault)
+	s.status = ui.TextCells(mark, color, ui.ColorDefault)
 }
 
 func (s *Status) setHealth(val string) {
 	color := ui.ColorDefault
-	mark := healthMark
+	var mark string
 
 	switch val {
 	case "":
 		return
 	case "healthy":
+		mark = "☼"
 		color = ui.ThemeAttr("status.ok")
 	case "unhealthy":
+		mark = "⚠"
 		color = ui.ThemeAttr("status.danger")
 	case "starting":
+		mark = "◌"
 		color = ui.ThemeAttr("status.warn")
 	default:
+		mark = " "
 		log.Warningf("unknown health state string: \"%v\"", val)
 	}
 
