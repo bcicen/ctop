@@ -58,6 +58,11 @@ func (c *Container) SetMeta(k, v string) {
 	c.updater.SetMeta(c.Meta)
 }
 
+func (c *Container) SetFullMeta(m models.Meta) {
+	c.Meta = m
+	c.updater.SetMeta(c.Meta)
+}
+
 func (c *Container) GetMeta(k string) string {
 	return c.Meta.Get(k)
 }
@@ -157,4 +162,14 @@ func (c *Container) Restart() {
 
 func (c *Container) Exec(cmd []string) error {
 	return c.manager.Exec(cmd)
+}
+
+func (c *Container) Inspect() {
+	inspectMeta, err := c.manager.Inspect()
+	if err != nil {
+		log.Warningf("container %s: %v", c.Id, err)
+		log.StatusErr(err)
+		return
+	}
+	c.SetFullMeta(inspectMeta)
 }

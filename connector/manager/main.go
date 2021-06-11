@@ -1,6 +1,9 @@
 package manager
 
-import "errors"
+import (
+	"errors"
+	"github.com/bcicen/ctop/models"
+)
 
 var ActionNotImplErr = errors.New("action not implemented")
 
@@ -12,4 +15,5 @@ type Manager interface {
 	Unpause() error
 	Restart() error
 	Exec(cmd []string) error
+	Inspect() (models.Meta, error)
 }

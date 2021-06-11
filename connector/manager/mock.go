@@ -1,5 +1,7 @@
 package manager
 
+import models "github.com/bcicen/ctop/models"
+
 type Mock struct{}
 
 func NewMock() *Mock {
@@ -32,4 +34,8 @@ func (m *Mock) Restart() error {
 
 func (m *Mock) Exec(cmd []string) error {
 	return ActionNotImplErr
+}
+
+func (m *Mock) Inspect() (models.Meta, error) {
+	return nil, nil
 }

@@ -2,10 +2,17 @@ package manager
 
 import (
 	"fmt"
+	"github.com/bcicen/ctop/logging"
+	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 	"github.com/pkg/errors"
 	"io"
 	"os"
+	"strings"
+)
+
+var (
+	log = logging.Init()
 )
 
 type Docker struct {
@@ -100,6 +107,37 @@ func (dc *Docker) Exec(cmd []string) error {
 		ErrorStream:  os.Stderr,
 		RawTerminal:  true,
 	})
+}
+
+func (dc *Docker) inspect(id string) (insp *api.Container, found bool, err error) {
+	c, err := dc.client.InspectContainer(id)
+	if err != nil {
+		if _, notFound := err.(*api.NoSuchContainer); notFound {
+			return c, false, nil
+		}
+		// other error e.g. connection failed
+		log.Errorf("%s (%T)", err.Error(), err)
+		return c, false, err
+	}
+	return c, true, nil
+}
+
+func (dc *Docker) Inspect() (models.Meta, error) {
+	insp, found, err := dc.inspect(dc.id)
+	if !found {
+		return nil, err
+	}
+	newMeta := models.Meta{}
+	newMeta["name"] = ShortName(insp.Name)
+	newMeta["image"] = insp.Config.Image
+	newMeta["IPs"] = IpsFormat(insp.NetworkSettings.Networks)
+	newMeta["ports"] = PortsFormat(insp.NetworkSettings.Ports)
+	newMeta["created"] = insp.Created.Format("Mon Jan 2 15:04:05 2006")
+	newMeta["health"] = insp.State.Health.Status
+	newMeta["[ENV-VAR]"] = strings.Join(insp.Config.Env, ";")
+	newMeta["state"] = insp.State.Status
+
+	return newMeta, nil
 }
 
 func (dc *Docker) Start() error {

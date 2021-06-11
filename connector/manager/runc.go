@@ -1,5 +1,7 @@
 package manager
 
+import "github.com/bcicen/ctop/models"
+
 type Runc struct{}
 
 func NewRunc() *Runc {
@@ -32,4 +34,8 @@ func (rc *Runc) Restart() error {
 
 func (rc *Runc) Exec(cmd []string) error {
 	return ActionNotImplErr
+}
+
+func (rc *Runc) Inspect() (models.Meta, error) {
+	return nil, nil
 }

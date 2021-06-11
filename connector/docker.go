@@ -1,10 +1,10 @@
 package connector
 
 import (
-	"fmt"
 	"github.com/op/go-logging"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
@@ -31,7 +31,8 @@ type StatusUpdate struct {
 type Docker struct {
 	client       *api.Client
 	containers   map[string]*container.Container
-	needsRefresh chan string // container IDs requiring refresh
+	needsRefresh []string // container IDs requiring refresh
+	lastRefresh  time.Time
 	statuses     chan StatusUpdate
 	closed       chan struct{}
 	lock         sync.RWMutex
@@ -44,12 +45,11 @@ func NewDocker() (Connector, error) {
 		return nil, err
 	}
 	cm := &Docker{
-		client:       client,
-		containers:   make(map[string]*container.Container),
-		needsRefresh: make(chan string, 60),
-		statuses:     make(chan StatusUpdate, 60),
-		closed:       make(chan struct{}),
-		lock:         sync.RWMutex{},
+		client:     client,
+		containers: make(map[string]*container.Container),
+		statuses:   make(chan StatusUpdate, 60),
+		closed:     make(chan struct{}),
+		lock:       sync.RWMutex{},
 	}
 
 	// query info as pre-flight healthcheck
@@ -109,7 +109,11 @@ func (cm *Docker) watchEvents() {
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=create id=%s", e.ID)
 			}
-			cm.needsRefresh <- e.ID
+			c := cm.MustGet(e.ID)
+			c.SetMeta("name", manager.ShortName(e.Actor.Attributes["name"]))
+			c.SetMeta("image", e.Actor.Attributes["image"])
+			c.SetState("created")
+			cm.requestRefresh(c)
 		case "destroy":
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=destroy id=%s", e.ID)
@@ -130,92 +134,99 @@ func (cm *Docker) watchEvents() {
 	close(cm.closed)
 }
 
-func portsFormat(ports map[api.Port][]api.PortBinding) string {
-	var exposed []string
-	var published []string
-
-	for k, v := range ports {
-		if len(v) == 0 {
-			exposed = append(exposed, string(k))
-			continue
-		}
-		for _, binding := range v {
-			s := fmt.Sprintf("%s:%s -> %s", binding.HostIP, binding.HostPort, k)
-			published = append(published, s)
-		}
-	}
-
-	return strings.Join(append(exposed, published...), "\n")
-}
-
-func ipsFormat(networks map[string]api.ContainerNetwork) string {
-	var ips []string
-
-	for k, v := range networks {
-		s := fmt.Sprintf("%s:%s", k, v.IPAddress)
-		ips = append(ips, s)
-	}
-
-	return strings.Join(ips, "\n")
-}
-
-func (cm *Docker) refresh(c *container.Container) {
-	insp, found, failed := cm.inspect(c.Id)
-	if failed {
-		return
-	}
-	// remove container if no longer exists
-	if !found {
-		cm.delByID(c.Id)
-		return
-	}
-	c.SetMeta("name", shortName(insp.Name))
-	c.SetMeta("image", insp.Config.Image)
-	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
-	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
-	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
-	c.SetMeta("health", insp.State.Health.Status)
-	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
-	c.SetState(insp.State.Status)
-}
-
-func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bool) {
-	c, err := cm.client.InspectContainer(id)
-	if err != nil {
-		if _, notFound := err.(*api.NoSuchContainer); notFound {
-			return c, false, false
-		}
-		// other error e.g. connection failed
-		log.Errorf("%s (%T)", err.Error(), err)
-		return c, false, true
-	}
-	return c, true, false
-}
-
 // Mark all container IDs for refresh
 func (cm *Docker) refreshAll() {
+	cm.updateContainers(true)
+}
+
+func (cm *Docker) updateContainers(all bool) {
 	opts := api.ListContainersOptions{All: true}
+	if !all {
+		opts.Filters = map[string][]string{
+			"id": cm.needsRefresh,
+		}
+	}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
 		log.Errorf("%s (%T)", err.Error(), err)
 		return
 	}
+	if all {
+		cm.cleanupDestroyedContainers(allContainers)
+	}
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
-		c.SetMeta("name", shortName(i.Names[0]))
+		c.SetMeta("name", manager.ShortName(i.Names[0]))
+		c.SetMeta("image", i.Image)
+		c.SetMeta("IPs", manager.IpsFormat(i.Networks.Networks))
+		c.SetMeta("ports", manager.PortsFormatArr(i.Ports))
+		c.SetMeta("created", time.Unix(i.Created, 0).Format("Mon Jan 2 15:04:05 2006"))
+		parseStatusHealth(c, i.Status)
 		c.SetState(i.State)
-		cm.needsRefresh <- c.Id
+	}
+	cm.lastRefresh = time.Now()
+	cm.needsRefresh = nil
+}
+
+func (cm *Docker) requestRefresh(c *container.Container) {
+	cm.needsRefresh = append(cm.needsRefresh, c.Id)
+	refreshRequestedOn := time.Now()
+	go func() {
+		time.Sleep(5 * time.Second)
+		if refreshRequestedOn.Before(cm.lastRefresh) {
+			return
+		}
+		// batch refresh
+		cm.updateContainers(false)
+	}()
+}
+
+func (cm *Docker) cleanupDestroyedContainers(allContainers []api.APIContainers) {
+	var nonExistingContainers []string
+	for _, oldContainer := range cm.containers {
+		if !cm.hasContainer(oldContainer.Id, allContainers) {
+			nonExistingContainers = append(nonExistingContainers, oldContainer.Id)
+		}
+	}
+	// remove containers that no longer exists
+	for _, cid := range nonExistingContainers {
+		cm.delByID(cid)
 	}
 }
 
+func (cm *Docker) hasContainer(oldContainerId string, newContainers []api.APIContainers) bool {
+	for _, newContainer := range newContainers {
+		if newContainer.ID == oldContainerId {
+			return true
+		}
+	}
+	return false
+}
+
+func parseStatusHealth(c *container.Container, status string) {
+	// Status may look like:
+	//  Up About a minute (healthy)
+	//  Up 7 minutes (unhealthy)
+	var health string
+	if strings.Contains(status, "(healthy)") {
+		health = "healthy"
+	} else if strings.Contains(status, "(unhealthy)") {
+		health = "unhealthy"
+	} else {
+		return
+	}
+	c.SetMeta("health", health)
+}
+
 func (cm *Docker) Loop() {
+	ticker := time.NewTicker(5 * time.Minute)
 	for {
 		select {
-		case id := <-cm.needsRefresh:
-			c := cm.MustGet(id)
-			cm.refresh(c)
+		case <-ticker.C:
+			cm.refreshAll()
 		case <-cm.closed:
+			ticker.Stop()
 			return
 		}
 	}
@@ -284,9 +295,4 @@ func (cm *Docker) All() (containers container.Containers) {
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers
-}
-
-// use primary container name
-func shortName(name string) string {
-	return strings.TrimPrefix(name, "/")
 }

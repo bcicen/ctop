@@ -85,6 +85,7 @@ func SingleView() MenuFn {
 
 	ex := single.NewSingle()
 	c.SetUpdater(ex)
+	c.Inspect()
 
 	ex.Align()
 	ui.Render(ex)
