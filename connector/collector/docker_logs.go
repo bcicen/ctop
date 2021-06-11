@@ -48,8 +48,14 @@ func (l *DockerLogs) Stream() chan models.Log {
 		scanner := bufio.NewScanner(r)
 		for scanner.Scan() {
 			parts := strings.SplitN(scanner.Text(), " ", 2)
-			ts := l.parseTime(parts[0])
-			logCh <- models.Log{Timestamp: ts, Message: parts[1]}
+			if len(parts) == 0 {
+				continue
+			}
+			if len(parts) < 2 {
+				logCh <- models.Log{Timestamp: l.parseTime(""), Message: parts[0]}
+			} else {
+				logCh <- models.Log{Timestamp: l.parseTime(parts[0]), Message: parts[1]}
+			}
 		}
 	}()
 
