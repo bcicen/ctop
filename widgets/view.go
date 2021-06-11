@@ -2,6 +2,7 @@ package widgets
 
 import (
 	ui "github.com/gizak/termui"
+	"github.com/mattn/go-runewidth"
 )
 
 type ToggleText interface {
@@ -70,7 +71,7 @@ func (t *TextView) Buffer() ui.Buffer {
 		for _, ch := range line {
 			cell = ui.Cell{Ch: ch, Fg: t.TextFgColor, Bg: t.TextBgColor}
 			buf.Set(x, y, cell)
-			x++
+			x = x + runewidth.RuneWidth(ch)
 		}
 		x = t.Block.X + t.padding[0]
 		y++
