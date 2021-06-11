@@ -80,28 +80,19 @@ func (cm *Docker) Wait() struct{} { return <-cm.closed }
 func (cm *Docker) watchEvents() {
 	log.Info("docker event listener starting")
 	events := make(chan *api.APIEvents)
-	cm.client.AddEventListener(events)
+	opts := api.EventsOptions{Filters: map[string][]string{
+		"type":  {"container"},
+		"event": {"create", "start", "health_status", "pause", "unpause", "stop", "die", "destroy"},
+	},
+	}
+	cm.client.AddEventListenerWithOptions(opts, events)
 
 	for e := range events {
-		if e.Type != "container" {
-			continue
-		}
-
 		actionName := e.Action
-		// fast skip all exec_* events: exec_create, exec_start, exec_die
-		if strings.HasPrefix(actionName, "exec_") {
-			continue
-		}
-		// Action may have additional param i.e. "health_status: healthy"
-		// We need to strip to have only action name
-		sepIdx := strings.Index(actionName, ": ")
-		if sepIdx != -1 {
-			actionName = actionName[:sepIdx]
-		}
-
 		switch actionName {
 		// most frequent event is a health checks
-		case "health_status":
+		case "health_status: healthy", "health_status: unhealthy":
+			sepIdx := strings.Index(actionName, ": ")
 			healthStatus := e.Action[sepIdx+2:]
 			if log.IsEnabledFor(logging.DEBUG) {
 				log.Debugf("handling docker event: action=health_status id=%s %s", e.ID, healthStatus)
