@@ -34,7 +34,7 @@ sudo apt install docker-ctop
 #### Linux (Generic)
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.6/ctop-0.7.6-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
@@ -49,7 +49,7 @@ sudo port install ctop
 ```
 or
 ```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.6/ctop-0.7.6-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/0.7.6/ctop-0.7.6-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
