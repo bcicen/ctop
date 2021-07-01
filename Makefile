@@ -32,6 +32,6 @@ release:
 	mkdir release
 	cp _build/* release
 	cd release; sha256sum --quiet --check sha256sums.txt && \
-	gh release create $(VERSION) -d -t v$(VERSION) *
+	gh release create v$(VERSION) -d -t v$(VERSION) *
 
 .PHONY: build
