@@ -33,3 +33,7 @@ func (m *Mock) Restart() error {
 func (m *Mock) Exec(cmd []string) error {
 	return ActionNotImplErr
 }
+
+func (m *Mock) Inspect() string {
+	return ""
+}

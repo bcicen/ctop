@@ -12,4 +12,5 @@ type Manager interface {
 	Unpause() error
 	Restart() error
 	Exec(cmd []string) error
+	Inspect() string
 }

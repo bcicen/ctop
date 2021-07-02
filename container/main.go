@@ -158,3 +158,7 @@ func (c *Container) Restart() {
 func (c *Container) Exec(cmd []string) error {
 	return c.manager.Exec(cmd)
 }
+
+func (c *Container) Inspect() string {
+	return c.manager.Inspect()
+}
