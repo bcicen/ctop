@@ -76,7 +76,10 @@ func (c *Docker) Stop() {
 }
 
 func (c *Docker) ReadCPU(stats *api.Stats) {
-	ncpus := uint8(len(stats.CPUStats.CPUUsage.PercpuUsage))
+	ncpus := uint8(stats.CPUStats.OnlineCPUs)
+	if ncpus == 0 {
+		ncpus = uint8(len(stats.CPUStats.CPUUsage.PercpuUsage))
+	}
 	total := float64(stats.CPUStats.CPUUsage.TotalUsage)
 	system := float64(stats.CPUStats.SystemCPUUsage)
 
