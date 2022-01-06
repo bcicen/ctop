@@ -31,10 +31,14 @@ type Container struct {
 
 func New(id string, collector collector.Collector, manager manager.Manager) *Container {
 	widgets := compact.NewCompactRow()
+	shortID := id
+	if len(shortID) > 12 {
+		shortID = shortID[0:12]
+	}
 	return &Container{
 		Metrics:   models.NewMetrics(),
 		Id:        id,
-		Meta:      models.NewMeta("id", id[:12]),
+		Meta:      models.NewMeta("id", shortID),
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,
