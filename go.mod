@@ -5,6 +5,7 @@ require (
 	github.com/c9s/goprocinfo v0.0.0-20170609001544-b34328d6e0cd
 	github.com/fsouza/go-dockerclient v1.7.0
 	github.com/gizak/termui v2.3.0+incompatible
+	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b // indirect
 	github.com/jgautheron/codename-generator v0.0.0-20150829203204-16d037c7cc3c
 	github.com/mattn/go-runewidth v0.0.0-20170201023540-14207d285c6c
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
