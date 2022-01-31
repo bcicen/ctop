@@ -209,7 +209,7 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 
 func calcUptime(insp *api.Container) string {
 	endTime := insp.State.FinishedAt
-	if endTime.IsZero() {
+	if endTime.IsZero() || insp.State.Running {
 		endTime = time.Now()
 	}
 	uptime := endTime.Sub(insp.State.StartedAt)
