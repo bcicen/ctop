@@ -187,7 +187,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	if webPort != "" {
 		c.SetMeta("Web Port", webPort)
 	}
-	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
+	c.SetMeta("created", insp.Created.Format("Mon Jan 02 15:04:05 2006"))
 	c.SetMeta("uptime", calcUptime(insp))
 	c.SetMeta("health", insp.State.Health.Status)
 	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
