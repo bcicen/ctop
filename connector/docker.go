@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/op/go-logging"
-  "github.com/hako/durafmt"
+	"github.com/hako/durafmt"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
@@ -214,7 +214,7 @@ func calcUptime(insp *api.Container) string {
 		endTime = time.Now()
 	}
 	uptime := endTime.Sub(insp.State.StartedAt)
-  return durafmt.Parse(uptime).LimitFirstN(1).String()
+	return durafmt.Parse(uptime).LimitFirstN(1).String()
 }
 
 // Mark all container IDs for refresh
