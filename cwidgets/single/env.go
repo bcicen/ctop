@@ -1,9 +1,10 @@
 package single
 
 import (
-	ui "github.com/gizak/termui"
 	"regexp"
 	"strings"
+
+	ui "github.com/gizak/termui"
 )
 
 var envPattern = regexp.MustCompile(`(?P<KEY>[^=]+)=(?P<VALUJE>.*)`)
@@ -29,10 +30,12 @@ func (w *Env) Set(allEnvs string) {
 	w.Rows = [][]string{}
 	for _, env := range envs {
 		match := envPattern.FindStringSubmatch(env)
-		key := match[1]
-		value := match[2]
-		w.data[key] = value
-		w.Rows = append(w.Rows, mkInfoRows(key, value)...)
+		if len(match) == 3 {
+			key := match[1]
+			value := match[2]
+			w.data[key] = value
+			w.Rows = append(w.Rows, mkInfoRows(key, value)...)
+		}
 	}
 
 	w.Height = len(w.Rows) + 2
