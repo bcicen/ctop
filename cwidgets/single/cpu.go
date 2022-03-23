@@ -20,10 +20,10 @@ func NewCpu() *Cpu {
 
 	// hack to force the default minY scale to 0
 	tmpData := []float64{20}
-	cpu.Data = tmpData
+	cpu.Data["CPU"] = tmpData
 	_ = cpu.Buffer()
 
-	cpu.Data = cpu.hist.Data
+	cpu.Data["CPU"] = cpu.hist.Data
 	return cpu
 }
 
