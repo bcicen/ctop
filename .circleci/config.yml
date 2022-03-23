@@ -3,13 +3,13 @@ jobs:
   build:
     working_directory: ~/build
     docker:
-      - image: circleci/golang:latest
+      - image: cimg/go:latest
     steps:
       - checkout
       - setup_remote_docker:
-          version: 19.03.13
+          version: 20.10.11
       - run: make image
-      - deploy: 
+      - deploy:
           command: |
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               docker tag ctop quay.io/vektorlab/ctop:latest

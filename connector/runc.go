@@ -1,9 +1,10 @@
+//go:build linux
 // +build linux
 
 package connector
 
 import (
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,7 +15,6 @@ import (
 	"github.com/bcicen/ctop/connector/manager"
 	"github.com/bcicen/ctop/container"
 	"github.com/opencontainers/runc/libcontainer"
-	"github.com/opencontainers/runc/libcontainer/cgroups/systemd"
 )
 
 func init() { enabled["runc"] = NewRunc }
@@ -65,7 +65,7 @@ func NewRunc() (Connector, error) {
 		return nil, err
 	}
 
-	factory, err := getFactory(opts)
+	factory, err := libcontainer.New(opts.root)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (cm *Runc) GetLibc(id string) libcontainer.Container {
 	libc, err := cm.factory.Load(id)
 	if err != nil {
 		// remove container if no longer exists
-		if lerr, ok := err.(libcontainer.Error); ok && lerr.Code() == libcontainer.ContainerNotExists {
+		if errors.Is(err, libcontainer.ErrNotExist) {
 			cm.delByID(id)
 		} else {
 			log.Warningf("failed to read container: %s\n", err)
@@ -169,7 +169,7 @@ func (cm *Runc) refreshAll() {
 	}
 
 	// queue all existing containers for refresh
-	for id, _ := range cm.containers {
+	for id := range cm.containers {
 		cm.needsRefresh <- id
 	}
 	log.Debugf("queued %d containers for refresh", len(cm.containers))
@@ -242,16 +242,4 @@ func (cm *Runc) All() (containers container.Containers) {
 	containers.Filter()
 	cm.lock.Unlock()
 	return containers
-}
-
-func getFactory(opts RuncOpts) (libcontainer.Factory, error) {
-	cgroupManager := libcontainer.Cgroupfs
-	if opts.systemdCgroups {
-		if systemd.IsRunningSystemd() {
-			cgroupManager = libcontainer.SystemdCgroups
-		} else {
-			return nil, fmt.Errorf("systemd cgroup enabled, but systemd support for managing cgroups is not available")
-		}
-	}
-	return libcontainer.New(opts.root, cgroupManager)
 }
