@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/op/go-logging"
+	"github.com/hako/durafmt"
 
 	"github.com/bcicen/ctop/connector/collector"
 	"github.com/bcicen/ctop/connector/manager"
@@ -187,7 +188,7 @@ func (cm *Docker) refresh(c *container.Container) {
 	if webPort != "" {
 		c.SetMeta("Web Port", webPort)
 	}
-	c.SetMeta("created", insp.Created.Format("Mon Jan 2 15:04:05 2006"))
+	c.SetMeta("created", insp.Created.Format("Mon Jan 02 15:04:05 2006"))
 	c.SetMeta("uptime", calcUptime(insp))
 	c.SetMeta("health", insp.State.Health.Status)
 	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
@@ -209,11 +210,11 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 
 func calcUptime(insp *api.Container) string {
 	endTime := insp.State.FinishedAt
-	if endTime.IsZero() {
+	if endTime.IsZero() || insp.State.Running {
 		endTime = time.Now()
 	}
 	uptime := endTime.Sub(insp.State.StartedAt)
-	return uptime.Truncate(time.Second).String()
+	return durafmt.Parse(uptime).LimitFirstN(1).String()
 }
 
 // Mark all container IDs for refresh
