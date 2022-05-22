@@ -21,6 +21,7 @@ Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your pla
 
 Maintained by a [third party](https://packages.azlux.fr/)
 ```bash
+sudo apt-get install ca-certificates curl gnupg lsb-release
 curl -fsSL https://azlux.fr/repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/azlux-archive-keyring.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian \
