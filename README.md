@@ -29,7 +29,12 @@ sudo apt install docker-ctop
 
 #### Arch
 
-`ctop` is available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)
+```bash
+sudo pacman -S ctop
+```
+
+_`ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)_
+
 
 #### Linux (Generic)
 
