@@ -54,7 +54,7 @@ func (s *Status) setState(val string) {
 	case "created":
 		mark = "◉"
 	case "running":
-		mark = "⏵"
+		mark = "▶"
 		color = ui.ThemeAttr("status.ok")
 	case "exited":
 		mark = "⏹"
