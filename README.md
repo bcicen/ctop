@@ -2,7 +2,7 @@
 
 #
 
-![release][release] ![homebrew][homebrew] ![macports][macports]
+![release][release] ![homebrew][homebrew] ![macports][macports] ![scoop][scoop]
 
 Top-like interface for container metrics
 
@@ -51,6 +51,14 @@ or
 ```bash
 sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
+```
+
+#### Windows
+
+`ctop` is available in [scoop](https://scoop.sh/):
+
+```powershell
+scoop install ctop
 ```
 
 #### Docker
@@ -112,6 +120,7 @@ Option | Description
 [release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
 [homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"
 [macports]: https://repology.org/badge/version-for-repo/macports/ctop.svg?header=macports "ctop"
+[scoop]: https://img.shields.io/scoop/v/ctop?bucket=main "ctop"
 
 ## Alternatives
 
