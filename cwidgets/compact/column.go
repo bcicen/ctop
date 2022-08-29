@@ -9,20 +9,21 @@ import (
 
 var (
 	allCols = map[string]NewCompactColFn{
-		"status":  NewStatus,
-		"name":    NewNameCol,
-		"id":      NewCIDCol,
-		"image":   NewImageCol,
-		"ports":   NewPortsCol,
-		"IPs":     NewIpsCol,
-		"created": NewCreatedCol,
-		"cpu":     NewCPUCol,
-		"cpus":    NewCpuScaledCol,
-		"mem":     NewMemCol,
-		"net":     NewNetCol,
-		"io":      NewIOCol,
-		"pids":    NewPIDCol,
-		"uptime":  NewUptimeCol,
+		"textStatus": NewTextStatus,
+		"status":     NewStatus,
+		"name":       NewNameCol,
+		"id":         NewCIDCol,
+		"image":      NewImageCol,
+		"ports":      NewPortsCol,
+		"IPs":        NewIpsCol,
+		"created":    NewCreatedCol,
+		"cpu":        NewCPUCol,
+		"cpus":       NewCpuScaledCol,
+		"mem":        NewMemCol,
+		"net":        NewNetCol,
+		"io":         NewIOCol,
+		"pids":       NewPIDCol,
+		"uptime":     NewUptimeCol,
 	}
 )
 
