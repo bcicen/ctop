@@ -48,6 +48,8 @@ var ColorMap = map[string]ui.Attribute{
 	"status.ok":          ui.ColorGreen,
 	"status.warn":        ui.ColorYellow,
 	"status.danger":      ui.ColorRed,
+	"status.paused":      ui.ColorBlue,
+	"status.exited":      ui.ColorYellow,
 }
 
 func InvertColorMap() {

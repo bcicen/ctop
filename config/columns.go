@@ -7,6 +7,11 @@ import (
 // defaults
 var defaultColumns = []Column{
 	{
+		Name:    "textStatus",
+		Label:   "Text Status Indicator",
+		Enabled: false,
+	},
+	{
 		Name:    "status",
 		Label:   "Status Indicator",
 		Enabled: true,
