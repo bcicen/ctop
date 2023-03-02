@@ -13,6 +13,7 @@ build:
 build-all:
 	mkdir -p _build
 	GOOS=darwin  GOARCH=amd64   CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-darwin-amd64
+	GOOS=darwin  GOARCH=arm64   CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-darwin-arm64
 	GOOS=linux   GOARCH=amd64   CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-amd64
 	GOOS=linux   GOARCH=arm     CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-arm
 	GOOS=linux   GOARCH=arm64   CGO_ENABLED=0 go build -tags release -ldflags $(LD_FLAGS) -o _build/ctop-$(VERSION)-linux-arm64
