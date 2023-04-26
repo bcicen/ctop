@@ -27,7 +27,7 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian \
   $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azlux.list >/dev/null
 sudo apt-get update
-sudo apt-get install docker-ctop
+sudo apt-get install ctop
 ```
 
 #### Arch
