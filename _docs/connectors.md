@@ -6,7 +6,7 @@ Default connector behavior can be changed by setting the relevant environment va
 
 ## Docker
 
-Default connector, configurable via standard [Docker commandline varaibles](https://docs.docker.com/engine/reference/commandline/cli/#environment-variables)
+Default connector, configurable via standard [Docker commandline variables](https://docs.docker.com/engine/reference/commandline/cli/#environment-variables)
 
 #### Options
 
