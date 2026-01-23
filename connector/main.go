@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/logging"
+	"github.com/lordoverlord/ctop/container"
+	"github.com/lordoverlord/ctop/logging"
 )
 
 var (

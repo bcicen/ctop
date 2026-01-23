@@ -2,7 +2,7 @@
 
 #
 
-![release][release] ![homebrew][homebrew] ![macports][macports] ![scoop][scoop]
+![release][release]
 
 Top-like interface for container metrics
 
@@ -15,68 +15,40 @@ as well as a [single container view][single_view] for inspecting a specific cont
 
 ## Install
 
-Fetch the [latest release](https://github.com/bcicen/ctop/releases) for your platform:
-
-#### Debian/Ubuntu
-
-Maintained by a [third party](https://packages.azlux.fr/)
-```bash
-sudo apt-get install ca-certificates curl gnupg lsb-release
-curl -fsSL https://azlux.fr/repo.gpg.key | sudo gpg --dearmor -o /usr/share/keyrings/azlux-archive-keyring.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/azlux-archive-keyring.gpg] http://packages.azlux.fr/debian \
-  $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/azlux.list >/dev/null
-sudo apt-get update
-sudo apt-get install docker-ctop
-```
-
-#### Arch
-
-```bash
-sudo pacman -S ctop
-```
-
-_`ctop` is also available for Arch in the [AUR](https://aur.archlinux.org/packages/ctop-bin/)_
+Fetch the [latest release](https://github.com/lordoverlord/ctop/releases) for your platform:
 
 
 #### Linux (Generic)
 
 ```bash
-sudo wget https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-linux-amd64 -O /usr/local/bin/ctop
+sudo wget https://github.com/lordoverlord/ctop/releases/download/v0.1.9/ctop-linux-amd64 -O /usr/local/bin/ctop
 sudo chmod +x /usr/local/bin/ctop
 ```
 
 #### OS X
 
 ```bash
-brew install ctop
-```
-or
-```bash
-sudo port install ctop
-```
-or
-```bash
-sudo curl -Lo /usr/local/bin/ctop https://github.com/bcicen/ctop/releases/download/v0.7.7/ctop-0.7.7-darwin-amd64
+sudo curl -Lo /usr/local/bin/ctop https://github.com/lordoverlord/ctop/releases/download/v0.1.9/ctop-darwin-amd64
 sudo chmod +x /usr/local/bin/ctop
 ```
 
 #### Windows
 
-`ctop` is available in [scoop](https://scoop.sh/):
+##### Currently only available using the binary release.
 
-```powershell
-scoop install ctop
+Work in progress to provide a distribution via Scoop. or winget.
+
+'```powershell
+ctop-windows-amd64.exe
 ```
 
 #### Docker
 
 ```bash
-docker run --rm -ti \
-  --name=ctop \
-  --volume /var/run/docker.sock:/var/run/docker.sock:ro \
-  quay.io/vektorlab/ctop:latest
+docker run --rm -ti --name=ctop --volume /var/run/docker.sock:/var/run/docker.sock:ro ghcr.io/lordoverlord/ctop:latest
 ```
+
+You can also use the tag dev, if youre interested in the latest development version.
 
 ## Building
 
@@ -125,11 +97,8 @@ Option | Description
 [build]: _docs/build.md
 [connectors]: _docs/connectors.md
 [single_view]: _docs/single.md
-[release]: https://img.shields.io/github/release/bcicen/ctop.svg "ctop"
-[homebrew]: https://img.shields.io/homebrew/v/ctop.svg "ctop"
-[macports]: https://repology.org/badge/version-for-repo/macports/ctop.svg?header=macports "ctop"
-[scoop]: https://img.shields.io/scoop/v/ctop?bucket=main "ctop"
+[release]: https://img.shields.io/github/release/lordoverlord/ctop.svg "ctop"
 
 ## Alternatives
 
-See [Awesome Docker list](https://github.com/veggiemonk/awesome-docker/blob/master/README.md#terminal) for similar tools to work with Docker. 
+See [Awesome Docker list](https://github.com/veggiemonk/awesome-docker/blob/master/README.md#terminal) for similar tools to work with Docker.

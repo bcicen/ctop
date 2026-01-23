@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/bcicen/ctop/container"
+	"github.com/lordoverlord/ctop/container"
 	ui "github.com/gizak/termui"
 )
 

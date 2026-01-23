@@ -56,7 +56,7 @@ TMP=$(mktemp -d "${TMPDIR:-/tmp}/ctop.XXXXX")
 cd ${TMP}
 
 output "fetching latest release info"
-resp=$(curl -s https://api.github.com/repos/bcicen/ctop/releases/latest)
+resp=$(curl -s https://api.github.com/repos/lordoverlord/ctop/releases/latest)
 
 output "fetching release checksums"
 checksum_url=$(extract_url sha256sums.txt "$resp")

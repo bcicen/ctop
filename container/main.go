@@ -1,12 +1,12 @@
 package container
 
 import (
-	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/cwidgets"
-	"github.com/bcicen/ctop/cwidgets/compact"
-	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/models"
+	"github.com/lordoverlord/ctop/connector/collector"
+	"github.com/lordoverlord/ctop/connector/manager"
+	"github.com/lordoverlord/ctop/cwidgets"
+	"github.com/lordoverlord/ctop/cwidgets/compact"
+	"github.com/lordoverlord/ctop/logging"
+	"github.com/lordoverlord/ctop/models"
 )
 
 var (

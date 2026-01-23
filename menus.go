@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/container"
-	"github.com/bcicen/ctop/widgets"
-	"github.com/bcicen/ctop/widgets/menu"
+	"github.com/lordoverlord/ctop/config"
+	"github.com/lordoverlord/ctop/container"
+	"github.com/lordoverlord/ctop/widgets"
+	"github.com/lordoverlord/ctop/widgets/menu"
 	ui "github.com/gizak/termui"
 	"github.com/pkg/browser"
 )
