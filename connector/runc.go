@@ -5,15 +5,14 @@ package connector
 
 import (
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/container"
+	"github.com/lordoverlord/ctop/connector/collector"
+	"github.com/lordoverlord/ctop/connector/manager"
+	"github.com/lordoverlord/ctop/container"
 	"github.com/opencontainers/runc/libcontainer"
 )
 
@@ -38,7 +37,7 @@ func NewRuncOpts() (RuncOpts, error) {
 	opts.root = abs
 
 	// ensure runc root path is readable
-	_, err = ioutil.ReadDir(opts.root)
+	_, err = os.ReadDir(opts.root)
 	if err != nil {
 		return opts, err
 	}
@@ -51,12 +50,12 @@ func NewRuncOpts() (RuncOpts, error) {
 
 type Runc struct {
 	opts          RuncOpts
-	factory       libcontainer.Factory
 	containers    map[string]*container.Container
-	libContainers map[string]libcontainer.Container
+	libContainers map[string]*libcontainer.Container
 	closed        chan struct{}
-	needsRefresh  chan string // container IDs requiring refresh
+	needsRefresh  chan string
 	lock          sync.RWMutex
+	closeOnce     sync.Once
 }
 
 func NewRunc() (Connector, error) {
@@ -65,17 +64,12 @@ func NewRunc() (Connector, error) {
 		return nil, err
 	}
 
-	factory, err := libcontainer.New(opts.root)
-	if err != nil {
-		return nil, err
-	}
-
 	cm := &Runc{
 		opts:          opts,
-		factory:       factory,
 		containers:    make(map[string]*container.Container),
-		libContainers: make(map[string]libcontainer.Container),
+		libContainers: make(map[string]*libcontainer.Container),
 		closed:        make(chan struct{}),
+		needsRefresh:  make(chan string, 1024), // buffered channel for refresh queue
 		lock:          sync.RWMutex{},
 	}
 
@@ -94,16 +88,18 @@ func NewRunc() (Connector, error) {
 	return cm, nil
 }
 
-func (cm *Runc) GetLibc(id string) libcontainer.Container {
-	// return previously loaded container
+func (cm *Runc) GetLibc(id string) *libcontainer.Container {
+	// fast path: read lock
+	cm.lock.RLock()
 	libc, ok := cm.libContainers[id]
+	cm.lock.RUnlock()
 	if ok {
 		return libc
 	}
-	// load container
-	libc, err := cm.factory.Load(id)
+
+	// load from disk
+	libc, err := libcontainer.Load(cm.opts.root, id)
 	if err != nil {
-		// remove container if no longer exists
 		if errors.Is(err, libcontainer.ErrNotExist) {
 			cm.delByID(id)
 		} else {
@@ -111,6 +107,16 @@ func (cm *Runc) GetLibc(id string) libcontainer.Container {
 		}
 		return nil
 	}
+
+	// store (double-check in case another goroutine loaded it)
+	cm.lock.Lock()
+	if existing, ok := cm.libContainers[id]; ok {
+		cm.lock.Unlock()
+		return existing
+	}
+	cm.libContainers[id] = libc
+	cm.lock.Unlock()
+
 	return libc
 }
 
@@ -149,35 +155,57 @@ func (cm *Runc) refresh(id string) {
 
 // Read runc root, creating any new containers
 func (cm *Runc) refreshAll() {
-	list, err := ioutil.ReadDir(cm.opts.root)
+	list, err := os.ReadDir(cm.opts.root)
 	if err != nil {
 		log.Errorf("%s (%T)", err.Error(), err)
-		close(cm.closed)
+		cm.shutdown()
 		return
 	}
 
 	for _, i := range list {
 		if i.IsDir() {
 			name := i.Name()
+
 			// attempt to load
 			libc := cm.GetLibc(name)
 			if libc == nil {
 				continue
 			}
-			_ = cm.MustGet(i.Name()) // ensure container exists
+
+			_ = cm.MustGet(name) // ensure container exists
 		}
 	}
 
-	// queue all existing containers for refresh
+	// queue all existing containers for refresh (safe snapshot of map keys)
+	cm.lock.RLock()
+	ids := make([]string, 0, len(cm.containers))
 	for id := range cm.containers {
-		cm.needsRefresh <- id
+		ids = append(ids, id)
 	}
-	log.Debugf("queued %d containers for refresh", len(cm.containers))
+	cm.lock.RUnlock()
+
+	for _, id := range ids {
+		select {
+		case <-cm.closed:
+			return
+		case cm.needsRefresh <- id:
+		}
+	}
+
+	log.Debugf("queued %d containers for refresh", len(ids))
 }
 
 func (cm *Runc) Loop() {
-	for id := range cm.needsRefresh {
-		cm.refresh(id)
+	for {
+		select {
+		case <-cm.closed:
+			return
+		case id, ok := <-cm.needsRefresh:
+			if !ok {
+				return
+			}
+			cm.refresh(id)
+		}
 	}
 }
 
@@ -222,24 +250,36 @@ func (cm *Runc) delByID(id string) {
 }
 
 // Runc implements Connector
-func (cm *Runc) Wait() struct{} { return <-cm.closed }
+func (cm *Runc) Wait() struct{} {
+	<-cm.closed
+	return struct{}{}
+}
 
-// Runc implements Connector
+// Runc implements ConnectorGetLibc
 func (cm *Runc) Get(id string) (*container.Container, bool) {
-	cm.lock.Lock()
-	defer cm.lock.Unlock()
+	cm.lock.RLock()
+	defer cm.lock.RUnlock()
 	c, ok := cm.containers[id]
 	return c, ok
 }
 
 // Runc implements Connector
 func (cm *Runc) All() (containers container.Containers) {
-	cm.lock.Lock()
+	cm.lock.RLock()
 	for _, c := range cm.containers {
 		containers = append(containers, c)
 	}
+	cm.lock.RUnlock()
+
 	containers.Sort()
 	containers.Filter()
-	cm.lock.Unlock()
 	return containers
+}
+
+// Runc shutdown
+func (cm *Runc) shutdown() {
+	cm.closeOnce.Do(func() {
+		close(cm.closed)
+		close(cm.needsRefresh)
+	})
 }

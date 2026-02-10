@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/bcicen/ctop/config"
-	"github.com/bcicen/ctop/cwidgets/single"
+	"github.com/lordoverlord/ctop/config"
+	"github.com/lordoverlord/ctop/cwidgets/single"
 	ui "github.com/gizak/termui"
 )
 

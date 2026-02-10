@@ -10,14 +10,14 @@ import (
 	"github.com/opencontainers/runc/libcontainer/cgroups"
 	"github.com/opencontainers/runc/types"
 
-	"github.com/bcicen/ctop/models"
+	"github.com/lordoverlord/ctop/models"
 )
 
 // Runc collector
 type Runc struct {
 	models.Metrics
 	id         string
-	libc       libcontainer.Container
+	libc       *libcontainer.Container
 	stream     chan models.Metrics
 	done       bool
 	running    bool
@@ -26,7 +26,7 @@ type Runc struct {
 	lastSysCpu float64
 }
 
-func NewRunc(libc libcontainer.Container) *Runc {
+func NewRunc(libc *libcontainer.Container) *Runc {
 	c := &Runc{
 		Metrics:  models.Metrics{},
 		id:       libc.ID(),

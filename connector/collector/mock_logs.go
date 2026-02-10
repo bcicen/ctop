@@ -3,7 +3,7 @@ package collector
 import (
 	"time"
 
-	"github.com/bcicen/ctop/models"
+	"github.com/lordoverlord/ctop/models"
 )
 
 const mockLog = "Cura ob pro qui tibi inveni dum qua fit donec amare illic mea, regem falli contexo pro peregrinorum heremo absconditi araneae meminerim deliciosas actionibus facere modico dura sonuerunt psalmi contra rerum, tempus mala anima volebant dura quae o modis."

@@ -6,13 +6,7 @@
 
 If running `ctop` via Docker, debug logging can be most easily enabled as below:
 ```bash
-docker run -ti --rm \
-           --name=ctop \
-           -e CTOP_DEBUG=1 \
-           -e CTOP_DEBUG_TCP=1 \
-           -p 9000:9000 \
-           -v /var/run/docker.sock:/var/run/docker.sock \
-           quay.io/vektorlab/ctop:latest
+docker run -ti --rm --name=ctop -e CTOP_DEBUG=1 -e CTOP_DEBUG_TCP=1 -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock ctop:latest
 ```
 
 Log messages can be followed by connecting to the default listen address:

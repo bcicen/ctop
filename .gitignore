@@ -2,3 +2,4 @@ ctop
 .idea
 /vendor/
 *.log
+.vscode/

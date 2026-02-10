@@ -1,0 +1,193 @@
+name: Release master (docker + binaries)
+
+on:
+  push:
+    branches: [ master ]
+
+concurrency:
+  group: release-master
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_tag: ${{ steps.ver.outputs.new_tag }}
+      short_sha: ${{ steps.sha.outputs.short_sha }}
+      image_name_lc: ${{ steps.repo.outputs.image_name_lc }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate next stable semver tag
+        id: ver
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+
+          LAST_TAG="$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)"
+
+          if [[ -z "$LAST_TAG" ]]; then
+            NEW_TAG="v0.1.0"
+          else
+            VER="${LAST_TAG#v}"
+            IFS='.' read -r MA MI PA <<< "$VER"
+            PA=$((PA + 1)) # bump PATCH
+            NEW_TAG="v${MA}.${MI}.${PA}"
+          fi
+
+          echo "Last stable: ${LAST_TAG:-<none>}"
+          echo "New tag: $NEW_TAG"
+          echo "new_tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag (idempotent)
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEW_TAG="${{ steps.ver.outputs.new_tag }}"
+          git fetch --tags --force
+
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEW_TAG already exists. Skipping tag creation."
+            exit 0
+          fi
+
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"
+
+      - name: Compute short SHA
+        id: sha
+        run: |
+          echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Compute lowercase image name
+        id: repo
+        shell: bash
+        run: |
+          echo "image_name_lc=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+  docker:
+    needs: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ needs.tag.outputs.image_name_lc }}
+          tags: |
+            type=raw,value=${{ needs.tag.outputs.new_tag }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.tag.outputs.new_tag }}
+            BUILD=${{ needs.tag.outputs.short_sha }}
+
+      - name: Run Snyk to check Docker image for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ env.REGISTRY }}/${{ needs.tag.outputs.image_name_lc }}:${{ needs.tag.outputs.new_tag }}
+          command: monitor
+
+  binaries:
+    needs: tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Tidy up Go modules and get dependencies
+        run: go mod tidy
+
+      - name: Build binaries for major platforms (windows, linux, darwin)
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.tag.outputs.new_tag }}"
+          SHA="${{ needs.tag.outputs.short_sha }}"
+          LDFLAGS="-s -w -X main.version=${TAG} -X main.build=${SHA}"
+          GOOS=linux   GOARCH=amd64 go build -trimpath -ldflags="${LDFLAGS}" -o "ctop_${TAG}_linux_amd64"
+          GOOS=darwin  GOARCH=amd64 go build -trimpath -ldflags="${LDFLAGS}" -o "ctop_${TAG}_darwin_amd64"
+          GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="${LDFLAGS}" -o "ctop_${TAG}_windows_amd64.exe"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.tag.outputs.new_tag }}
+          release_name: "Release ${{ needs.tag.outputs.new_tag }}"
+          draft: false
+          prerelease: false
+
+      - name: Upload Linux binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ctop_${{ needs.tag.outputs.new_tag }}_linux_amd64
+          asset_name: ctop_${{ needs.tag.outputs.new_tag }}_linux_amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload macOS binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ctop_${{ needs.tag.outputs.new_tag }}_darwin_amd64
+          asset_name: ctop_${{ needs.tag.outputs.new_tag }}_darwin_amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./ctop_${{ needs.tag.outputs.new_tag }}_windows_amd64.exe
+          asset_name: ctop_${{ needs.tag.outputs.new_tag }}_windows_amd64.exe
+          asset_content_type: application/octet-stream
