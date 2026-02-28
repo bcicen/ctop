@@ -1,12 +1,12 @@
 package container
 
 import (
-	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/cwidgets"
-	"github.com/bcicen/ctop/cwidgets/compact"
-	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/models"
+	"github.com/lordoverlord/ctop/connector/collector"
+	"github.com/lordoverlord/ctop/connector/manager"
+	"github.com/lordoverlord/ctop/cwidgets"
+	"github.com/lordoverlord/ctop/cwidgets/compact"
+	"github.com/lordoverlord/ctop/logging"
+	"github.com/lordoverlord/ctop/models"
 )
 
 var (
@@ -38,7 +38,7 @@ func New(id string, collector collector.Collector, manager manager.Manager) *Con
 	return &Container{
 		Metrics:   models.NewMetrics(),
 		Id:        id,
-		Meta:      models.NewMeta("id", shortID),
+		Meta:      models.NewMeta("id", shortID, "uptime", "-"),
 		Widgets:   widgets,
 		updater:   widgets,
 		collector: collector,

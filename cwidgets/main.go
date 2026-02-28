@@ -1,8 +1,8 @@
 package cwidgets
 
 import (
-	"github.com/bcicen/ctop/logging"
-	"github.com/bcicen/ctop/models"
+	"github.com/lordoverlord/ctop/logging"
+	"github.com/lordoverlord/ctop/models"
 )
 
 var log = logging.Init()

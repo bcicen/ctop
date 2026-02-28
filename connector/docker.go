@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/op/go-logging"
 	"github.com/hako/durafmt"
+	"github.com/op/go-logging"
 
-	"github.com/bcicen/ctop/connector/collector"
-	"github.com/bcicen/ctop/connector/manager"
-	"github.com/bcicen/ctop/container"
 	api "github.com/fsouza/go-dockerclient"
+	"github.com/lordoverlord/ctop/connector/collector"
+	"github.com/lordoverlord/ctop/connector/manager"
+	"github.com/lordoverlord/ctop/container"
 )
 
 func init() { enabled["docker"] = NewDocker }
@@ -69,6 +69,7 @@ func NewDocker() (Connector, error) {
 
 	go cm.Loop()
 	go cm.LoopStatuses()
+	go cm.LoopUptimeUpdates()
 	cm.refreshAll()
 	go cm.watchEvents()
 	return cm, nil
@@ -143,6 +144,9 @@ func portsFormat(ports map[api.Port][]api.PortBinding) string {
 }
 
 func webPort(ports map[api.Port][]api.PortBinding) string {
+	var publishedWebPort string
+
+outer:
 	for _, v := range ports {
 		if len(v) == 0 {
 			continue
@@ -152,11 +156,11 @@ func webPort(ports map[api.Port][]api.PortBinding) string {
 			if publishedIp == "0.0.0.0" {
 				publishedIp = "localhost"
 			}
-			publishedWebPort := fmt.Sprintf("%s:%s", publishedIp, binding.HostPort)
-			return publishedWebPort
+			publishedWebPort = fmt.Sprintf("%s:%s", publishedIp, binding.HostPort)
+			break outer
 		}
 	}
-	return ""
+	return publishedWebPort
 }
 
 func ipsFormat(networks map[string]api.ContainerNetwork) string {
@@ -173,6 +177,15 @@ func ipsFormat(networks map[string]api.ContainerNetwork) string {
 func (cm *Docker) refresh(c *container.Container) {
 	insp, found, failed := cm.inspect(c.Id)
 	if failed {
+		// Inspection failed - retry after a delay (non-blocking)
+		go func(id string) {
+			time.Sleep(2 * time.Second)
+			select {
+			case cm.needsRefresh <- id:
+			default:
+				// drop if channel is full to avoid goroutine leak/block
+			}
+		}(c.Id)
 		return
 	}
 	// remove container if no longer exists
@@ -189,19 +202,32 @@ func (cm *Docker) refresh(c *container.Container) {
 		c.SetMeta("Web Port", webPort)
 	}
 	c.SetMeta("created", insp.Created.Format("Mon Jan 02 15:04:05 2006"))
-	c.SetMeta("uptime", calcUptime(insp))
-	c.SetMeta("health", insp.State.Health.Status)
+	c.SetMeta("started_at", insp.State.StartedAt.Format(time.RFC3339))
+	c.SetMeta("finished_at", insp.State.FinishedAt.Format(time.RFC3339))
+	// Only show uptime for running containers
+	if insp.State.Running {
+		c.SetMeta("uptime", calcUptime(insp))
+	} else {
+		c.SetMeta("uptime", "-")
+	}
+	// Show health status if available, otherwise set to "-"
+	health := insp.State.Health.Status
+	if health == "" {
+		health = "-"
+	}
+	c.SetMeta("health", health)
 	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
 	c.SetState(insp.State.Status)
 }
 
 func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bool) {
-	c, err := cm.client.InspectContainer(id)
+	c, err := cm.client.InspectContainerWithOptions(
+		api.InspectContainerOptions{ID: id},
+	)
 	if err != nil {
 		if _, notFound := err.(*api.NoSuchContainer); notFound {
 			return c, false, false
 		}
-		// other error e.g. connection failed
 		log.Errorf("%s (%T)", err.Error(), err)
 		return c, false, true
 	}
@@ -209,11 +235,23 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 }
 
 func calcUptime(insp *api.Container) string {
+	// Validate StartedAt timestamp
+	if insp.State.StartedAt.IsZero() || insp.State.StartedAt.Year() < 1971 {
+		return "-"
+	}
+
 	endTime := insp.State.FinishedAt
 	if endTime.IsZero() || insp.State.Running {
 		endTime = time.Now()
 	}
+
 	uptime := endTime.Sub(insp.State.StartedAt)
+
+	// Validate calculated uptime is reasonable
+	if uptime < 0 || uptime > 87600*time.Hour { // ~10 años
+		return "-"
+	}
+
 	return durafmt.Parse(uptime).LimitFirstN(1).String()
 }
 
@@ -314,4 +352,56 @@ func (cm *Docker) All() (containers container.Containers) {
 // use primary container name
 func shortName(name string) string {
 	return strings.TrimPrefix(name, "/")
+}
+
+// LoopUptimeUpdates periodically updates uptime for running containers
+func (cm *Docker) LoopUptimeUpdates() {
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			cm.lock.RLock()
+			needsRefresh := []string{}
+
+			for _, c := range cm.containers {
+				// Only update uptime for running containers
+				// For stopped containers, refresh() sets uptime to "-"
+				if c.Meta["state"] == "running" {
+					startedAtStr := c.GetMeta("started_at")
+					if startedAtStr != "" {
+						startedAt, err := time.Parse(time.RFC3339, startedAtStr)
+						if err == nil && startedAt.Year() > 1971 {
+							uptime := time.Since(startedAt)
+							// Only show uptime if it's reasonable (not in the future, not > 10 years)
+							if uptime > 0 && uptime < 87600*time.Hour {
+								c.SetMeta("uptime", durafmt.Parse(uptime).LimitFirstN(1).String())
+							} else {
+								needsRefresh = append(needsRefresh, c.Id)
+							}
+						} else {
+							needsRefresh = append(needsRefresh, c.Id)
+						}
+					} else {
+						needsRefresh = append(needsRefresh, c.Id)
+					}
+				}
+			}
+
+			cm.lock.RUnlock()
+
+			// Queue containers with bad timestamps for refresh (non-blocking)
+			for _, id := range needsRefresh {
+				select {
+				case cm.needsRefresh <- id:
+				default:
+					// Channel full, skip
+				}
+			}
+
+		case <-cm.closed:
+			return
+		}
+	}
 }

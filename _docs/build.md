@@ -14,8 +14,5 @@ make image
 Now you can run your local image:
 
 ```bash
-docker run --rm -ti \
-  --name ctop \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  ctop:latest
+docker run --rm -ti --name ctop -v /var/run/docker.sock:/var/run/docker.sock ctop:latest
 ```

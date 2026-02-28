@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bcicen/ctop/cwidgets"
+	"github.com/lordoverlord/ctop/cwidgets"
 	ui "github.com/gizak/termui"
 )
 
