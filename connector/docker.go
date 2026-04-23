@@ -228,7 +228,16 @@ func (cm *Docker) refreshAll() {
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
-		c.SetMeta("name", shortName(i.Names[0]))
+		// Docker API occasionally returns containers with an empty
+		// Names slice (observed on Docker-in-Windows 11 WSL2).
+		// Without this guard, i.Names[0] panicked refreshAll with
+		// 'index out of range [0] with length 0' and took ctop down
+		// at startup.
+		name := ""
+		if len(i.Names) > 0 {
+			name = shortName(i.Names[0])
+		}
+		c.SetMeta("name", name)
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
 	}
