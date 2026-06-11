@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"strings"
+
 	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 )
@@ -111,10 +113,13 @@ func (c *Docker) ReadNet(stats *api.Stats) {
 func (c *Docker) ReadIO(stats *api.Stats) {
 	var read, write int64
 	for _, blk := range stats.BlkioStats.IOServiceBytesRecursive {
-		if blk.Op == "Read" {
+		// cgroup v1 reports the operation as "Read"/"Write", while cgroup v2
+		// reports it lowercase as "read"/"write". Match case-insensitively so
+		// I/O stats are populated on both (otherwise cgroup v2 hosts show 0/0).
+		if strings.EqualFold(blk.Op, "Read") {
 			read += int64(blk.Value)
 		}
-		if blk.Op == "Write" {
+		if strings.EqualFold(blk.Op, "Write") {
 			write += int64(blk.Value)
 		}
 	}
