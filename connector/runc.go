@@ -186,6 +186,9 @@ func (cm *Runc) MustGet(id string) *container.Container {
 	c, ok := cm.Get(id)
 	if !ok {
 		libc := cm.GetLibc(id)
+		if libc == nil {
+			return nil
+		}
 
 		// create collector
 		collector := collector.NewRunc(libc)

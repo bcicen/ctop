@@ -20,6 +20,9 @@ func getSysMemTotal() int64 {
 		log.Errorf("error reading system stats: %s", err)
 		return 0
 	}
+	if stat == nil {
+		return 0
+	}
 	return int64(stat.MemTotal * 1024)
 }
 
@@ -28,6 +31,9 @@ func getSysCPUUsage() uint64 {
 	stat, err := linuxproc.ReadStat("/proc/stat")
 	if err != nil {
 		log.Errorf("error reading system stats: %s", err)
+		return 0
+	}
+	if stat == nil {
 		return 0
 	}
 

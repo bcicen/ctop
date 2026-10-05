@@ -68,6 +68,9 @@ func (c *Container) GetMeta(k string) string {
 
 func (c *Container) SetState(s string) {
 	c.SetMeta("state", s)
+	if c.collector == nil {
+		return
+	}
 	// start collector, if needed
 	if s == running && !c.collector.Running() {
 		c.collector.Start()

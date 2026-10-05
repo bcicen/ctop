@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"runtime"
+
 	"github.com/bcicen/ctop/models"
 	api "github.com/fsouza/go-dockerclient"
 )
@@ -76,9 +78,19 @@ func (c *Docker) Stop() {
 }
 
 func (c *Docker) ReadCPU(stats *api.Stats) {
+	if stats == nil {
+		c.NCpus = uint8(runtime.NumCPU())
+		c.CPUUtil = 0
+		c.Pids = 0
+		return
+	}
+
 	ncpus := uint8(stats.CPUStats.OnlineCPUs)
 	if ncpus == 0 {
 		ncpus = uint8(len(stats.CPUStats.CPUUsage.PercpuUsage))
+	}
+	if ncpus == 0 {
+		ncpus = uint8(runtime.NumCPU())
 	}
 	total := float64(stats.CPUStats.CPUUsage.TotalUsage)
 	system := float64(stats.CPUStats.SystemCPUUsage)
@@ -94,12 +106,33 @@ func (c *Docker) ReadCPU(stats *api.Stats) {
 }
 
 func (c *Docker) ReadMem(stats *api.Stats) {
-	c.MemUsage = int64(stats.MemoryStats.Usage - stats.MemoryStats.Stats.Cache)
+	if stats == nil {
+		c.MemUsage = 0
+		c.MemLimit = 0
+		c.MemPercent = 0
+		return
+	}
+
+	cache := stats.MemoryStats.Stats.Cache
+	if cache == 0 && stats.MemoryStats.Stats.InactiveFile > 0 {
+		cache = stats.MemoryStats.Stats.InactiveFile
+	}
+	if stats.MemoryStats.Usage >= cache {
+		c.MemUsage = int64(stats.MemoryStats.Usage - cache)
+	} else {
+		c.MemUsage = int64(stats.MemoryStats.Usage)
+	}
 	c.MemLimit = int64(stats.MemoryStats.Limit)
 	c.MemPercent = percent(float64(c.MemUsage), float64(c.MemLimit))
 }
 
 func (c *Docker) ReadNet(stats *api.Stats) {
+	if stats == nil {
+		c.NetRx = 0
+		c.NetTx = 0
+		return
+	}
+
 	var rx, tx int64
 	for _, network := range stats.Networks {
 		rx += int64(network.RxBytes)
@@ -109,6 +142,12 @@ func (c *Docker) ReadNet(stats *api.Stats) {
 }
 
 func (c *Docker) ReadIO(stats *api.Stats) {
+	if stats == nil {
+		c.IOBytesRead = 0
+		c.IOBytesWrite = 0
+		return
+	}
+
 	var read, write int64
 	for _, blk := range stats.BlkioStats.IOServiceBytesRecursive {
 		if blk.Op == "Read" {

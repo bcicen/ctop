@@ -4,6 +4,7 @@
 package collector
 
 import (
+	"runtime"
 	"time"
 
 	"github.com/opencontainers/runc/libcontainer"
@@ -71,9 +72,17 @@ func (c *Runc) run() {
 			break
 		}
 
-		c.ReadCPU(stats.CgroupStats)
-		c.ReadMem(stats.CgroupStats)
-		c.ReadNet(stats.Interfaces)
+		if stats != nil {
+			c.ReadCPU(stats.CgroupStats)
+			c.ReadMem(stats.CgroupStats)
+			c.ReadIO(stats.CgroupStats)
+			c.ReadNet(stats.Interfaces)
+		} else {
+			c.ReadCPU(nil)
+			c.ReadMem(nil)
+			c.ReadIO(nil)
+			c.ReadNet(nil)
+		}
 
 		c.stream <- c.Metrics
 		if c.done {
@@ -86,8 +95,17 @@ func (c *Runc) run() {
 }
 
 func (c *Runc) ReadCPU(stats *cgroups.Stats) {
+	if stats == nil {
+		c.NCpus = uint8(runtime.NumCPU())
+		c.CPUUtil = 0
+		c.Pids = 0
+		return
+	}
 	u := stats.CpuStats.CpuUsage
 	ncpus := uint8(len(u.PercpuUsage))
+	if ncpus == 0 {
+		ncpus = uint8(runtime.NumCPU())
+	}
 	total := float64(u.TotalUsage)
 	system := float64(getSysCPUUsage())
 
@@ -102,6 +120,12 @@ func (c *Runc) ReadCPU(stats *cgroups.Stats) {
 }
 
 func (c *Runc) ReadMem(stats *cgroups.Stats) {
+	if stats == nil {
+		c.MemUsage = 0
+		c.MemLimit = 0
+		c.MemPercent = 0
+		return
+	}
 	c.MemUsage = int64(stats.MemoryStats.Usage.Usage)
 	c.MemLimit = int64(stats.MemoryStats.Usage.Limit)
 	if c.MemLimit > sysMemTotal && sysMemTotal > 0 {
@@ -113,6 +137,9 @@ func (c *Runc) ReadMem(stats *cgroups.Stats) {
 func (c *Runc) ReadNet(interfaces []*types.NetworkInterface) {
 	var rx, tx int64
 	for _, network := range interfaces {
+		if network == nil {
+			continue
+		}
 		rx += int64(network.RxBytes)
 		tx += int64(network.TxBytes)
 	}
@@ -120,6 +147,11 @@ func (c *Runc) ReadNet(interfaces []*types.NetworkInterface) {
 }
 
 func (c *Runc) ReadIO(stats *cgroups.Stats) {
+	if stats == nil {
+		c.IOBytesRead = 0
+		c.IOBytesWrite = 0
+		return
+	}
 	var read, write int64
 	for _, blk := range stats.BlkioStats.IoServiceBytesRecursive {
 		if blk.Op == "Read" {

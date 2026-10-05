@@ -180,22 +180,32 @@ func (cm *Docker) refresh(c *container.Container) {
 		cm.delByID(c.Id)
 		return
 	}
+	if insp == nil {
+		return
+	}
 	c.SetMeta("name", shortName(insp.Name))
-	c.SetMeta("image", insp.Config.Image)
-	c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
-	c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
-	webPort := webPort(insp.NetworkSettings.Ports)
-	if webPort != "" {
-		c.SetMeta("Web Port", webPort)
+	if insp.Config != nil {
+		c.SetMeta("image", insp.Config.Image)
+		c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
+	}
+	if insp.NetworkSettings != nil {
+		c.SetMeta("IPs", ipsFormat(insp.NetworkSettings.Networks))
+		c.SetMeta("ports", portsFormat(insp.NetworkSettings.Ports))
+		webPort := webPort(insp.NetworkSettings.Ports)
+		if webPort != "" {
+			c.SetMeta("Web Port", webPort)
+		}
 	}
 	c.SetMeta("created", insp.Created.Format("Mon Jan 02 15:04:05 2006"))
 	c.SetMeta("uptime", calcUptime(insp))
 	c.SetMeta("health", insp.State.Health.Status)
-	c.SetMeta("[ENV-VAR]", strings.Join(insp.Config.Env, ";"))
 	c.SetState(insp.State.Status)
 }
 
 func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bool) {
+	if cm.client == nil {
+		return nil, false, false
+	}
 	c, err := cm.client.InspectContainer(id)
 	if err != nil {
 		if _, notFound := err.(*api.NoSuchContainer); notFound {
@@ -209,6 +219,9 @@ func (cm *Docker) inspect(id string) (insp *api.Container, found bool, failed bo
 }
 
 func calcUptime(insp *api.Container) string {
+	if insp == nil || insp.State.StartedAt.IsZero() {
+		return ""
+	}
 	endTime := insp.State.FinishedAt
 	if endTime.IsZero() || insp.State.Running {
 		endTime = time.Now()
@@ -219,6 +232,9 @@ func calcUptime(insp *api.Container) string {
 
 // Mark all container IDs for refresh
 func (cm *Docker) refreshAll() {
+	if cm.client == nil {
+		return
+	}
 	opts := api.ListContainersOptions{All: true}
 	allContainers, err := cm.client.ListContainers(opts)
 	if err != nil {
@@ -228,7 +244,11 @@ func (cm *Docker) refreshAll() {
 
 	for _, i := range allContainers {
 		c := cm.MustGet(i.ID)
-		c.SetMeta("name", shortName(i.Names[0]))
+		if len(i.Names) > 0 {
+			c.SetMeta("name", shortName(i.Names[0]))
+		} else {
+			c.SetMeta("name", "")
+		}
 		c.SetState(i.State)
 		cm.needsRefresh <- c.Id
 	}
