@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -90,6 +92,7 @@ func main() {
 		InvertColorMap()
 	}
 	ui.ColorMap = ColorMap // override default colormap
+	fixTerminfoEnv()
 	if err := ui.Init(); err != nil {
 		panic(err)
 	}
@@ -129,6 +132,31 @@ func validSort(s string) {
 		fmt.Printf("invalid sort field: %s\n", s)
 		os.Exit(1)
 	}
+}
+
+// fixTerminfoEnv works around termbox-go only searching $TERMINFO when it is
+// set. ncurses treats $TERMINFO as the first search location and falls back to
+// ~/.terminfo, $TERMINFO_DIRS and the system directories. Terminals such as
+// Ghostty export TERMINFO pointing at their own bundled database, which is then
+// inherited by e.g. tmux (TERM=tmux-256color) and makes termbox fail with
+// "unsupported terminal". If $TERMINFO has no entry for $TERM, unset it so
+// termbox uses its regular search path.
+func fixTerminfoEnv() {
+	dir, term := os.Getenv("TERMINFO"), os.Getenv("TERM")
+	if dir == "" || term == "" {
+		return
+	}
+	candidates := []string{
+		filepath.Join(dir, term[0:1], term),
+		filepath.Join(dir, hex.EncodeToString([]byte(term[0:1])), term),
+	}
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			return
+		}
+	}
+	log.Debugf("no terminfo entry for %q in TERMINFO=%s, unsetting", term, dir)
+	os.Unsetenv("TERMINFO")
 }
 
 func panicExit() {
